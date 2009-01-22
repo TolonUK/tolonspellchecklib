@@ -6,7 +6,7 @@
 
 using namespace TolonSpellCheck;
 
-CSession::CSession() :
+CSession::CSession(TSC_CREATESESSION_DATA* pData) :
 	m_bInitialised(false),
 	m_pEnchantBroker(NULL)
 {
@@ -123,14 +123,14 @@ tsc_result CSession::CheckWord(const char* szWord)
 
 tsc_result CSession::ShowOptionsWindow()
 {
+    AFX_MANAGE_STATE(AfxGetStaticModuleState());
+    
 	if (!IsInitialised())
 		return TSC_E_UNEXPECTED;
     
     CSpellingOptionsDlg dlg;
     
-    AfxMessageBox(_T("Before"));
     dlg.DoModal();
-    AfxMessageBox(_T("After"));
     
     return TSC_S_OK;
 }

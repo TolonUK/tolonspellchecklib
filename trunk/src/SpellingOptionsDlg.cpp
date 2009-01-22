@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "SpellingOptionsDlg.h"
-
+#include "LanguageDlg.h"
 
 // CSpellingOptionsDlg dialog
 
@@ -26,7 +26,13 @@ void CSpellingOptionsDlg::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CSpellingOptionsDlg, CDialog)
+    ON_BN_CLICKED(IDC_BUTTON1, &CSpellingOptionsDlg::OnDicLangClicked)
 END_MESSAGE_MAP()
 
 
 // CSpellingOptionsDlg message handlers
+void CSpellingOptionsDlg::OnDicLangClicked()
+{
+    CLanguageDlg dlg;
+    dlg.DoModal();
+}

@@ -10,6 +10,9 @@
 #define TSC_API extern
 #endif
 
+#define TSC_VERSION_MAJOR	0
+#define TSC_VERSION_MINOR	0
+
 #define TSC_CALLTYPE __stdcall
 
 #define tsc_false 0
@@ -25,8 +28,11 @@ typedef unsigned long tsc_cookie;
 #define TSC_S_OK (S_OK)
 #define TSC_E_FAIL (E_FAIL)
 // TSC_E_INVALIDARG implies that one or more of the arguments
-// passed to a function are invalid (e.g. NULL).
+// passed to a function are invalid (e.g. struct size incorrect).
 #define TSC_E_INVALIDARG (E_INVALIDARG)
+// TSC_E_POINTER implies that one or more pointer arguments
+// were null.
+#define TSC_E_POINTER (E_POINTER)
 // TSC_E_UNEXPECTED implies that the call was not expected, 
 // such as before the library has been initialised.
 #define TSC_E_UNEXPECTED (E_UNEXPECTED)
@@ -42,7 +48,8 @@ typedef unsigned long tsc_cookie;
 #pragma pack(push)
 #pragma pack(1)
 typedef struct tagTSC_INIT {
-	char	szAppName[32]; //short name used internally only
+    tsc_size_t cbSize;
+    char szAppName[32]; //short name used internally only
 } TSC_INIT_DATA;
 
 typedef struct tagTSC_VERSION {
@@ -50,13 +57,15 @@ typedef struct tagTSC_VERSION {
     tsc_byte nMajor;
     tsc_byte nMinor;
     tsc_byte nReserved1;
-    tsc_byte nReserver2;
+    tsc_byte nReserved2;
 } TSC_VERSION_DATA;
 
 typedef struct tagTSC_CREATESESSION {
+    tsc_size_t cbSize;
 } TSC_CREATESESSION_DATA;
 
 typedef struct tagTSC_SESSIONOPTIONS {
+    tsc_size_t cbSize;
     tsc_bool bIgnoreUserDictionaries;
     tsc_bool bIgnoreUppercaseWords;
     tsc_bool bIgnoreWordsWithNumbers;
@@ -68,6 +77,7 @@ typedef struct tagTSC_SESSIONOPTIONS {
 } TSC_SESSIONOPTIONS_DATA;
 
 typedef struct tagTSC_SHOWOPTIONSWINDOW {
+    tsc_size_t cbSize;
     HWND hWndParent;
 } TSC_SHOWOPTIONSWINDOW_DATA;
 
@@ -83,6 +93,7 @@ enum enumCheckSpellingTarget {
     TARGET_COUNT };
 
 typedef struct tagTSC_CHECKSPELLING {
+    tsc_size_t cbSize;
     HWND hWndParent;
     tsc_byte nTarget;
     tsc_byte nReserved1;
@@ -92,6 +103,7 @@ typedef struct tagTSC_CHECKSPELLING {
 } TSC_CHECKSPELLING_DATA;
 
 typedef struct tagTSC_CHECKWORD {
+    tsc_size_t cbSize;
 	// In
 	union {
 		const char* szWord8; // UTF-8
@@ -118,6 +130,9 @@ TSC_API tsc_result TSC_CALLTYPE
 
 TSC_API tsc_result TSC_CALLTYPE 
 	tscGetVersion( TSC_VERSION_DATA* pData );
+
+TSC_API tsc_result TSC_CALLTYPE
+	tscGetLastError( const char ** ppszError );
 
 TSC_API tsc_result TSC_CALLTYPE 
 	tscCreateSession( tsc_cookie* pSessionID,

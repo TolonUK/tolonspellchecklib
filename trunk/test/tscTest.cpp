@@ -8,6 +8,7 @@ void util_end_test(bool bResult);
 void util_is_expected(tsc_result r, bool& bSetFalseIfFailed);
 void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfNotFailed);
 void util_is_success(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfFailed);
+const char* util_textify_result(tsc_result r);
 void check_test(bool bResult);
 void print_stats();
 // The tests
@@ -18,6 +19,7 @@ bool test_normal_init_uninit();
 bool test_show_options();
 bool test_word();
 
+static char s_szTextResult[64];
 static int g_nTestStartCount, g_nTestEndCount, g_nSuccessCount, g_nFailCount;
 static const char* g_szLine = "--------------------------------------------------------------------------------";
 
@@ -78,7 +80,7 @@ void util_is_expected(char* szTestPartName, const tsc_result rExpected, const ts
         cout << "\t" << szTestPartName <<" ok" << endl;
     }
     else {
-        cout << "\t" << szTestPartName <<" FAIL; expected 0x" << hex << rExpected << ",got 0x" << hex << rActual << endl;
+        cout << "\t" << szTestPartName <<" FAIL; expected " << util_textify_result(rExpected) << ", got " << util_textify_result(rActual) << endl;
         bSetFalseIfFailed = false; 
     }
 }
@@ -89,7 +91,7 @@ void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetF
         cout << "\t" << szTestPartName <<" ok" << endl;
     }
     else {
-        cout << "\t" << szTestPartName <<" FAIL; expected failure, got 0x" << hex << rActual << endl;
+        cout << "\t" << szTestPartName <<" FAIL; expected failure, got " << util_textify_result(rActual) << endl;
         bSetFalseIfNotFailed = false; 
     }
 }
@@ -100,9 +102,33 @@ void util_is_success(char* szTestPartName, const tsc_result rActual, bool& bSetF
         cout << "\t" << szTestPartName <<" ok" << endl;
     }
     else {
-        cout << "\t" << szTestPartName <<" FAIL; expected success, got 0x" << hex << rActual << endl;
+        cout << "\t" << szTestPartName <<" FAIL; expected success, got " << util_textify_result(rActual) << endl;
         bSetFalseIfFailed = false; 
     }
+}
+
+const char* util_textify_result(tsc_result r)
+{
+    switch(r)
+    {
+        case TSC_S_FALSE:
+            return "TSC_S_FALSE";
+        case TSC_S_OK:
+            return "TSC_S_OK";
+        case TSC_E_FAIL:
+            return "TSC_E_FAIL";
+        case TSC_E_INVALIDARG:
+            return "TSC_E_INVALIDARG";
+        case TSC_E_POINTER:
+            return "TSC_E_POINTER";
+        case TSC_E_UNEXPECTED:
+            return "TSC_E_UNEXPECTED";
+        default:
+            sprintf(s_szTextResult, "unknown 0x%08X", r);
+            return s_szTextResult;
+    }
+    
+    return "";
 }
 
 // Tests below are in alphabetical order
@@ -116,6 +142,7 @@ bool test_abnormal_init_uninit()
     util_begin_test("Testing abnormal tscInit/tscUninit sequences...");
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
+    id.cbSize = sizeof(TSC_INIT_DATA);
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     
     // Test uninit without init
@@ -142,16 +169,23 @@ bool test_abnormal_init_uninit()
 bool test_getversion()
 {
     bool bTestResult = true;
-    tsc_result tr;
+    tsc_result r;
+    TSC_INIT_DATA id;
     TSC_VERSION_DATA vd;
     
     util_begin_test("Testing tscGetVersion...");
     
+    memset(&id, 0xff, sizeof(TSC_INIT_DATA));
+    id.cbSize = sizeof(TSC_INIT_DATA);
+    strcpy(id.szAppName, "TestAppName01234567890123456789");
+    r = ::tscInit(&id);
+    
     memset(&vd, 0xff, sizeof(TSC_VERSION_DATA));
+    vd.cbSize = sizeof(TSC_VERSION_DATA);
+    r = ::tscGetVersion(&vd);
+    util_is_success("tscGetVersion", r, bTestResult);
     
-    tr = ::tscGetVersion(&vd);
-    
-    util_is_success("tscGetVersion", tr, bTestResult);
+    r = ::tscUninit();
     
     util_end_test(bTestResult);
     
@@ -198,7 +232,7 @@ bool test_no_init()
     
     util_end_test(bTestResult);
     
-    return false;
+    return bTestResult;
 }
 
 bool test_normal_init_uninit()
@@ -210,6 +244,7 @@ bool test_normal_init_uninit()
     util_begin_test("Testing normal tscInit/tscUninit sequence...");
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
+    id.cbSize = sizeof(TSC_INIT_DATA);
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     
     r = ::tscInit(&id);
@@ -227,22 +262,39 @@ bool test_show_options()
 {
     bool bTestResult = true;
     tsc_result r;
+    tsc_cookie c = TSC_NULL_COOKIE;
+    
+    util_begin_test("Testing tscShowOptionsWindow...");
+    
+    // Init module
     TSC_INIT_DATA id;
-    //TSC_CHECKWORD_DATA cw;
-    const char* szWordToTest = "helllllo";
-    
-    util_begin_test("Testing tscCheckWord(\"helllo\")...");
-    
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
+    id.cbSize = sizeof(TSC_INIT_DATA);
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     r = ::tscInit(&id);
+    util_is_success("tscInit", r, bTestResult); 
     
-    //memset(&cw, 0xff, sizeof(TSC_CHECKWORD_DATA));
-    //cw.uTestWord.szWord8 = szWordToTest;
-    r = ::tscShowOptionsWindow(TSC_NULL_COOKIE, NULL);   
-    util_is_success("tscShowOptionsWindow", r, bTestResult);    
+    // Create session
+    TSC_CREATESESSION_DATA cs;
+    memset(&cs, 0xff, sizeof(TSC_CREATESESSION_DATA));
+    cs.cbSize = sizeof(TSC_CREATESESSION_DATA);
+    r = ::tscCreateSession(&c, &cs);
+    util_is_success("tscCreateSession", r, bTestResult); 
     
+    TSC_SHOWOPTIONSWINDOW_DATA sow;
+    memset(&sow, 0xff, sizeof(TSC_SHOWOPTIONSWINDOW_DATA));
+    sow.cbSize = sizeof(TSC_SHOWOPTIONSWINDOW_DATA);
+    sow.hWndParent = NULL;
+    r = ::tscShowOptionsWindow(c, &sow);   
+    util_is_success("tscShowOptionsWindow", r, bTestResult);   
+    
+    // Destroy session
+    r = ::tscDestroySession(c);
+    util_is_success("tscDestroySession", r, bTestResult);  
+    
+    // Uninit module
     r = ::tscUninit();
+    util_is_success("tscUninit", r, bTestResult);  
     
     util_end_test(bTestResult);
     
@@ -260,6 +312,7 @@ bool test_word()
     util_begin_test("Testing tscCheckWord(\"helllo\")...");
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
+    id.cbSize = sizeof(TSC_INIT_DATA);
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     r = ::tscInit(&id);
     

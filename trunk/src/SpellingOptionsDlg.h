@@ -19,5 +19,8 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
+public:
+    afx_msg void OnDicLangClicked();
+
 	DECLARE_MESSAGE_MAP()
 };

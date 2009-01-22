@@ -6,6 +6,7 @@ EXPORTS
 	tscInit					@1
 	tscUninit				@2
 	tscGetVersion			@10
+	tscGetLastError			@11
 	tscCreateSession		@20
 	tscDestroySession		@21
 	tscGetSessionOptions	@22

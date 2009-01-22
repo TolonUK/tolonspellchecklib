@@ -9,7 +9,7 @@ namespace TolonSpellCheck {
 class CSession
 {
 public:
-    CSession();
+    CSession(TSC_CREATESESSION_DATA* pData);
     ~CSession();
 
 	tsc_result Init();
