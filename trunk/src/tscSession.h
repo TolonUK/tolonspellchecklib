@@ -9,6 +9,12 @@ namespace TolonSpellCheck {
 class CSession
 {
 public:
+    static void cbEnchantDictDescribe( const char * const lang_tag,
+                                         const char * const provider_name,
+                                         const char * const provider_desc,
+                                         const char * const provider_file,
+                                         void * user_data );
+public:
     CSession(TSC_CREATESESSION_DATA* pData);
     ~CSession();
 
@@ -28,6 +34,7 @@ protected:
 	bool m_bInitialised;
 	EnchantBroker* m_pEnchantBroker;
 	EnchantDict* m_pEnchantDict;
+    TSC_SESSIONOPTIONS_DATA m_options;
 };
 
 } //namespace
