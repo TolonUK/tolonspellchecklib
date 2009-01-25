@@ -123,7 +123,7 @@ tsc_result CSession::CheckWord(const char* szWord)
 		return TSC_E_UNEXPECTED;
 
 	if (!szWord)
-		return TSC_E_INVALIDARG;
+		return TSC_E_POINTER;
 
 	if ( enchant_dict_check(m_pEnchantDict, szWord, -1) == 0 )
 	{
@@ -157,7 +157,7 @@ tsc_result CSession::ShowOptionsWindow()
 	if (!IsInitialised())
 		return TSC_E_UNEXPECTED;
 	
-	CSpellingOptionsDlg dlg;
+	CSpellingOptionsDlg dlg(this);
 	
 	dlg.DoModal();
 	
@@ -189,4 +189,101 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
 	s.Format(_T("%s, %s, %s"), wszLangTag, wszProvName, wszProvDesc);
 	
 	AfxMessageBox(s);
+}
+
+tsc_result CSession::GetCurrentLanguage(const wchar_t* wszLang) const
+{
+	if (!IsInitialised())
+		return TSC_E_UNEXPECTED;
+
+	if (!ppwszLang)
+		return TSC_E_POINTER;
+	
+	tsc_result result = TSC_E_FAIL;
+	int n = 0;
+//	tsc_sizet nwszLen = _wcslen(wszLang);
+	
+//	if (nwszLen > 12)
+//		return TSC_E_INVALIDARG; // lang descriptor was too long
+	
+	char szLang[13];
+	result = GetCurrentLanguage(szLang);
+	if (SUCCEEDED(result))
+	{
+		n = ::MultiByteToWideChar(CP_UTF8, 0, szLang, -1, wszLang, 13);
+		if (!n)
+			result = TSC_E_FAIL;
+	}
+	
+	return result;
+}
+
+tsc_result CSession::GetCurrentLanguage(const char* szLang) const
+{
+	if (!IsInitialised())
+		return TSC_E_UNEXPECTED;
+
+	if (!ppszLang)
+		return TSC_E_POINTER;
+	
+	strcpy(szLang, m_options.szDictionaryCulture, strlen(m_options.szDictionaryCulture));
+	return TSC_S_OK;
+}
+
+tsc_result CSession::DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pWideData) const
+{
+	if (!IsInitialised())
+		return TSC_E_UNEXPECTED;
+
+	if (!wszLang || !pData)
+		return TSC_E_POINTER;
+	
+	tsc_result result = TSC_E_FAIL;
+	int n = 0;
+	tsc_sizet nwszLen = _wcslen(wszLang);
+	
+	if (nwszLen > 12)
+		return TSC_E_INVALIDARG; // lang descriptor was too long
+	
+	char szLang[13];
+	n = ::WideCharToMultiByte(CP_UTF8, 0, wszLang, nwszLen, szLang, 13, NULL, NULL);
+	
+	if (n)
+	{
+		LANGUAGE_DESC_DATA data;
+		memset(data, 0, sizeof(LANGUAGE_DESC_DATA));
+		result = DescribeLangauge(szLang, &data);
+		
+		if (SUCCEEDED(result))
+		{
+			n = ::MultiByteToWideChar(CP_UTF8, 0, data.szDisplayName, -1, pWideData.wszDisplayName, 128);
+			if (!n)
+				result = TSC_E_FAIL;
+		}
+	}
+	
+	return result;
+}
+
+tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData) const
+{
+	tsc_result result = TSC_E_FAIL;
+
+	if (!IsInitialised())
+		return TSC_E_UNEXPECTED;
+
+	if (!szLang || !pData)
+		return TSC_E_POINTER;
+	
+	if (_stricmp(szLang, "en-gb") == 0)
+	{
+		strcpy(pData.szDisplayName, "English, British (en-gb)");
+		result = TSC_S_OK;
+	}
+	else
+	{
+		result = TSC_S_FALSE;
+	}
+	
+	return result;
 }

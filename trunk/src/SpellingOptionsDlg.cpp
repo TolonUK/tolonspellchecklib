@@ -9,8 +9,9 @@
 
 IMPLEMENT_DYNAMIC(CSpellingOptionsDlg, CDialog)
 
-CSpellingOptionsDlg::CSpellingOptionsDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CSpellingOptionsDlg::IDD, pParent)
+CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSession* pSession, CWnd* pParent /*=NULL*/) :
+    CDialog(CSpellingOptionsDlg::IDD, pParent),
+    m_pSession(pSession)
 {
 
 }
@@ -31,8 +32,15 @@ END_MESSAGE_MAP()
 
 
 // CSpellingOptionsDlg message handlers
+BOOL CSpellingOptionsDlg::OnInitDialog()
+{
+    CDialog::OnInitDialog();
+    
+    return TRUE;
+}
+
 void CSpellingOptionsDlg::OnDicLangClicked()
 {
-    CLanguageDlg dlg;
+    CLanguageDlg dlg(m_pSession);
     dlg.DoModal();
 }

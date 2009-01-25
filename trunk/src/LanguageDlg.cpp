@@ -9,8 +9,9 @@
 
 IMPLEMENT_DYNAMIC(CLanguageDlg, CDialog)
 
-CLanguageDlg::CLanguageDlg(CWnd* pParent /*=NULL*/)
-	: CDialog(CLanguageDlg::IDD, pParent)
+CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSession* pSession, CWnd* pParent /*=NULL*/) :
+	CDialog(CLanguageDlg::IDD, pParent),
+    m_pSession(pSession)
 {
 
 }
@@ -30,3 +31,9 @@ END_MESSAGE_MAP()
 
 
 // CLanguageDlg message handlers
+BOOL CLanguageDlg::OnInitDialog()
+{
+    CDialog::OnInitDialog();
+    
+    return TRUE;
+}

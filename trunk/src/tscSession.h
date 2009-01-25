@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TolonSpellCheck.h"
+#include "TolonSpellCheckInternals.h"
 typedef int ssize_t;
 #include "enchant.h"
 
@@ -29,6 +30,12 @@ public:
 
 	void SetInitialised(bool b)
 		{ m_bInitialised = b; }
+	
+	tsc_result GetCurrentLanguage(const wchar_t* ppwszLang) const;
+	tsc_result GetCurrentLanguage(const char* ppszLang) const;
+		
+	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData) const;
+	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData) const;
 
 protected:
 	bool m_bInitialised;
