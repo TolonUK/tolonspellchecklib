@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "TolonSpellCheck.h"
+#include "TolonSpellCheck.h"
 
 namespace TolonSpellCheck {
 	typedef struct tagLANGUAGE_DESC {

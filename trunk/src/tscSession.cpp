@@ -63,8 +63,6 @@ tsc_result CSession::Init()
 			}
 		}
 		
-		MessageBoxA(NULL, m_options.szDictionaryCulture, NULL, MB_OK);
-		
 		// Initialise the enchant library
 		m_pEnchantBroker = enchant_broker_init();
 
@@ -161,7 +159,7 @@ tsc_result CSession::ShowOptionsWindow()
 	
 	dlg.DoModal();
 	
-	enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, NULL);
+	//enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, NULL);
 	
 	return TSC_S_OK;
 }
@@ -191,12 +189,12 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
 	AfxMessageBox(s);
 }
 
-tsc_result CSession::GetCurrentLanguage(const wchar_t* wszLang) const
+tsc_result CSession::GetCurrentLanguage(wchar_t* wszLang) const
 {
 	if (!IsInitialised())
 		return TSC_E_UNEXPECTED;
 
-	if (!ppwszLang)
+	if (!wszLang)
 		return TSC_E_POINTER;
 	
 	tsc_result result = TSC_E_FAIL;
@@ -218,15 +216,15 @@ tsc_result CSession::GetCurrentLanguage(const wchar_t* wszLang) const
 	return result;
 }
 
-tsc_result CSession::GetCurrentLanguage(const char* szLang) const
+tsc_result CSession::GetCurrentLanguage(char* szLang) const
 {
 	if (!IsInitialised())
 		return TSC_E_UNEXPECTED;
 
-	if (!ppszLang)
+	if (!szLang)
 		return TSC_E_POINTER;
 	
-	strcpy(szLang, m_options.szDictionaryCulture, strlen(m_options.szDictionaryCulture));
+	strcpy(szLang, m_options.szDictionaryCulture);
 	return TSC_S_OK;
 }
 
@@ -235,28 +233,32 @@ tsc_result CSession::DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDE
 	if (!IsInitialised())
 		return TSC_E_UNEXPECTED;
 
-	if (!wszLang || !pData)
+	if (!wszLang || !pWideData)
 		return TSC_E_POINTER;
 	
 	tsc_result result = TSC_E_FAIL;
 	int n = 0;
-	tsc_sizet nwszLen = _wcslen(wszLang);
+	tsc_size_t nwszLen = wcslen(wszLang);
 	
 	if (nwszLen > 12)
 		return TSC_E_INVALIDARG; // lang descriptor was too long
 	
 	char szLang[13];
+	memset(szLang, 0, sizeof(szLang));
 	n = ::WideCharToMultiByte(CP_UTF8, 0, wszLang, nwszLen, szLang, 13, NULL, NULL);
+	
+	MessageBoxW(NULL, wszLang, L"test1-before", MB_OK);
+	MessageBoxA(NULL, szLang, "test1-after", MB_OK);
 	
 	if (n)
 	{
 		LANGUAGE_DESC_DATA data;
-		memset(data, 0, sizeof(LANGUAGE_DESC_DATA));
-		result = DescribeLangauge(szLang, &data);
+		memset(&data, 0, sizeof(LANGUAGE_DESC_DATA));
+		result = DescribeLanguage(szLang, &data);
 		
 		if (SUCCEEDED(result))
 		{
-			n = ::MultiByteToWideChar(CP_UTF8, 0, data.szDisplayName, -1, pWideData.wszDisplayName, 128);
+			n = ::MultiByteToWideChar(CP_UTF8, 0, data.szDisplayName, -1, pWideData->wszDisplayName, 128);
 			if (!n)
 				result = TSC_E_FAIL;
 		}
@@ -277,7 +279,7 @@ tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pD
 	
 	if (_stricmp(szLang, "en-gb") == 0)
 	{
-		strcpy(pData.szDisplayName, "English, British (en-gb)");
+		strcpy(pData->szDisplayName, "English, British (en-gb)");
 		result = TSC_S_OK;
 	}
 	else
