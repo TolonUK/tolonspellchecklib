@@ -21,9 +21,15 @@ public:
 
 	tsc_result Init();
 	tsc_result Uninit();
+
 	tsc_result CheckWord(const char* szWord);
 
-    tsc_result ShowOptionsWindow();
+	// API Support
+	tsc_result CheckWord(TSC_CHECKWORD_DATA* pData);
+	tsc_result ShowOptionsWindow();
+	tsc_result CheckSpelling(TSC_CHECKSPELLING_DATA* pData);
+	tsc_result GetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData);
+	tsc_result SetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData);
 
 	bool IsInitialised() const
 		{ return m_bInitialised; }
@@ -31,17 +37,31 @@ public:
 	void SetInitialised(bool b)
 		{ m_bInitialised = b; }
 	
-	tsc_result GetCurrentLanguage(wchar_t* ppwszLang) const;
-	tsc_result GetCurrentLanguage(char* ppszLang) const;
+	tsc_result GetCurrentLanguage(wchar_t* ppwszLang);
+	tsc_result GetCurrentLanguage(char* ppszLang);
 		
-	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData) const;
-	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData) const;
+	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData);
+	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData);
+		
+	const char* const GetLastError() const
+		{ return m_szLastError; }
+		
+	tsc_result EnumLanguages(LanguageEnumFn pfn, void* pUserData);
+
+protected:
+	tsc_result Error_NotImplemented();
+	tsc_result Error_ParamWasNull();
+	tsc_result Error_SessionAlreadyInitialised();
+	tsc_result Error_SessionNotInitialised();
+	tsc_result Error_StructSizeInvalid();
+	tsc_result Success();
 
 protected:
 	bool m_bInitialised;
 	EnchantBroker* m_pEnchantBroker;
 	EnchantDict* m_pEnchantDict;
-    TSC_SESSIONOPTIONS_DATA m_options;
+	TSC_SESSIONOPTIONS_DATA m_options;
+	const char* m_szLastError;
 };
 
 } //namespace

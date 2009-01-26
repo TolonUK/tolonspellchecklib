@@ -30,6 +30,8 @@ typedef unsigned long tsc_cookie;
 // TSC_E_INVALIDARG implies that one or more of the arguments
 // passed to a function are invalid (e.g. struct size incorrect).
 #define TSC_E_INVALIDARG (E_INVALIDARG)
+// TSC_E_NOTIMPL indicates the function is not fully implemented.
+#define TSC_E_NOTIMPL (E_NOTIMPL)
 // TSC_E_POINTER implies that one or more pointer arguments
 // were null.
 #define TSC_E_POINTER (E_POINTER)
@@ -48,62 +50,62 @@ typedef unsigned long tsc_cookie;
 #pragma pack(push)
 #pragma pack(1)
 typedef struct tagTSC_INIT {
-    tsc_size_t cbSize;
-    char szAppName[32]; //short name used internally only
+	tsc_size_t cbSize;
+	char szAppName[32]; //short name used internally only
 } TSC_INIT_DATA;
 
 typedef struct tagTSC_VERSION {
-    tsc_size_t cbSize;
-    tsc_byte nMajor;
-    tsc_byte nMinor;
-    tsc_byte nReserved1;
-    tsc_byte nReserved2;
+	tsc_size_t cbSize;
+	tsc_byte nMajor;
+	tsc_byte nMinor;
+	tsc_byte nReserved1;
+	tsc_byte nReserved2;
 } TSC_VERSION_DATA;
 
 typedef struct tagTSC_CREATESESSION {
-    tsc_size_t cbSize;
+	tsc_size_t cbSize;
 } TSC_CREATESESSION_DATA;
 
 typedef struct tagTSC_SESSIONOPTIONS {
-    tsc_size_t cbSize;
-    tsc_bool bIgnoreUserDictionaries;
-    tsc_bool bIgnoreUppercaseWords;
-    tsc_bool bIgnoreWordsWithNumbers;
-    tsc_bool bIgnoreUris;
-    char     szDictionaryCulture[12]; //UTF8, allow for "ab-cd-efgh"
-    char     szPreferredProvider[8]; // UTF8, { "aspell" | "ispell" | "myspell" | "uspell" | "voikko" | "zemb" }
-    tsc_byte nReserved1;
-    tsc_byte nReserved2;
+	tsc_size_t cbSize;
+	tsc_bool bIgnoreUserDictionaries;
+	tsc_bool bIgnoreUppercaseWords;
+	tsc_bool bIgnoreWordsWithNumbers;
+	tsc_bool bIgnoreUris;
+	char     szDictionaryCulture[12]; //UTF8, allow for "ab-cd-efgh"
+	char     szPreferredProvider[8]; // UTF8, { "aspell" | "ispell" | "myspell" | "uspell" | "voikko" | "zemb" }
+	tsc_byte nReserved1;
+	tsc_byte nReserved2;
 } TSC_SESSIONOPTIONS_DATA;
 
 typedef struct tagTSC_SHOWOPTIONSWINDOW {
-    tsc_size_t cbSize;
-    HWND hWndParent;
+	tsc_size_t cbSize;
+	HWND hWndParent;
 } TSC_SHOWOPTIONSWINDOW_DATA;
 
 typedef tsc_result (CALLBACK *CHECKSPELLING_CALLBACK)(tsc_cookie SessionID, tsc_byte* pBuffer, tsc_size_t BufferSize, tsc_size_t* pBytesInBuffer);
 typedef tsc_result (CALLBACK *REPLACEWORD_CALLBACK)(tsc_cookie SessionID, tsc_size_t OriginalStart, tsc_size_t OriginalLength, tsc_byte* pReplacementBytes, tsc_size_t ReplacementLength);
 
 enum enumCheckSpellingTarget {
-    TARGET_CALLBACKS,
-    TARGET_EDIT,
-    TARGET_RICHEDIT,
-    TARGET_TOLON_TEXTLIB,
-    
-    TARGET_COUNT };
+	TARGET_CALLBACKS,
+	TARGET_EDIT,
+	TARGET_RICHEDIT,
+	TARGET_TOLON_TEXTLIB,
+	
+	TARGET_COUNT };
 
 typedef struct tagTSC_CHECKSPELLING {
-    tsc_size_t cbSize;
-    HWND hWndParent;
-    tsc_byte nTarget;
-    tsc_byte nReserved1;
-    tsc_byte nReserved2;
-    tsc_byte nReserved3;
-    CHECKSPELLING_CALLBACK pfnCallback;
+	tsc_size_t cbSize;
+	HWND hWndParent;
+	tsc_byte nTarget;
+	tsc_byte nReserved1;
+	tsc_byte nReserved2;
+	tsc_byte nReserved3;
+	CHECKSPELLING_CALLBACK pfnCallback;
 } TSC_CHECKSPELLING_DATA;
 
 typedef struct tagTSC_CHECKWORD {
-    tsc_size_t cbSize;
+	tsc_size_t cbSize;
 	// In
 	union {
 		const char* szWord8; // UTF-8
@@ -131,8 +133,11 @@ TSC_API tsc_result TSC_CALLTYPE
 TSC_API tsc_result TSC_CALLTYPE 
 	tscGetVersion( TSC_VERSION_DATA* pData );
 
-TSC_API tsc_result TSC_CALLTYPE
-	tscGetLastError( const char ** ppszError );
+/*TSC_API tsc_result TSC_CALLTYPE
+	tscGetLastError( const char ** ppszError );*/
+
+TSC_API const char* TSC_CALLTYPE
+	tscGetLastError( void );
 
 TSC_API tsc_result TSC_CALLTYPE 
 	tscCreateSession( tsc_cookie* pSessionID,
@@ -144,19 +149,19 @@ TSC_API tsc_result TSC_CALLTYPE
 // Session-level functions
 TSC_API tsc_result TSC_CALLTYPE 
 	tscGetSessionOptions( tsc_cookie SessionID, 
-                           TSC_SESSIONOPTIONS_DATA* pData );
+						   TSC_SESSIONOPTIONS_DATA* pData );
 
 TSC_API tsc_result TSC_CALLTYPE 
 	tscSetSessionOptions( tsc_cookie SessionID,
-                           TSC_SESSIONOPTIONS_DATA* pData );
+						   TSC_SESSIONOPTIONS_DATA* pData );
 
 TSC_API tsc_result TSC_CALLTYPE 
 	tscShowOptionsWindow( tsc_cookie SessionID,
-                           TSC_SHOWOPTIONSWINDOW_DATA* pData );
+						   TSC_SHOWOPTIONSWINDOW_DATA* pData );
 
 TSC_API tsc_result TSC_CALLTYPE 
 	tscCheckSpelling( tsc_cookie SessionID,
-                       TSC_CHECKSPELLING_DATA* pData );
+					   TSC_CHECKSPELLING_DATA* pData );
 
 TSC_API tsc_result TSC_CALLTYPE
 	tscCheckWord( tsc_cookie SessionID,

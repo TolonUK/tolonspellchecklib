@@ -55,8 +55,10 @@ protected:
 	tsc_result Error_InvalidSessionCookie();
 	tsc_result Error_ModuleAlreadyInitialised();
 	tsc_result Error_ModuleNotInitialised();
+	tsc_result Error_NotImplemented();
 	tsc_result Error_ParamWasNull();
 	tsc_result Error_StructSizeInvalid();
+	tsc_result Success();
 
 // Member variables
 protected:

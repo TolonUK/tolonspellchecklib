@@ -8,6 +8,8 @@
 class CLanguageDlg : public CDialog
 {
 	DECLARE_DYNAMIC(CLanguageDlg)
+	
+	static bool LangEnumCallback(TolonSpellCheck::LANGUAGE_DESC_WIDEDATA* pData, void* pUserData);
 
 public:
 	CLanguageDlg(TolonSpellCheck::CSession* pSession, CWnd* pParent = NULL);   // standard constructor
@@ -20,10 +22,11 @@ protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 
 protected:
-    virtual BOOL OnInitDialog();
+	virtual BOOL OnInitDialog();
 
 	DECLARE_MESSAGE_MAP()
 
 protected:
-    TolonSpellCheck::CSession* const m_pSession;
+	TolonSpellCheck::CSession* const m_pSession;
+	CListCtrl m_wndLangList;
 };

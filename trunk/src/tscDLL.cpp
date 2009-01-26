@@ -15,10 +15,10 @@ static const char* const s_szErrIntNullModulePtr =
 static const char* const s_szErrParamWasNull =
 	"Error, one or more parameters were null.";
 	
-static void Error_GetLastModuleError(CModule* pM)
+/*static void Error_GetLastModuleError(CModule* pM)
 {
 	s_szLastError = pM->GetLastError();
-}
+}*/
 
 static tsc_result Error_Internal_NullModulePtr()
 {
@@ -43,8 +43,8 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->Init(pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
@@ -57,8 +57,8 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->Uninit();
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
@@ -71,12 +71,12 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->GetVersion(pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
-tsc_result TSC_CALLTYPE
+/*tsc_result TSC_CALLTYPE
 	tscGetLastError( const char ** ppszError )
 {
 	if (!ppszError)
@@ -92,7 +92,18 @@ tsc_result TSC_CALLTYPE
 		*ppszError = NULL;
 		return TSC_S_FALSE;
 	}
+}*/
+
+const char* TSC_CALLTYPE
+	tscGetLastError()
+{
+	CModule* pM = CModule::GetInstance();
+	if (!pM)
+		return s_szLastError;
+	else
+		return pM->GetLastError();
 }
+
 
 tsc_result TSC_CALLTYPE 
 	tscCreateSession( tsc_cookie* pSessionID,
@@ -104,8 +115,8 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->CreateSession(pSessionID, pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
@@ -118,14 +129,14 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->DestroySession(SessionID);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
 tsc_result TSC_CALLTYPE 
 	tscGetSessionOptions( tsc_cookie SessionID, 
-                          TSC_SESSIONOPTIONS_DATA* pData )
+						  TSC_SESSIONOPTIONS_DATA* pData )
 {
 	CModule* pM = CModule::GetInstance();
 	if (!pM)
@@ -133,14 +144,14 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->GetSessionOptions(SessionID, pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
 tsc_result TSC_CALLTYPE 
 	tscSetSessionOptions( tsc_cookie SessionID,
-                          TSC_SESSIONOPTIONS_DATA* pData )
+						  TSC_SESSIONOPTIONS_DATA* pData )
 {
 	CModule* pM = CModule::GetInstance();
 	if (!pM)
@@ -148,14 +159,14 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->SetSessionOptions(SessionID, pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
 tsc_result TSC_CALLTYPE 
 	tscShowOptionsWindow( tsc_cookie SessionID,
-                          TSC_SHOWOPTIONSWINDOW_DATA* pData )
+						  TSC_SHOWOPTIONSWINDOW_DATA* pData )
 {    
 	CModule* pM = CModule::GetInstance();
 	if (!pM)
@@ -163,14 +174,14 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->ShowOptionsWindow(SessionID, pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
 tsc_result TSC_CALLTYPE 
 	tscCheckSpelling( tsc_cookie SessionID,
-                      TSC_CHECKSPELLING_DATA* pData )
+					  TSC_CHECKSPELLING_DATA* pData )
 {
 	CModule* pM = CModule::GetInstance();
 	if (!pM)
@@ -178,8 +189,8 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->CheckSpelling(SessionID, pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }
 
@@ -193,7 +204,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->CheckWord(SessionID, pData);
-	if (TSC_FAILED(r))
-		Error_GetLastModuleError(pM);
+	//if (TSC_FAILED(r))
+		//Error_GetLastModuleError(pM);
 	return r;
 }

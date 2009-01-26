@@ -18,6 +18,11 @@ bool test_no_init();
 bool test_normal_init_uninit();
 bool test_show_options();
 bool test_word();
+// Subtests
+void subtest_tscInit(bool& bTestResult);
+void subtest_tscCreateSession(tsc_cookie& c, bool& bTestResult);
+void subtest_tscDestroySession(tsc_cookie c, bool& bTestResult);
+void subtest_tscUninit(bool& bTestResult);
 
 static char s_szTextResult[64];
 static int g_nTestStartCount, g_nTestEndCount, g_nSuccessCount, g_nFailCount;
@@ -69,8 +74,10 @@ void util_begin_test(char* szPreamble)
 void util_end_test(bool bResult)
 {
     ++g_nTestEndCount;
-    if (!bResult)
-        cout << "FAIL" << endl;
+    if (bResult)
+        cout << "Test ok" << endl;
+    else
+        cout << "TEST FAILED" << endl;
     cout << g_szLine << endl;
 }
 
@@ -80,9 +87,10 @@ void util_is_expected(char* szTestPartName, const tsc_result rExpected, const ts
         cout << "\t" << szTestPartName <<" ok" << endl;
     }
     else {
-        cout << "\t" << szTestPartName <<" FAIL; expected " << util_textify_result(rExpected) << ", got " << util_textify_result(rActual) << endl;
+        cout << "FAIL->\t" << szTestPartName <<" FAIL; expected " << util_textify_result(rExpected) << ", got " << util_textify_result(rActual) << endl;
         bSetFalseIfFailed = false; 
     }
+    cout << "\t\tLastError: " <<  ::tscGetLastError() << endl;
 }
 
 void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfNotFailed)
@@ -91,9 +99,10 @@ void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetF
         cout << "\t" << szTestPartName <<" ok" << endl;
     }
     else {
-        cout << "\t" << szTestPartName <<" FAIL; expected failure, got " << util_textify_result(rActual) << endl;
+        cout << "FAIL->\t" << szTestPartName <<" FAIL; expected failure, got " << util_textify_result(rActual) << endl;
         bSetFalseIfNotFailed = false; 
     }
+    cout << "\t\tLastError: " <<  ::tscGetLastError() << endl;
 }
 
 void util_is_success(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfFailed)
@@ -102,9 +111,10 @@ void util_is_success(char* szTestPartName, const tsc_result rActual, bool& bSetF
         cout << "\t" << szTestPartName <<" ok" << endl;
     }
     else {
-        cout << "\t" << szTestPartName <<" FAIL; expected success, got " << util_textify_result(rActual) << endl;
+        cout << "FAIL->\t" << szTestPartName <<" FAIL; expected success, got " << util_textify_result(rActual) << endl;
         bSetFalseIfFailed = false; 
     }
+    cout << "\t\tLastError: " <<  ::tscGetLastError() << endl;
 }
 
 const char* util_textify_result(tsc_result r)
@@ -119,6 +129,8 @@ const char* util_textify_result(tsc_result r)
             return "TSC_E_FAIL";
         case TSC_E_INVALIDARG:
             return "TSC_E_INVALIDARG";
+        case TSC_E_NOTIMPL:
+            return "TSC_E_NOTIMPL";
         case TSC_E_POINTER:
             return "TSC_E_POINTER";
         case TSC_E_UNEXPECTED:
@@ -281,6 +293,7 @@ bool test_show_options()
     r = ::tscCreateSession(&c, &cs);
     util_is_success("tscCreateSession", r, bTestResult); 
     
+    // Show options window
     TSC_SHOWOPTIONSWINDOW_DATA sow;
     memset(&sow, 0xff, sizeof(TSC_SHOWOPTIONSWINDOW_DATA));
     sow.cbSize = sizeof(TSC_SHOWOPTIONSWINDOW_DATA);
@@ -305,25 +318,63 @@ bool test_word()
 {
     bool bTestResult = true;
     tsc_result r;
-    TSC_INIT_DATA id;
-    TSC_CHECKWORD_DATA cw;
+    tsc_cookie c = TSC_NULL_COOKIE;
     const char* szWordToTest = "helllllo";
     
     util_begin_test("Testing tscCheckWord(\"helllo\")...");
     
-    memset(&id, 0xff, sizeof(TSC_INIT_DATA));
-    id.cbSize = sizeof(TSC_INIT_DATA);
-    strcpy(id.szAppName, "TestAppName01234567890123456789");
-    r = ::tscInit(&id);
+    // Prologue
+    subtest_tscInit(bTestResult);
+    subtest_tscCreateSession(c, bTestResult);
     
+    // CheckWord
+    TSC_CHECKWORD_DATA cw;
     memset(&cw, 0xff, sizeof(TSC_CHECKWORD_DATA));
+    cw.cbSize = sizeof(TSC_CHECKWORD_DATA);
     cw.uTestWord.szWord8 = szWordToTest;
-    r = ::tscCheckWord(TSC_NULL_COOKIE, &cw);   
-    util_is_success("tscCheckWord", r, bTestResult);    
+    r = ::tscCheckWord(c, &cw);   
+    util_is_success("tscCheckWord", r, bTestResult);
     
-    r = ::tscUninit();
+    // Epilogue
+    subtest_tscDestroySession(c, bTestResult);
+    subtest_tscUninit(bTestResult);
     
     util_end_test(bTestResult);
     
     return bTestResult;
+}
+
+void subtest_tscInit(bool& bTestResult)
+{
+    tsc_result r = TSC_E_FAIL;
+    TSC_INIT_DATA id;
+    memset(&id, 0xff, sizeof(TSC_INIT_DATA));
+    id.cbSize = sizeof(TSC_INIT_DATA);
+    strcpy(id.szAppName, "TestAppName01234567890123456789");
+    r = ::tscInit(&id);
+    util_is_success("tscInit", r, bTestResult); 
+}
+
+void subtest_tscCreateSession(tsc_cookie& c, bool& bTestResult)
+{
+    tsc_result r = TSC_E_FAIL;
+    TSC_CREATESESSION_DATA cs;
+    memset(&cs, 0xff, sizeof(TSC_CREATESESSION_DATA));
+    cs.cbSize = sizeof(TSC_CREATESESSION_DATA);
+    r = ::tscCreateSession(&c, &cs);
+    util_is_success("tscCreateSession", r, bTestResult); 
+}
+
+void subtest_tscDestroySession(tsc_cookie c, bool& bTestResult)
+{
+    tsc_result r = TSC_E_FAIL;
+    r = ::tscDestroySession(c);
+    util_is_success("tscDestroySession", r, bTestResult);  
+}
+
+void subtest_tscUninit(bool& bTestResult)
+{
+    tsc_result r = TSC_E_FAIL;
+    r = ::tscUninit();
+    util_is_success("tscUninit", r, bTestResult);  
 }

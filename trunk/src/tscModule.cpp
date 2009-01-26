@@ -7,13 +7,19 @@ using namespace std;
 static const char* const s_szErrInvalidSessionCookie =
 	"Error, invalid session cookie.";
 static const char* const s_szErrModuleAlreadyInitialised = 
-	"Error, module object has already been initialised. A module should only be initialised once.";
+	"Error, module object has already been initialised.";
 static const char* const s_szErrModuleNotInitialised = 
-	"Error, module object not initialised. Please initialise the module before using other functions.";
+	"Error, module object not initialised.";
+static const char* const s_szErrNotImplemented =
+	"Error, method not fully implemented.";
 static const char* const s_szErrParamWasNull =
 	"Error, one or more parameters were null.";
 static const char* const s_szErrStructSizeInvalid =
-	"Error, cbSize member of structure was set to an unrecognized value. This member should indicate the size of the entire structure";
+	"Error, cbSize member of structure was set to an unrecognized value.";
+static const char* const s_szSuccess =
+	"Success.";
+static const char* const s_szErrErr =
+	"Internal error, error text not set!";
 
 CModule* CModule::sm_pThis;
 
@@ -32,7 +38,7 @@ CModule* CModule::GetInstance()
 
 CModule::CModule() :
 	m_bInitialised(false),
-	m_szLastError(NULL),
+	m_szLastError(s_szErrErr),
 	m_nLastSessionCookie(TSC_NULL_COOKIE)
 {
 }
@@ -54,7 +60,7 @@ tsc_result CModule::Init(TSC_INIT_DATA* pData)
 	
 	m_sHostName = pData->szAppName;
 	SetInitialised(true);
-	return TSC_S_OK;
+	return Success();
 }
 
 tsc_result CModule::Uninit()
@@ -64,7 +70,7 @@ tsc_result CModule::Uninit()
 
 	SetInitialised(false);
 	m_sHostName.clear();
-	return TSC_S_OK;
+	return Success();
 }
 
 tsc_result CModule::GetVersion(TSC_VERSION_DATA* pData)
@@ -83,7 +89,7 @@ tsc_result CModule::GetVersion(TSC_VERSION_DATA* pData)
 	pData->nReserved1 = 0;
 	pData->nReserved2 = 0;
 
-	return TSC_S_OK;
+	return Success();
 }
 
 tsc_result CModule::CreateSession( tsc_cookie* pSessionID, TSC_CREATESESSION_DATA* pData )
@@ -102,7 +108,7 @@ tsc_result CModule::CreateSession( tsc_cookie* pSessionID, TSC_CREATESESSION_DAT
 	*pSessionID = GetNextSessionCookie();
 	m_xSessions.insert(std::make_pair(*pSessionID, pS));
 	
-	return TSC_S_OK;
+	return Success();
 }
 
 tsc_result CModule::DestroySession( tsc_cookie SessionID )
@@ -119,7 +125,7 @@ tsc_result CModule::DestroySession( tsc_cookie SessionID )
 	pS->Uninit();
 	delete pS;
 	
-	return TSC_S_OK;
+	return Success();
 }
 
 tsc_result CModule::GetSessionOptions( tsc_cookie SessionID,  TSC_SESSIONOPTIONS_DATA* pData )
@@ -139,6 +145,8 @@ tsc_result CModule::GetSessionOptions( tsc_cookie SessionID,  TSC_SESSIONOPTIONS
 		return Error_InvalidSessionCookie();
 	
 	tsc_result r = TSC_E_FAIL;
+	r = pS->GetSessionOptions(pData);
+	m_szLastError = pS->GetLastError();
 	
 	return r;
 }
@@ -160,6 +168,8 @@ tsc_result CModule::SetSessionOptions( tsc_cookie SessionID, TSC_SESSIONOPTIONS_
 		return Error_InvalidSessionCookie();
 	
 	tsc_result r = TSC_E_FAIL;
+	r = pS->SetSessionOptions(pData);
+	m_szLastError = pS->GetLastError();
 	
 	return r;
 }
@@ -181,8 +191,8 @@ tsc_result CModule::ShowOptionsWindow( tsc_cookie SessionID, TSC_SHOWOPTIONSWIND
 		return Error_InvalidSessionCookie();
 	
 	tsc_result r = TSC_E_FAIL;
-	
 	r = pS->ShowOptionsWindow();
+	m_szLastError = pS->GetLastError();
 	
 	return r;
 }
@@ -204,6 +214,8 @@ tsc_result CModule::CheckSpelling( tsc_cookie SessionID, TSC_CHECKSPELLING_DATA*
 		return Error_InvalidSessionCookie();
 	
 	tsc_result r = TSC_E_FAIL;
+	r = pS->CheckSpelling(pData);
+	m_szLastError = pS->GetLastError();
 	
 	return r;
 }
@@ -225,6 +237,8 @@ tsc_result CModule::CheckWord( tsc_cookie SessionID, TSC_CHECKWORD_DATA* pData )
 		return Error_InvalidSessionCookie();
 	
 	tsc_result r = TSC_E_FAIL;
+	r = pS->CheckWord(pData);
+	m_szLastError = pS->GetLastError();
 	
 	return r;
 }
@@ -266,6 +280,12 @@ tsc_result CModule::Error_ModuleNotInitialised()
 	return TSC_E_UNEXPECTED;
 }
 
+tsc_result CModule::Error_NotImplemented()
+{
+	m_szLastError = s_szErrNotImplemented;
+	return TSC_E_NOTIMPL;
+}
+
 tsc_result CModule::Error_ParamWasNull()
 {
 	m_szLastError = s_szErrParamWasNull;
@@ -276,4 +296,10 @@ tsc_result CModule::Error_StructSizeInvalid()
 {
 	m_szLastError = s_szErrStructSizeInvalid;
 	return TSC_E_INVALIDARG;
+}
+
+tsc_result CModule::Success()
+{
+	m_szLastError = s_szSuccess;
+	return TSC_S_OK;
 }
