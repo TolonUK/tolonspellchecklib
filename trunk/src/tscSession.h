@@ -26,7 +26,7 @@ public:
 
 	// API Support
 	tsc_result CheckWord(TSC_CHECKWORD_DATA* pData);
-	tsc_result ShowOptionsWindow();
+	tsc_result ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData);
 	tsc_result CheckSpelling(TSC_CHECKSPELLING_DATA* pData);
 	tsc_result GetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData);
 	tsc_result SetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData);

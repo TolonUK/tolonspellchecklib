@@ -5,28 +5,29 @@
 
 // CLanguageDlg dialog
 
-class CLanguageDlg : public CDialog
+class CLanguageDlg 
 {
-	DECLARE_DYNAMIC(CLanguageDlg)
-	
+protected:
+	static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+
 	static bool LangEnumCallback(TolonSpellCheck::LANGUAGE_DESC_WIDEDATA* pData, void* pUserData);
 
 public:
-	CLanguageDlg(TolonSpellCheck::CSession* pSession, CWnd* pParent = NULL);   // standard constructor
-	virtual ~CLanguageDlg();
+	CLanguageDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent = NULL);   // standard constructor
+	~CLanguageDlg();
 
 // Dialog Data
 	enum { IDD = IDD_DIC_LANG };
+	
+	int DoModal();
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
-protected:
-	virtual BOOL OnInitDialog();
-
-	DECLARE_MESSAGE_MAP()
+	BOOL OnInitDialog();
+	void InitLangList();
 
 protected:
 	TolonSpellCheck::CSession* const m_pSession;
-	CListCtrl m_wndLangList;
+	HWND m_hwnd;
+	HWND m_hwndParent;
+	HWND m_hwndLangList;
 };

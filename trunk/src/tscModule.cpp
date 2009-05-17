@@ -69,7 +69,7 @@ tsc_result CModule::Uninit()
 		return Error_ModuleNotInitialised();
 
 	SetInitialised(false);
-	m_sHostName.clear();
+	m_sHostName.swap(string());
 	return Success();
 }
 
@@ -191,7 +191,7 @@ tsc_result CModule::ShowOptionsWindow( tsc_cookie SessionID, TSC_SHOWOPTIONSWIND
 		return Error_InvalidSessionCookie();
 	
 	tsc_result r = TSC_E_FAIL;
-	r = pS->ShowOptionsWindow();
+	r = pS->ShowOptionsWindow(pData);
 	m_szLastError = pS->GetLastError();
 	
 	return r;

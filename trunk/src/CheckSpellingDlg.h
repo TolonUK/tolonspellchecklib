@@ -1,22 +1,28 @@
 #pragma once
 
 #include "resource.h"
+#include "TolonSpellCheckInternals.h"
 
 // CCheckSpellingDlg dialog
 
-class CCheckSpellingDlg : public CDialog
+class CCheckSpellingDlg
 {
-	DECLARE_DYNAMIC(CCheckSpellingDlg)
+protected:
+	static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 public:
-	CCheckSpellingDlg(CWnd* pParent = NULL);   // standard constructor
-	virtual ~CCheckSpellingDlg();
+	CCheckSpellingDlg(HWND hwndParent = NULL);   // standard constructor
+	~CCheckSpellingDlg();
 
 // Dialog Data
 	enum { IDD = IDD_CHECK_SPELLING };
+	
+	int DoModal();
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	BOOL OnInitDialog();
 
-	DECLARE_MESSAGE_MAP()
+protected:
+	HWND m_hwnd;
+	HWND m_hwndParent;
 };

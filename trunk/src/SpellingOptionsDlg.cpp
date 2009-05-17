@@ -1,17 +1,20 @@
 // SpellingOptions.cpp : implementation file
 //
 
-#include "stdafx.h"
 #include "SpellingOptionsDlg.h"
 #include "LanguageDlg.h"
+#include <windows.h>
+
+extern HINSTANCE g_hInstDll;
 
 // CSpellingOptionsDlg dialog
 
-IMPLEMENT_DYNAMIC(CSpellingOptionsDlg, CDialog)
+static CSpellingOptionsDlg* s_pThis;
 
-CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSession* pSession, CWnd* pParent /*=NULL*/) :
-    CDialog(CSpellingOptionsDlg::IDD, pParent),
-    m_pSession(pSession)
+CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent /*=NULL*/) :
+	m_pSession(pSession),
+	m_hwnd(NULL),
+	m_hwndParent(hwndParent)
 {
 
 }
@@ -20,27 +23,49 @@ CSpellingOptionsDlg::~CSpellingOptionsDlg()
 {
 }
 
-void CSpellingOptionsDlg::DoDataExchange(CDataExchange* pDX)
+int CSpellingOptionsDlg::DoModal()
 {
-	CDialog::DoDataExchange(pDX);
+	s_pThis = this;
+	DialogBox(g_hInstDll, MAKEINTRESOURCE(CSpellingOptionsDlg::IDD), m_hwndParent, CSpellingOptionsDlg::WndProc);
+	return 0;
 }
-
-
-BEGIN_MESSAGE_MAP(CSpellingOptionsDlg, CDialog)
-    ON_BN_CLICKED(IDC_BUTTON1, &CSpellingOptionsDlg::OnDicLangClicked)
-END_MESSAGE_MAP()
-
 
 // CSpellingOptionsDlg message handlers
 BOOL CSpellingOptionsDlg::OnInitDialog()
-{
-    CDialog::OnInitDialog();
-    
-    return TRUE;
+{    
+	return TRUE;
 }
 
 void CSpellingOptionsDlg::OnDicLangClicked()
 {
-    CLanguageDlg dlg(m_pSession);
-    dlg.DoModal();
+	CLanguageDlg dlg(m_pSession, m_hwnd);
+	dlg.DoModal();
+}
+
+int CALLBACK CSpellingOptionsDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	if (!s_pThis)
+		return 0;
+	
+	if (!s_pThis->m_hwnd)
+		s_pThis->m_hwnd = hDlg;
+	
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return s_pThis->OnInitDialog();
+
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		else if (LOWORD(wParam) == IDC_BUTTON1)
+		{
+			s_pThis->OnDicLangClicked();
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
 }

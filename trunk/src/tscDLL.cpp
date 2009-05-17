@@ -1,9 +1,10 @@
 #include "TolonSpellCheck.h"
 #include "tscModule.h"
 #include "tscSession.h"
-#include <afxwin.h>
 
 using namespace TolonSpellCheck;
+
+HINSTANCE g_hInstDll;
 
 // Error-handling Utils
 
@@ -207,4 +208,12 @@ tsc_result TSC_CALLTYPE
 	//if (TSC_FAILED(r))
 		//Error_GetLastModuleError(pM);
 	return r;
+}
+
+BOOL WINAPI DllMain( HINSTANCE hinstDLL,  // handle to the DLL module
+                     DWORD fdwReason,     // reason for calling function
+                     LPVOID lpvReserved ) // reserved
+{
+    g_hInstDll = hinstDLL;
+    return TRUE;
 }

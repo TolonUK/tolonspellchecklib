@@ -1,9 +1,12 @@
 #include "tscSession.h"
 #include "enchant.h"
 #include "SpellingOptionsDlg.h"
-#include <afxwin.h>
-#include <afxcmn.h>
+#include <windows.h>
+#include <commctrl.h>
+#include <sstream>
+#include "RichEditSpellChecker.h"
 
+using namespace std;
 using namespace TolonSpellCheck;
 
 static const char* const s_szErrSessionAlreadyInitialised = 
@@ -85,7 +88,7 @@ tsc_result CSession::Init()
 		if (m_pEnchantDict)
 		{
 			result = TSC_S_OK;
-			SetInitialised(true);
+			//SetInitialised(true);
 		}
 		else
 		{
@@ -93,6 +96,8 @@ tsc_result CSession::Init()
 			m_pEnchantBroker = NULL;
 		}
 	}
+	
+	SetInitialised(true);
 
 	return result;
 }
@@ -130,7 +135,14 @@ tsc_result CSession::CheckSpelling(TSC_CHECKSPELLING_DATA* pData)
 	if (pData->cbSize != sizeof(TSC_CHECKSPELLING_DATA))
 		return Error_StructSizeInvalid();
 	
-	return Error_NotImplemented();
+	if ( (pData->nMode == MODE_AUTO) && (pData->nTarget == TARGET_RICHEDIT) )
+	{
+		CRichEditSpellChecker r(this);
+		
+		r.CheckSpelling(pData->hwnd);
+	}
+	
+	return Success();
 }
 
 tsc_result CSession::CheckWord(const char* szWord)
@@ -153,7 +165,7 @@ tsc_result CSession::CheckWord(const char* szWord)
 		// can't find word, get suggestions
 		result = TSC_S_FALSE;
 
-		char **suggs = NULL;
+		/*char **suggs = NULL;
 		size_t n_suggs = 0;
 
 		suggs = enchant_dict_suggest( m_pEnchantDict,
@@ -162,7 +174,7 @@ tsc_result CSession::CheckWord(const char* szWord)
 									  &n_suggs );
 
 		if (suggs && n_suggs)
-			enchant_dict_free_string_list(m_pEnchantDict, suggs);
+			enchant_dict_free_string_list(m_pEnchantDict, suggs);*/
 	}
 
 	return result;
@@ -179,7 +191,16 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
 	if (pData->cbSize != sizeof(TSC_CHECKWORD_DATA))
 		return Error_StructSizeInvalid();
 	
-	return Error_NotImplemented();
+	tsc_result tr = TSC_E_UNEXPECTED;
+	
+	tr = CheckWord(pData->uTestWord.szWord8);
+	
+	if (FAILED(tr))
+		return tr;
+	
+	pData->bOk = (tr == TSC_S_OK);
+	
+	return Success();
 }
 
 tsc_result CSession::GetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData)
@@ -212,14 +233,12 @@ tsc_result CSession::SetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData)
 	return Error_NotImplemented();
 }
 
-tsc_result CSession::ShowOptionsWindow()
+tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
 {
-	AFX_MANAGE_STATE(AfxGetStaticModuleState());
-	
 	if (!IsInitialised())
 		return Error_SessionNotInitialised();
 	
-	CSpellingOptionsDlg dlg(this);
+	CSpellingOptionsDlg dlg(this, pData->hWndParent);
 	
 	dlg.DoModal();
 	
@@ -246,11 +265,11 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
 	::MultiByteToWideChar(CP_UTF8, 0, provider_name, -1, wszProvName, 256);
 	::MultiByteToWideChar(CP_UTF8, 0, provider_desc, -1, wszProvDesc, 256);
 	
-	CString s;
+	wstringstream ss;
 	
-	s.Format(_T("%s, %s, %s"), wszLangTag, wszProvName, wszProvDesc);
+	ss << wszLangTag << wszProvName << wszProvDesc;
 	
-	AfxMessageBox(s);
+	MessageBox(NULL, ss.str().c_str(), NULL, MB_OK);
 }
 
 tsc_result CSession::GetCurrentLanguage(wchar_t* wszLang) 

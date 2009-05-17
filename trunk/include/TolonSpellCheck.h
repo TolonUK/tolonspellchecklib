@@ -94,11 +94,18 @@ enum enumCheckSpellingTarget {
 	
 	TARGET_COUNT };
 
+enum enumCheckSpellingMode {
+	MODE_AUTO,		//!< Interfaces directly with text or richtext control to do spell checking on its current contents.
+	MODE_BUFFER,	//!< Uses a callback to request buffer chunks to check.
+	MODE_WORD,		//!< Used a callback to request the next word to check.
+
+	MODE_COUNT };
+
 typedef struct tagTSC_CHECKSPELLING {
 	tsc_size_t cbSize;
-	HWND hWndParent;
+	HWND hwnd;	//!< If nMode = MODE_AUTO, this is window handle for the control to check the text of.
 	tsc_byte nTarget;
-	tsc_byte nReserved1;
+	tsc_byte nMode;
 	tsc_byte nReserved2;
 	tsc_byte nReserved3;
 	CHECKSPELLING_CALLBACK pfnCallback;

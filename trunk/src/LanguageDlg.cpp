@@ -1,18 +1,22 @@
 // LanguageDlg.cpp : implementation file
 //
 
-#include "stdafx.h"
 #include "LanguageDlg.h"
 #include "TolonSpellCheckInternals.h"
 #include "tscSession.h"
 #include <string>
+#include <windows.h>
+#include <commctrl.h>
+#include <assert.h>
+
+extern HINSTANCE g_hInstDll;
 
 using namespace TolonSpellCheck;
 using namespace std;
 
 // CLanguageDlg dialog
 
-IMPLEMENT_DYNAMIC(CLanguageDlg, CDialog)
+static CLanguageDlg* s_pThis;
 
 bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserData)
 {
@@ -22,18 +26,26 @@ bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserDa
 	
 	if (pData && pThis)
 	{
-		int nItem = 0;
-		nItem = pThis->m_wndLangList.InsertItem(0, L"");
-		pThis->m_wndLangList.SetItemText(nItem, 0, pData->wszDisplayName);
+		LVITEM lvi;
+		memset(&lvi, 0, sizeof(lvi));
+		
+		lvi.mask = LVIF_TEXT;
+		lvi.iItem = 0;
+		lvi.iSubItem = 0;
+		lvi.pszText = pData->wszDisplayName;
+		ListView_InsertItem(pThis->m_hwndLangList, &lvi);
+		
 		bResult = true;
 	}
 	
 	return bResult;
 }
 
-CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSession* pSession, CWnd* pParent /*=NULL*/) :
-	CDialog(CLanguageDlg::IDD, pParent),
-	m_pSession(pSession)
+CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent /*=NULL*/) :
+	m_pSession(pSession),
+	m_hwnd(NULL),
+	m_hwndParent(hwndParent),
+	m_hwndLangList(NULL)
 {
 
 }
@@ -42,28 +54,22 @@ CLanguageDlg::~CLanguageDlg()
 {
 }
 
-void CLanguageDlg::DoDataExchange(CDataExchange* pDX)
+int CLanguageDlg::DoModal()
 {
-	CDialog::DoDataExchange(pDX);
+	s_pThis = this;
+	DialogBox(g_hInstDll, MAKEINTRESOURCE(CLanguageDlg::IDD), m_hwndParent, CLanguageDlg::WndProc);
+	return 0;
 }
-
-
-BEGIN_MESSAGE_MAP(CLanguageDlg, CDialog)
-END_MESSAGE_MAP()
-
 
 // CLanguageDlg message handlers
 BOOL CLanguageDlg::OnInitDialog()
 {
-	CDialog::OnInitDialog();
-	
 	// Sort out controls
-	m_wndLangList.SubclassDlgItem(IDC_DIC_LIST, this);
-	m_wndLangList.InsertColumn(0, _T("Language"));
+	InitLangList();
 	
 	// Populate language list
 	m_pSession->EnumLanguages(static_cast<LanguageEnumFn>(&CLanguageDlg::LangEnumCallback), this);
-	m_wndLangList.SetColumnWidth(0, LVSCW_AUTOSIZE);
+	ListView_SetColumnWidth(m_hwndLangList, 0, LVSCW_AUTOSIZE);
 	
 	// Get default language
 	tsc_result result = TSC_S_OK;
@@ -81,15 +87,57 @@ BOOL CLanguageDlg::OnInitDialog()
 		
 		if (SUCCEEDED(result))
 		{
-			CWnd * pWnd = GetDlgItem(IDC_DEFAULTLANG_STATIC);
-			if (pWnd)
+			HWND hwnd = GetDlgItem(m_hwnd, IDC_DEFAULTLANG_STATIC);
+			if (hwnd)
 			{
 				wstring ws(L"Default: ");
 				ws.append(ldwd.wszDisplayName);
-				pWnd->SetWindowText(ws.c_str());
+				SetWindowText(hwnd, ws.c_str());
 			}
 		}
 	}
 	
 	return TRUE;
+}
+
+void CLanguageDlg::InitLangList()
+{
+	assert(m_hwnd);
+	
+	if (!m_hwnd)
+		return;
+	
+	// Obtain HWND
+	m_hwndLangList = GetDlgItem(m_hwnd, IDC_DIC_LIST);
+	
+	// Set up columns
+	LVCOLUMN lvc;
+	memset(&lvc, 0, sizeof(lvc));
+	lvc.mask = LVCF_TEXT;
+	lvc.pszText = L"Language";
+	ListView_InsertColumn(m_hwndLangList, 0, &lvc);
+}
+
+int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	if (!s_pThis)
+		return 0;
+	
+	if (!s_pThis->m_hwnd)
+		s_pThis->m_hwnd = hDlg;
+	
+	switch (message)
+	{
+	case WM_INITDIALOG:
+		return s_pThis->OnInitDialog();
+
+	case WM_COMMAND:
+		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		{
+			EndDialog(hDlg, LOWORD(wParam));
+			return (INT_PTR)TRUE;
+		}
+		break;
+	}
+	return (INT_PTR)FALSE;
 }

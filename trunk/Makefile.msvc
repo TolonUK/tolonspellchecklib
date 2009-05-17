@@ -186,8 +186,7 @@ makedirs: force
 srcdir = $(topsrcdir)
 
 LIBTOLONSPELLCHECK_DEFINES = \
-    -DWINDLL \
-    -D_AFXDLL
+    -DWINDLL
 
 LIBTOLONSPELLCHECK_DLL=$(outdir)\libtolonspellcheck.dll
 LIBTOLONSPELLCHECK_LIB=$(outdir)\libtolonspellcheck.lib
@@ -198,8 +197,9 @@ LIBTOLONSPELLCHECK_DEF=$(srcdir)\libtolonspellcheck.def
 
 LIBTOLONSPELLCHECK_LIBS = \
     $(otherlibdir)\libenchant.lib \
-    mfc90u.lib \
-    Advapi32.lib
+    Advapi32.lib \
+    comctl32.lib \
+    user32.lib
 
 LIBTOLONSPELLCHECK_OBJECTS = \
     $(objdir)\tscDLL.obj \
@@ -207,7 +207,8 @@ LIBTOLONSPELLCHECK_OBJECTS = \
     $(objdir)\tscSession.obj \
     $(objdir)\CheckSpellingDlg.obj \
     $(objdir)\LanguageDlg.obj \
-    $(objdir)\SpellingOptionsDlg.obj
+    $(objdir)\SpellingOptionsDlg.obj \
+    $(objdir)\RichEditSpellChecker.obj
 
 $(objdir)\tscDLL.obj : $(srcdir)\tscDLL.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
@@ -225,6 +226,9 @@ $(objdir)\LanguageDlg.obj : $(srcdir)\LanguageDlg.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(objdir)\SpellingOptionsDlg.obj : $(srcdir)\SpellingOptionsDlg.cpp
+	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+
+$(objdir)\RichEditSpellChecker.obj : $(srcdir)\RichEditSpellChecker.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(LIBTOLONSPELLCHECK_RES) : $(LIBTOLONSPELLCHECK_RC)
