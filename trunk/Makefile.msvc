@@ -71,7 +71,10 @@ prefix = $(PREFIX)
 exec_prefix = $(prefix)
 #bindir = $(exec_prefix)\bin
 otherlibdir = $(exec_prefix)\lib
+stllibdir = $(STL_LIB_PATH)
 otherincludedir = $(exec_prefix)\include
+stlincludedir = $(STL_INCLUDE_PATH)
+boostincludedir = $(BOOST_INCLUDE_PATH)
 #datadir = $(prefix)\share
 #localedir = $(datadir)\locale
 #aliaspath =
@@ -129,7 +132,9 @@ INCLUDES = \
     -I$(topsrcdir) \
     -I$(rootdir) \
     -I$(includedir) \
-    -I$(otherincludedir)
+    -I$(otherincludedir) \
+    -I$(stlincludedir) \
+    -I$(boostincludedir)
     
 LINKFLAGS = \
     -INCREMENTAL:NO \
@@ -139,7 +144,8 @@ LINKFLAGS = \
     -MACHINE:X86 \
     -OPT:REF \
     -OPT:ICF \
-    -DEBUG 
+    -DEBUG \
+    -LIBPATH:$(stllibdir)
 
 AR = lib
 AR_FLAGS = /out:

@@ -1,4 +1,5 @@
 #include "RichEditSpellChecker.h"
+#include <iomanip>
 #include <locale>
 #include <sstream>
 #include <strstream>
@@ -6,11 +7,22 @@
 #include <richedit.h>
 #include "CheckSpellingDlg.h"
 
+#define BOOST_UTF8_BEGIN_NAMESPACE \
+     namespace TolonSpellCheck { 
+#define BOOST_UTF8_DECL
+#define BOOST_UTF8_END_NAMESPACE }
+#include <libs/detail/utf8_codecvt_facet.cpp>
+#undef BOOST_UTF8_END_NAMESPACE
+#undef BOOST_UTF8_DECL
+#undef BOOST_UTF8_BEGIN_NAMESPACE
+
 using namespace std;
+using namespace boost;
 using namespace TolonSpellCheck;
 
 CRichEditSpellChecker::CRichEditSpellChecker(CSession* pSession) : 
-	m_loc("English_UK"),
+	//m_loc("English_UK"),
+    m_loc(m_locOld, new utf8_codecvt_facet),
 	m_pSession(pSession)
 {
 }
@@ -29,6 +41,10 @@ DWORD CRichEditSpellChecker::RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pb
 		return static_cast<DWORD>(-1);
 }
 
+#ifndef SF_USECODEPAGE
+#define SF_USECODEPAGE	0x0020
+#endif
+
 void CRichEditSpellChecker::CheckSpelling(HWND hwndEditCtrl)
 {
 	EDITSTREAM es;
@@ -37,7 +53,7 @@ void CRichEditSpellChecker::CheckSpelling(HWND hwndEditCtrl)
 	es.pfnCallback = &CRichEditSpellChecker::RichEditStreamOutCallback;
 	
 	PreSpellCheck();
-	::SendMessage(hwndEditCtrl, EM_STREAMOUT, SF_TEXT, reinterpret_cast<LPARAM>(&es));
+    ::SendMessage(hwndEditCtrl, EM_STREAMOUT, (CP_UTF8 << 16) | SF_USECODEPAGE | SF_TEXT, reinterpret_cast<LPARAM>(&es));
 	PostSpellCheck();
 }
 
@@ -60,7 +76,7 @@ DWORD CRichEditSpellChecker::DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb)
 	*pcb = 0;
 	for ( ; it != itEnd; it++ )
 	{
-		if ( isalpha(*it, m_loc) )
+		if ( ((unsigned char)*it >= 0x80) || (!iscntrl(*it) && !isspace(*it) && !ispunct(*it)) )
 			m_sWord << *it;
 		else
 			ProcessWord();

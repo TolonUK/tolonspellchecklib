@@ -26,6 +26,7 @@ class CRichEditSpellChecker
         void PreSpellCheck();
         void PostSpellCheck();
 
+        std::locale m_locOld;
         std::locale m_loc;
         std::stringstream m_sWord;
         CSession* m_pSession;
