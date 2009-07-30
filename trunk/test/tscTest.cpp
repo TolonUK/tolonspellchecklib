@@ -1,5 +1,8 @@
 #include "TolonSpellCheck.h"
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -24,7 +27,8 @@ void subtest_tscCreateSession(tsc_cookie& c, bool& bTestResult);
 void subtest_tscDestroySession(tsc_cookie c, bool& bTestResult);
 void subtest_tscUninit(bool& bTestResult);
 
-static char s_szTextResult[64];
+//static char s_szTextResult[64];
+static string s_sTextResult;
 static int g_nTestStartCount, g_nTestEndCount, g_nSuccessCount, g_nFailCount;
 static const char* g_szLine = "--------------------------------------------------------------------------------";
 
@@ -136,8 +140,10 @@ const char* util_textify_result(tsc_result r)
         case TSC_E_UNEXPECTED:
             return "TSC_E_UNEXPECTED";
         default:
-            sprintf(s_szTextResult, "unknown 0x%08X", r);
-            return s_szTextResult;
+            stringstream ss;
+            ss << "unknown 0x" << setw(8) << hex << r;
+            s_sTextResult.swap(ss.str());
+            return s_sTextResult.c_str();
     }
     
     return "";
