@@ -30,9 +30,6 @@ class CRichEditSpellChecker
         static bool IsUnicodeAlpha(wchar_t wch);
 
     private:
-        std::locale m_locOld;
-        std::locale m_locDefault;
-        std::locale m_loc;
         std::wstringstream m_sWord;
         CSession* m_pSession;
         CUTF8Conv m_oConv;

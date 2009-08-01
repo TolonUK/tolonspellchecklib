@@ -8,24 +8,12 @@
 #include <richedit.h>
 #include "CheckSpellingDlg.h"
 
-#define BOOST_UTF8_BEGIN_NAMESPACE \
-     namespace TolonSpellCheck { 
-#define BOOST_UTF8_DECL
-#define BOOST_UTF8_END_NAMESPACE }
-#include <libs/detail/utf8_codecvt_facet.cpp>
-#undef BOOST_UTF8_END_NAMESPACE
-#undef BOOST_UTF8_DECL
-#undef BOOST_UTF8_BEGIN_NAMESPACE
-
 using namespace std;
-using namespace boost;
 using namespace TolonSpellCheck;
 
 CRichEditSpellChecker::CRichEditSpellChecker(CSession* pSession) : 
-    m_loc(m_locDefault, new utf8_codecvt_facet),
 	m_pSession(pSession)
 {
-    m_sWord.imbue(m_loc);
 }
 
 CRichEditSpellChecker::~CRichEditSpellChecker()
@@ -56,7 +44,6 @@ void CRichEditSpellChecker::CheckSpelling(HWND hwndEditCtrl)
 
 void CRichEditSpellChecker::PreSpellCheck()
 {
-    m_locOld = locale::global(m_loc);
 	m_sWord.str(L"");
 }
 
@@ -64,7 +51,6 @@ void CRichEditSpellChecker::PostSpellCheck()
 {
 	// Call this one last time in case we have a word waiting at the end of the stream.
 	ProcessWord();
-    locale::global(m_locOld);
 }
 
 DWORD CRichEditSpellChecker::DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb)
