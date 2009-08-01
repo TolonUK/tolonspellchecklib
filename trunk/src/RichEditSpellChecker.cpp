@@ -1,4 +1,5 @@
 #include "RichEditSpellChecker.h"
+#include <assert.h>
 #include <iomanip>
 #include <iterator>
 #include <locale>
@@ -96,11 +97,11 @@ void CRichEditSpellChecker::ProcessWord()
 		tr = m_pSession->CheckWord(&cw);
 		
 		if (TSC_FAILED(tr))
-            ::MessageBox(NULL, L"Failure in CheckWord().", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
+        {
+            assert(false);
+        }
         else if (!cw.bOk)
         {
-            ::OutputDebugStringA(cw.uTestWord.szWord8);
-            ::OutputDebugStringA(": word not found!!!\n");
             CCheckSpellingDlg dlg;
             dlg.DoModal();
         }

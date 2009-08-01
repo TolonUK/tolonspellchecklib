@@ -3,12 +3,21 @@
 
 #include "utf8conv.h"
 #include <windows.h>
-#include <locale>
 #include <sstream>
 
 namespace TolonSpellCheck {
 
 class CSession;
+
+/*class CTolonSpellChecker
+{
+public:
+    CTolonSpellChecker(CSession* pSession);
+    virtual ~CTolonSpellChecker();
+
+private:
+        CSession* m_pSession;
+};*/
 
 class CRichEditSpellChecker
 {
@@ -16,17 +25,16 @@ class CRichEditSpellChecker
         CRichEditSpellChecker(CSession* pSession);
         ~CRichEditSpellChecker();
     
-    public:
-        static DWORD CALLBACK RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
-        
+    public:        
         void CheckSpelling(HWND hwndEditCtrl);
     
-    protected:
+    private:
         DWORD DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
         void ProcessWord();
         void PreSpellCheck();
         void PostSpellCheck();
 
+        static DWORD CALLBACK RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
         static bool IsUnicodeAlpha(wchar_t wch);
 
     private:
