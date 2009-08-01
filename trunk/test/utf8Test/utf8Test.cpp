@@ -66,15 +66,4 @@ void wmain()
         OutputDebugString(L"\r\n");
         word.clear();
     }
-
-    /*std::vector<wchar_t>::const_iterator it;
-    for ( it = from_file.begin();
-          it != from_file.end();
-          ++it )
-    {
-        wcout << *it;
-    }
-    wcout.flush();*/
-
-    //copy(from_file.begin(), from_file.end(), std::ostream_iterator<wchar_t, wchar_t>(std::wcout));
 }

@@ -98,10 +98,10 @@ MT = mt
 WARN_CFLAGS = -W1
 
 !if $(DEBUG)
-OPTIMFLAGS = -Od
+OPTIMFLAGS = -Od -Zi
 !else
 # Some people prefer -O2 -G6 instead of -O1, but -O2 is not reliable in MSVC5.
-OPTIMFLAGS = -DNDEBUG -D_NDEBUG -O1
+OPTIMFLAGS = -DNDEBUG -D_NDEBUG -O1 -Zi
 !endif
 
 OUTPUTFLAGS = \
@@ -214,7 +214,8 @@ LIBTOLONSPELLCHECK_OBJECTS = \
     $(objdir)\CheckSpellingDlg.obj \
     $(objdir)\LanguageDlg.obj \
     $(objdir)\SpellingOptionsDlg.obj \
-    $(objdir)\RichEditSpellChecker.obj
+    $(objdir)\RichEditSpellChecker.obj \
+    $(objdir)\utf8conv.obj
 
 $(objdir)\tscDLL.obj : $(srcdir)\tscDLL.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
@@ -235,6 +236,9 @@ $(objdir)\SpellingOptionsDlg.obj : $(srcdir)\SpellingOptionsDlg.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
 
 $(objdir)\RichEditSpellChecker.obj : $(srcdir)\RichEditSpellChecker.cpp
+	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    
+$(objdir)\utf8conv.obj : $(srcdir)\utf8conv.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(LIBTOLONSPELLCHECK_RES) : $(LIBTOLONSPELLCHECK_RC)
