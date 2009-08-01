@@ -4,7 +4,7 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <sstream>
-#include "RichEditSpellChecker.h"
+#include "CheckSpellingDlg.h"
 
 using namespace std;
 using namespace TolonSpellCheck;
@@ -135,12 +135,20 @@ tsc_result CSession::CheckSpelling(TSC_CHECKSPELLING_DATA* pData)
 	if (pData->cbSize != sizeof(TSC_CHECKSPELLING_DATA))
 		return Error_StructSizeInvalid();
 	
-	if ( (pData->nMode == MODE_AUTO) && (pData->nTarget == TARGET_RICHEDIT) )
+	if ( (pData->nMode == MODE_AUTO) )
+	{
+		CCheckSpellingDlg dlg(this, pData);
+		
+		dlg.DoModal();
+	}
+
+
+	/*if ( (pData->nMode == MODE_AUTO) && (pData->nTarget == TARGET_RICHEDIT) )
 	{
 		CRichEditSpellChecker r(this);
 		
 		r.CheckSpelling(pData->hwnd);
-	}
+	}*/
 	
 	return Success();
 }

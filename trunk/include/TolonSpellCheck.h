@@ -104,6 +104,7 @@ enum enumCheckSpellingMode {
 typedef struct tagTSC_CHECKSPELLING {
 	tsc_size_t cbSize;
 	HWND hwnd;	//!< If nMode = MODE_AUTO, this is window handle for the control to check the text of.
+    HWND hwndParent; //!< The parent window for the spell checking dialog.
 	tsc_byte nTarget;
 	tsc_byte nMode;
 	tsc_byte nReserved2;
