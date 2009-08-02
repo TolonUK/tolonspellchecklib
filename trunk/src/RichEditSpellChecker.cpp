@@ -70,7 +70,19 @@ unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
 	    es.pfnCallback = &CRichEditSpellChecker::WT_RichEditStreamOutCallback;
     	
 	    pThis->WT_PreSpellCheck();
-        ::SendMessage(pThis->GetRichEditHwnd(), EM_STREAMOUT, SF_UNICODE | SF_TEXT, reinterpret_cast<LPARAM>(&es));
+        //::SendMessage(pThis->GetRichEditHwnd(), EM_STREAMOUT, SF_UNICODE | SF_TEXT, reinterpret_cast<LPARAM>(&es));
+
+        LRESULT lr = 0;
+        GETTEXTLENGTHEX gtlex = {0};
+        gtlex.codepage = 1200; //CP_UNICODE
+        gtlex.flags = GTL_NUMCHARS | GTL_CLOSE | GTL_USECRLF;
+        lr = ::SendMessage(pThis->GetRichEditHwnd(), EM_GETTEXTLENGTHEX, reinterpret_cast<WPARAM>(&gtlex), NULL);
+
+        if (lr > 0)
+        {
+
+        }
+
         pThis->WT_PostSpellCheck();
    }
 
