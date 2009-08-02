@@ -45,6 +45,7 @@ class CRichEditSpellChecker
     
     private:
         DWORD WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
+        void WT_DoSpellCheckWork(wchar_t* psData, size_t nChars);
         void WT_ProcessWord();
         void WT_PreSpellCheck();
         void WT_PostSpellCheck();

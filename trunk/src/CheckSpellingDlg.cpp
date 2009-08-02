@@ -194,10 +194,6 @@ void CCheckSpellingDlg::TimerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTi
 
 void CCheckSpellingDlg::OnTimer_PollChecker()
 {
-    std::wstringstream ss;
-    ss << ::GetTickCount() << L" OnTimer_PollChecker()" << std::endl;
-    ::OutputDebugString(ss.str().c_str());
-
     CRichEditSpellChecker::State nState = CRichEditSpellChecker::SpellCheckState_INVALID;
     DWORD dwCharsDone = 0;
     DWORD dwCharsTotal = 0;
@@ -253,6 +249,7 @@ void CCheckSpellingDlg::UpdateUI()
     }
     ::SetDlgItemText(GetHwnd(), IDC_PROGRESS_STATIC, ss.str().c_str());
 
+    //TODO: Change these to use EnableWindow
     // Cancel button
     ::SendDlgItemMessage(GetHwnd(), IDC_CANCEL_SPELLCHECK, WM_ENABLE, bAllowSpellCheckCancel, NULL);
 

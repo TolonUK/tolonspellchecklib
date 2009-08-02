@@ -80,12 +80,12 @@ unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
         if (lr > 0)
         {
             GETTEXTEX gtex = {0};
-            m_vText.resize(lr + 1);
-            gtex.cb = m_vText.size() * sizeof(wchar_t);
+            pThis->m_vText.resize(lr + 1);
+            gtex.cb = pThis->m_vText.size() * sizeof(wchar_t);
             gtex.flags = GT_DEFAULT;
             gtex.codepage = 1200; //CP_UNICODE
-            lr = ::SendMessage(pThis->GetRichEditHwnd(), EM_GETTEXTEX, reinterpret_cast<WPARAM>(&gtex), reinterpret_cast<LPARAM>(&(*m_vText.begin()));
-            WT_DoSpellCheckWork(&(*m_vText.begin()), lr);
+            lr = ::SendMessage(pThis->GetRichEditHwnd(), EM_GETTEXTEX, reinterpret_cast<WPARAM>(&gtex), reinterpret_cast<LPARAM>(&(*pThis->m_vText.begin())));
+            pThis->WT_DoSpellCheckWork(&(*pThis->m_vText.begin()), lr);
         }
 
         pThis->WT_PostSpellCheck();
@@ -207,7 +207,6 @@ void CRichEditSpellChecker::WT_ProcessWord()
             //TODO: Something here!
             OutputDebugString(sWord.c_str());
             OutputDebugString(L"\r\n");
-            Sleep(100);
         }
 	}
 }
