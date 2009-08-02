@@ -70,7 +70,6 @@ unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
 	    es.pfnCallback = &CRichEditSpellChecker::WT_RichEditStreamOutCallback;
     	
 	    pThis->WT_PreSpellCheck();
-        //::SendMessage(pThis->GetRichEditHwnd(), EM_STREAMOUT, SF_UNICODE | SF_TEXT, reinterpret_cast<LPARAM>(&es));
 
         LRESULT lr = 0;
         GETTEXTLENGTHEX gtlex = {0};
@@ -80,7 +79,13 @@ unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
 
         if (lr > 0)
         {
-
+            GETTEXTEX gtex = {0};
+            m_vText.resize(lr + 1);
+            gtex.cb = m_vText.size() * sizeof(wchar_t);
+            gtex.flags = GT_DEFAULT;
+            gtex.codepage = 1200; //CP_UNICODE
+            lr = ::SendMessage(pThis->GetRichEditHwnd(), EM_GETTEXTEX, reinterpret_cast<WPARAM>(&gtex), reinterpret_cast<LPARAM>(&(*m_vText.begin()));
+            WT_DoSpellCheckWork(&(*m_vText.begin()), lr);
         }
 
         pThis->WT_PostSpellCheck();
@@ -150,6 +155,29 @@ DWORD CRichEditSpellChecker::WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb
 	return dwResult;
 }
 
+void CRichEditSpellChecker::WT_DoSpellCheckWork(wchar_t* psData, size_t nChars)
+{
+    size_t nDone = 0;
+    for ( ; nDone < nChars; ++nDone )
+    {
+        if (*psData == NULL)
+            break;
+        else if (IsUnicodeAlpha(*psData))
+			m_sWord << *psData;
+		else
+			WT_ProcessWord();
+
+        IncrementCharsDone();
+
+        if (IsStopFlagSet())
+        {
+            break;
+        }
+        
+        ++psData;
+    }
+}
+
 void CRichEditSpellChecker::WT_ProcessWord()
 {
 	wstring sWord(m_sWord.str());
@@ -179,7 +207,7 @@ void CRichEditSpellChecker::WT_ProcessWord()
             //TODO: Something here!
             OutputDebugString(sWord.c_str());
             OutputDebugString(L"\r\n");
-            Sleep(1000);
+            Sleep(100);
         }
 	}
 }

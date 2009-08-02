@@ -4,6 +4,7 @@
 #include "utf8conv.h"
 #include <windows.h>
 #include <sstream>
+#include <vector>
 
 namespace TolonSpellCheck {
 
@@ -64,6 +65,7 @@ class CRichEditSpellChecker
     private:
         HWND m_hWndRichEdit;
         std::wstringstream m_sWord;
+        std::vector<wchar_t> m_vText;
         CSession* m_pSession;
         CUTF8Conv m_oConv;
 
