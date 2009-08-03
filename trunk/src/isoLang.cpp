@@ -21,7 +21,7 @@ struct ISO639Language {
     wchar_t* Level2CodeB;
     wchar_t* Level3Code;
     wchar_t* EnglishName;
-    char* NativeName;
+    char* NativeName; //UTF8
 };
 
 ISO639Language g_languages[] = {
@@ -30,3 +30,4 @@ ISO639Language g_languages[] = {
     { L"fr", L"fra", L"fre", L"fra", L"French", "Français" },
     { L"ja", L"jpn", NULL, L"jpn", L"Japanese", "日本語 (にほんご／にっぽんご)" }
 };	
+

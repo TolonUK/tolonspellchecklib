@@ -96,6 +96,8 @@ unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
 
 void CRichEditSpellChecker::WT_PreSpellCheck()
 {
+    SetState(SpellCheckState_WORKING);
+
     // Reset word container
 	m_sWord.str(L"");
 
@@ -207,6 +209,7 @@ void CRichEditSpellChecker::WT_ProcessWord()
             //TODO: Something here!
             OutputDebugString(sWord.c_str());
             OutputDebugString(L"\r\n");
+            Sleep(100);
         }
 	}
 }

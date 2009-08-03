@@ -24,9 +24,9 @@ public:
 private:
     // Message Handlers
 	BOOL OnInitDialog();
-    void OnOk();
-    void OnCancel();
-    void OnMakeDefault();
+    void OnCmdOk();
+    void OnCmdCancel();
+    void OnCmdMakeDefault();
 
 	void InitLangList();
 

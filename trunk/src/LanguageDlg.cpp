@@ -25,7 +25,7 @@ static struct COLUMN_DATA {
     int Id;
     int Width;
     const wchar_t* Name;
-} s_columns[COLUMN_COUNT] {
+} s_columns[COLUMN_COUNT] = {
     { COL_CODE, 80,                       L"Code" },
     { COL_NAME, LVSCW_AUTOSIZE_USEHEADER, L"Language" }
 };
@@ -137,9 +137,9 @@ void CLanguageDlg::InitLangList()
     
     for ( int i = 0; i < COLUMN_COUNT; ++i )
     {
-        lvc.pszText = s_columns.Name;
-        lvc.cx = s_columns.Width;
-        ListView_InsertColumn(m_hwndLangList, s_columns.id, &lvc);
+        lvc.pszText = const_cast<wchar_t*>(s_columns[i].Name);
+        lvc.cx = s_columns[i].Width;
+        ListView_InsertColumn(m_hwndLangList, s_columns[i].Id, &lvc);
     }
 }
 
@@ -163,16 +163,16 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
         
 		if (nCmd == IDOK)
         { 
-            OnCmdOk();
+            s_pThis->OnCmdOk();
             EndDialog(hDlg, nCmd);
         }
         else if (nCmd == IDCANCEL)
 		{
-            OnCmdCancel();
+            s_pThis->OnCmdCancel();
             EndDialog(hDlg, nCmd);
         }
         else if (nCmd == IDC_MAKEDEFAULT_BTN)
-        { OnCmdMakeDefault(); }
+        { s_pThis->OnCmdMakeDefault(); }
         
         bHandled = TRUE;
         
@@ -182,7 +182,7 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 	return bHandled;
 }
 
-void CLanguageDlg::OnOk()
+void CLanguageDlg::OnCmdOk()
 {
     if (!m_pSession)
     {
@@ -196,10 +196,10 @@ void CLanguageDlg::OnOk()
     }
 }
 
-void CLanguageDlg::OnCancel()
+void CLanguageDlg::OnCmdCancel()
 {
 }
 
-void CLanguageDlg::OnMakeDefault()
+void CLanguageDlg::OnCmdMakeDefault()
 {
 }

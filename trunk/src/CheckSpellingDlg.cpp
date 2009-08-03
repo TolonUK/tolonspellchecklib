@@ -142,7 +142,7 @@ void CCheckSpellingDlg::OnCmdOptions()
 
 void CCheckSpellingDlg::OnCmdCancelSpellCheck()
 {
-    ::MessageBox(GetHwnd(), L"OnCmdCancelSpellCheck()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
+    m_checker.StopSpellCheck();
 }
 
 void CCheckSpellingDlg::OnCmdIgnoreOnce()
@@ -227,6 +227,7 @@ void CCheckSpellingDlg::UpdateUI()
     switch (m_nLastCheckerState)
     {
     case CRichEditSpellChecker::SpellCheckState_INVALID:
+    case CRichEditSpellChecker::SpellCheckState_IDLE:
         ss << L"Checking not yet started.";
         break;
     case CRichEditSpellChecker::SpellCheckState_WORKING:
