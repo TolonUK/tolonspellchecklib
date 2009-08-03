@@ -30,13 +30,6 @@ CSession::CSession(TSC_CREATESESSION_DATA* pData) :
 	m_szLastError(s_szErrErr)
 {
 	memset(&m_options, 0, sizeof(TSC_SESSIONOPTIONS_DATA));
-	/*
-	if (pData && (pData->cbSize <= sizeof(TSC_CREATESESSION_DATA)))
-	{
-		memset(&m_data, 0, sizeof(TSC_CREATESESSION_DATA));
-		memcpy(&m_data, pData, pData->cbSize);
-	}
-	*/
 	
 	// InitCommonControlsEx() is required on Windows XP if an application
 	// manifest specifies use of ComCtl32.dll version 6 or later to enable
@@ -88,7 +81,6 @@ tsc_result CSession::Init()
 		if (m_pEnchantDict)
 		{
 			result = TSC_S_OK;
-			//SetInitialised(true);
 		}
 		else
 		{
@@ -141,14 +133,6 @@ tsc_result CSession::CheckSpelling(TSC_CHECKSPELLING_DATA* pData)
 		
 		dlg.DoModal();
 	}
-
-
-	/*if ( (pData->nMode == MODE_AUTO) && (pData->nTarget == TARGET_RICHEDIT) )
-	{
-		CRichEditSpellChecker r(this);
-		
-		r.CheckSpelling(pData->hwnd);
-	}*/
 	
 	return Success();
 }
@@ -250,8 +234,6 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
 	
 	dlg.DoModal();
 	
-	//enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, NULL);
-	
 	return Success();
 }
 
@@ -261,6 +243,11 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
 									   const char * const provider_file,
 									   void * user_data )
 {
+    EnumLanguagesPayload* pelp = reinterpret_cast<EnumLanguagesPayload*>(user_data);
+    
+    if (!pelp)
+        return;
+    
 	wchar_t wszLangTag[64];
 	wchar_t wszProvName[256];
 	wchar_t wszProvDesc[256];
@@ -273,11 +260,12 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
 	::MultiByteToWideChar(CP_UTF8, 0, provider_name, -1, wszProvName, 256);
 	::MultiByteToWideChar(CP_UTF8, 0, provider_desc, -1, wszProvDesc, 256);
 	
-	wstringstream ss;
+	LANGUAGE_DESC_WIDEDATA ldwd;
 	
-	ss << wszLangTag << wszProvName << wszProvDesc;
+	memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
 	
-	MessageBox(NULL, ss.str().c_str(), NULL, MB_OK);
+    wcscpy(ldwd.wszCodeName, wszLangTag);
+	pelp->pfn(&ldwd, pelp->pUserData);
 }
 
 tsc_result CSession::GetCurrentLanguage(wchar_t* wszLang) 
@@ -398,17 +386,10 @@ tsc_result CSession::EnumLanguages(LanguageEnumFn pfn, void* pUserData)
 	if (!pfn)
 		return Error_ParamWasNull();
 	
-	tsc_result result = TSC_E_FAIL;
-	
-	LANGUAGE_DESC_WIDEDATA ldwd;
-	
-	memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
-	
-	wcscpy(ldwd.wszDisplayName, L"English, United Kingdom");
-	pfn(&ldwd, pUserData);
-	
-	wcscpy(ldwd.wszDisplayName, L"English, United States");
-	pfn(&ldwd, pUserData);
+    EnumLanguagesPayload elp = {0};
+    elp.pfn = pfn;
+    elp.pUserData = pUserData;
+	enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, &elp);
 	
 	return Success();
 }

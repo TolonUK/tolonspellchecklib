@@ -43,6 +43,8 @@ private:
     HWND GetRichEditHwnd() const;
 
     void UpdateUI();
+    
+    void EnableDialogItem(int nDlgItem, BOOL bEnable);
 
 private:
     TolonSpellCheck::CSession* m_pSession;

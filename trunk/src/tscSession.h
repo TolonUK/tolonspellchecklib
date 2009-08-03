@@ -48,7 +48,12 @@ public:
 		
 	tsc_result EnumLanguages(LanguageEnumFn pfn, void* pUserData);
 
-protected:
+private:
+    struct EnumLanguagesPayload {
+        LanguageEnumFn pfn;
+        void* pUserData; };
+        
+private:
 	tsc_result Error_NotImplemented();
 	tsc_result Error_ParamWasNull();
 	tsc_result Error_SessionAlreadyInitialised();
@@ -56,7 +61,7 @@ protected:
 	tsc_result Error_StructSizeInvalid();
 	tsc_result Success();
 
-protected:
+private:
 	bool m_bInitialised;
 	EnchantBroker* m_pEnchantBroker;
 	EnchantDict* m_pEnchantDict;

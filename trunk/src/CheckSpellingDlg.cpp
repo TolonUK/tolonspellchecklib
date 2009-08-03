@@ -97,7 +97,7 @@ int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, 
         const WORD nCmd = LOWORD(wParam);
         
 		if (nCmd == IDOK || nCmd == IDCANCEL)
-		{ EndDialog(hDlg, LOWORD(wParam)); }
+		{ EndDialog(hDlg, nCmd); }
         else if (nCmd == IDC_OPTIONS)
             { s_pThis->OnCmdOptions(); }
         else if (nCmd == IDC_CANCEL_SPELLCHECK)
@@ -249,16 +249,24 @@ void CCheckSpellingDlg::UpdateUI()
     }
     ::SetDlgItemText(GetHwnd(), IDC_PROGRESS_STATIC, ss.str().c_str());
 
-    //TODO: Change these to use EnableWindow
     // Cancel button
-    ::SendDlgItemMessage(GetHwnd(), IDC_CANCEL_SPELLCHECK, WM_ENABLE, bAllowSpellCheckCancel, NULL);
+    EnableDialogItem(IDC_CANCEL_SPELLCHECK, bAllowSpellCheckCancel);
 
     // General user input controls
-    ::SendDlgItemMessage(GetHwnd(), IDC_IGNORE_ONCE, WM_ENABLE, bAllowGeneralInput, NULL);
-    ::SendDlgItemMessage(GetHwnd(), IDC_IGNORE_ALL, WM_ENABLE, bAllowGeneralInput, NULL);
-    ::SendDlgItemMessage(GetHwnd(), IDC_ADD_TO_DICTIONARY, WM_ENABLE, bAllowGeneralInput, NULL);
-    ::SendDlgItemMessage(GetHwnd(), IDC_CHANGE, WM_ENABLE, bAllowGeneralInput, NULL);
-    ::SendDlgItemMessage(GetHwnd(), IDC_CHANGE_ALL, WM_ENABLE, bAllowGeneralInput, NULL);
-    ::SendDlgItemMessage(GetHwnd(), IDC_SUGGESTION_LIST, WM_ENABLE, bAllowGeneralInput, NULL);
-    ::SendDlgItemMessage(GetHwnd(), IDC_RICHEDIT, WM_ENABLE, bAllowGeneralInput, NULL);
+    EnableDialogItem(IDC_IGNORE_ONCE, bAllowGeneralInput);
+    EnableDialogItem(IDC_IGNORE_ALL, bAllowGeneralInput);
+    EnableDialogItem(IDC_ADD_TO_DICTIONARY, bAllowGeneralInput);
+    EnableDialogItem(IDC_CHANGE, bAllowGeneralInput);
+    EnableDialogItem(IDC_CHANGE_ALL, bAllowGeneralInput);
+    EnableDialogItem(IDC_SUGGESTION_LIST, bAllowGeneralInput);
+    EnableDialogItem(IDC_RICHEDIT, bAllowGeneralInput);
+}
+
+void CCheckSpellingDlg::EnableDialogItem(int nItem, BOOL bEnable)
+{
+    HWND hwnd = ::GetDlgItem(GetHwnd(), nItem);
+    if (hwnd)
+    {
+        ::EnableWindow(hwnd, bEnable);
+    }
 }

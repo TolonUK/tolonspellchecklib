@@ -14,6 +14,25 @@ extern HINSTANCE g_hInstDll;
 using namespace TolonSpellCheck;
 using namespace std;
 
+static enum COLUMNS {
+    COL_CODE,
+    COL_NAME,
+    
+    COLUMN_COUNT
+};
+
+static struct COLUMN_DATA {
+    int Id;
+    int Width;
+    const wchar_t* Name;
+} s_columns[COLUMN_COUNT] {
+    { COL_CODE, 80,                       L"Code" },
+    { COL_NAME, LVSCW_AUTOSIZE_USEHEADER, L"Language" }
+};
+
+static const int s_nColDisplayName;
+static const int s_nColCodeName;
+
 // CLanguageDlg dialog
 
 static CLanguageDlg* s_pThis;
@@ -26,14 +45,16 @@ bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserDa
 	
 	if (pData && pThis)
 	{
-		LVITEM lvi;
-		memset(&lvi, 0, sizeof(lvi));
+		LVITEM lvi = {0};
 		
 		lvi.mask = LVIF_TEXT;
 		lvi.iItem = 0;
-		lvi.iSubItem = 0;
-		lvi.pszText = pData->wszDisplayName;
-		ListView_InsertItem(pThis->m_hwndLangList, &lvi);
+        
+        lvi.iSubItem = COL_CODE;
+        lvi.pszText = pData->wszCodeName;
+        ListView_InsertItem(pThis->m_hwndLangList, &lvi);
+        
+		ListView_SetItemText(pThis->m_hwndLangList, lvi.iItem, COL_NAME, pData->wszDisplayName);
 		
 		bResult = true;
 	}
@@ -111,15 +132,21 @@ void CLanguageDlg::InitLangList()
 	m_hwndLangList = GetDlgItem(m_hwnd, IDC_DIC_LIST);
 	
 	// Set up columns
-	LVCOLUMN lvc;
-	memset(&lvc, 0, sizeof(lvc));
-	lvc.mask = LVCF_TEXT;
-	lvc.pszText = L"Language";
-	ListView_InsertColumn(m_hwndLangList, 0, &lvc);
+	LVCOLUMN lvc = {0};
+	lvc.mask = LVCF_TEXT | LVCF_WIDTH;
+    
+    for ( int i = 0; i < COLUMN_COUNT; ++i )
+    {
+        lvc.pszText = s_columns.Name;
+        lvc.cx = s_columns.Width;
+        ListView_InsertColumn(m_hwndLangList, s_columns.id, &lvc);
+    }
 }
 
 int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    BOOL bHandled = FALSE;
+    
 	if (!s_pThis)
 		return 0;
 	
@@ -132,12 +159,47 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 		return s_pThis->OnInitDialog();
 
 	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        const WORD nCmd = LOWORD(wParam);
+        
+		if (nCmd == IDOK)
+        { 
+            OnCmdOk();
+            EndDialog(hDlg, nCmd);
+        }
+        else if (nCmd == IDCANCEL)
 		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
+            OnCmdCancel();
+            EndDialog(hDlg, nCmd);
+        }
+        else if (nCmd == IDC_MAKEDEFAULT_BTN)
+        { OnCmdMakeDefault(); }
+        
+        bHandled = TRUE;
+        
 		break;
 	}
-	return (INT_PTR)FALSE;
+    
+	return bHandled;
+}
+
+void CLanguageDlg::OnOk()
+{
+    if (!m_pSession)
+    {
+        ::MessageBox(GetHwnd(), L"Internal Error. Could not set the chosen dictionary.", L"TolonSpellCheck", MB_OK | MB_ICONEXCLAMATION);
+        return;
+    }
+    else
+    {
+        // Get chosen language
+        // Set it on the session
+    }
+}
+
+void CLanguageDlg::OnCancel()
+{
+}
+
+void CLanguageDlg::OnMakeDefault()
+{
 }

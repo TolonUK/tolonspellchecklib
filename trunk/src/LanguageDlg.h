@@ -21,11 +21,19 @@ public:
 	
 	int DoModal();
 
-protected:
+private:
+    // Message Handlers
 	BOOL OnInitDialog();
+    void OnOk();
+    void OnCancel();
+    void OnMakeDefault();
+
 	void InitLangList();
 
-protected:
+    HWND GetHwnd() const
+    { return m_hwnd; }
+
+private:
 	TolonSpellCheck::CSession* const m_pSession;
 	HWND m_hwnd;
 	HWND m_hwndParent;
