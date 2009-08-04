@@ -5,6 +5,7 @@
 #include <commctrl.h>
 #include <sstream>
 #include "CheckSpellingDlg.h"
+#include "isoLang.h"
 
 using namespace std;
 using namespace TolonSpellCheck;
@@ -359,8 +360,31 @@ tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pD
 		return Error_StructSizeInvalid();
 	
 	tsc_result result = TSC_E_FAIL;
+    
+    CIsoLang il;
+    std::string sLanguage;
+    std::string sRegion;
+    std::string sDesc;
+    std::stringstream ss;
+    
+    il.Parse(szLang, sLanguage, sRegion);
+    
+    if (sLanguage.empty() == false)
+    {
+        ss << sLanguage; 
+        
+        if (sRegion.empty() == false)
+        {
+            ss << ", " << sRegion;
+        }
+        
+        sDesc.swap(ss.str());
+        memcpy(pData->szDisplayName, sDecs.c_str(), std::min(sDesc.size(), 127));
+        pData->szDisplayName[127] = '\0';
+    }
+    
 
-	if (_stricmp(szLang, "en-gb") == 0)
+	/*if (_stricmp(szLang, "en-gb") == 0)
 	{
 		strcpy(pData->szDisplayName, "English, United Kingdom (en-gb)");
 		result = TSC_S_OK;
@@ -373,7 +397,7 @@ tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pD
 	else
 	{
 		result = TSC_S_FALSE;
-	}
+	}*/
 	
 	return result;
 }
