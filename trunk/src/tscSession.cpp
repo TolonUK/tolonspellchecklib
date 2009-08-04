@@ -248,22 +248,23 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
     
     if (!pelp)
         return;
-    
+
 	wchar_t wszLangTag[64];
-	wchar_t wszProvName[256];
-	wchar_t wszProvDesc[256];
+	//wchar_t wszProvName[256];
+	//wchar_t wszProvDesc[256];
 	
 	wszLangTag[0] = 0;
-	wszProvName[0] = 0;
-	wszProvDesc[0] = 0;
+	//wszProvName[0] = 0;
+	//wszProvDesc[0] = 0;
 	
 	::MultiByteToWideChar(CP_UTF8, 0, lang_tag, -1, wszLangTag, 64);
-	::MultiByteToWideChar(CP_UTF8, 0, provider_name, -1, wszProvName, 256);
-	::MultiByteToWideChar(CP_UTF8, 0, provider_desc, -1, wszProvDesc, 256);
+	//::MultiByteToWideChar(CP_UTF8, 0, provider_name, -1, wszProvName, 256);
+	//::MultiByteToWideChar(CP_UTF8, 0, provider_desc, -1, wszProvDesc, 256);
 	
-	LANGUAGE_DESC_WIDEDATA ldwd;
-	
-	memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
+    LANGUAGE_DESC_WIDEDATA ldwd = {0};
+	ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
+
+    pelp->pThis->DescribeLanguage(wszLangTag, &ldwd);
 	
     wcscpy(ldwd.wszCodeName, wszLangTag);
 	pelp->pfn(&ldwd, pelp->pUserData);
@@ -379,8 +380,10 @@ tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pD
         }
         
         sDesc.swap(ss.str());
-        memcpy(pData->szDisplayName, sDecs.c_str(), std::min(sDesc.size(), 127));
+        memcpy(pData->szDisplayName, sDesc.c_str(), min(sDesc.size(), 127));
         pData->szDisplayName[127] = '\0';
+
+		result = TSC_S_OK;
     }
     
 
@@ -413,6 +416,7 @@ tsc_result CSession::EnumLanguages(LanguageEnumFn pfn, void* pUserData)
     EnumLanguagesPayload elp = {0};
     elp.pfn = pfn;
     elp.pUserData = pUserData;
+    elp.pThis = this;
 	enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, &elp);
 	
 	return Success();

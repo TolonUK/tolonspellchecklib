@@ -26,7 +26,7 @@ static struct COLUMN_DATA {
     int Width;
     const wchar_t* Name;
 } s_columns[COLUMN_COUNT] = {
-    { COL_CODE, 80,                       L"Code" },
+    { COL_CODE, 80,						   L"Code" },
     { COL_NAME, LVSCW_AUTOSIZE_USEHEADER, L"Language" }
 };
 
@@ -130,16 +130,20 @@ void CLanguageDlg::InitLangList()
 	
 	// Obtain HWND
 	m_hwndLangList = GetDlgItem(m_hwnd, IDC_DIC_LIST);
+
+    // Set styles
+    ListView_SetExtendedListViewStyleEx(m_hwndLangList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
 	
 	// Set up columns
 	LVCOLUMN lvc = {0};
-	lvc.mask = LVCF_TEXT | LVCF_WIDTH;
+	lvc.mask = LVCF_TEXT;
+	int nItem = 0;
     
     for ( int i = 0; i < COLUMN_COUNT; ++i )
     {
         lvc.pszText = const_cast<wchar_t*>(s_columns[i].Name);
-        lvc.cx = s_columns[i].Width;
-        ListView_InsertColumn(m_hwndLangList, s_columns[i].Id, &lvc);
+        nItem = ListView_InsertColumn(m_hwndLangList, s_columns[i].Id, &lvc);
+		ListView_SetColumnWidth(m_hwndLangList, nItem, s_columns[i].Width);
     }
 }
 

@@ -215,7 +215,8 @@ LIBTOLONSPELLCHECK_OBJECTS = \
     $(objdir)\LanguageDlg.obj \
     $(objdir)\SpellingOptionsDlg.obj \
     $(objdir)\RichEditSpellChecker.obj \
-    $(objdir)\utf8conv.obj
+    $(objdir)\utf8conv.obj \
+    $(objdir)\isoLang.obj
 
 $(objdir)\tscDLL.obj : $(srcdir)\tscDLL.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
@@ -239,6 +240,9 @@ $(objdir)\RichEditSpellChecker.obj : $(srcdir)\RichEditSpellChecker.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(objdir)\utf8conv.obj : $(srcdir)\utf8conv.cpp
+	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    
+$(objdir)\isoLang.obj : $(srcdir)\isoLang.cpp
 	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(LIBTOLONSPELLCHECK_RES) : $(LIBTOLONSPELLCHECK_RC)

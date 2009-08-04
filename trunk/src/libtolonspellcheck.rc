@@ -139,6 +139,7 @@ BEGIN
     LTEXT           "%n of %N characters checked.\nWorking...",IDC_PROGRESS_STATIC,19,18,165,19
     PUSHBUTTON      "Cancel",IDC_CANCEL_SPELLCHECK,192,23,73,14
     LTEXT           "",IDC_STATIC,7,40,258,1,SS_SUNKEN
+    PUSHBUTTON      "Restart",IDC_RESTART_SPELLCHECK,192,7,73,14
 END
 
 IDD_DIC_LANG DIALOGEX 0, 0, 272, 129
@@ -149,7 +150,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,159,108,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,215,108,50,14
     LTEXT           "Choose Dictionary:",IDC_STATIC,7,7,62,8
-    CONTROL         "",IDC_DIC_LIST,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,16,177,71
+    CONTROL         "",IDC_DIC_LIST,"SysListView32",LVS_REPORT | LVS_SINGLESEL | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,7,16,177,71
     PUSHBUTTON      "Make Default",IDC_MAKEDEFAULT_BTN,192,16,73,14
     LTEXT           "Static",IDC_STATIC,7,103,258,1,SS_SUNKEN
     LTEXT           "Default: %LANG_NAME% (%LANG_CODE%)",IDC_DEFAULTLANG_STATIC,7,90,177,8
@@ -228,6 +229,7 @@ END
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE 9, 1
 #pragma code_page(1252)
+#include "//res\Tolon_SpellCheck_UI.rc2"  // non-Microsoft Visual C++ edited resources
 #include "afxres.rc"     // Standard components
 #endif
 

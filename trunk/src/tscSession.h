@@ -51,7 +51,8 @@ public:
 private:
     struct EnumLanguagesPayload {
         LanguageEnumFn pfn;
-        void* pUserData; };
+        void* pUserData;
+        CSession* pThis; };
         
 private:
 	tsc_result Error_NotImplemented();

@@ -30,6 +30,7 @@ private:
     void OnCmdAddToDictionary();
     void OnCmdChange();
     void OnCmdChangeAll();
+    void OnCmdRestartSpellCheck();
 
     // Timer handlers
     void OnTimer_PollChecker();

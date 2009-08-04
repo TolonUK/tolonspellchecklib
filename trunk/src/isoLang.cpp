@@ -1,5 +1,6 @@
-﻿#include "isoLang.h"
+#include "isoLang.h"
 #include <algorithm>
+#include <functional>
 #include <locale>
 
 // http://www.loc.gov/standards/iso639-2/php/English_list.php
@@ -7,56 +8,57 @@
 // http://www.evertype.com/emono/
 
 struct ISO3166Region {
-    char* Alpha2Code; // ASCII
-    wchar_t* EnglishName;
-    char* NativeName; // UTF8
+    const char* Alpha2Code; // ASCII
+    const char* EnglishName;
+    const char* NativeName; // UTF8
 };
 
 const ISO3166Region g_regions[] = {
-    { "de", L"Germany", "Germany" },
-    { "fr", L"France", "France" },
-    { "gb", L"United Kingdom", "United Kingdom" },
-    { "ru", L"Russia", "Russia" },
-    { "us", L"United States", "United States" }
+    { "de", "Germany", "Germany" },
+    { "fr", "France", "France" },
+    { "gb", "United Kingdom", "United Kingdom" },
+    { "ph", "Philippines", "Philippines" },
+    { "ru", "Russia", "Russia" },
+    { "us", "United States", "United States" }
 };
 
 const size_t g_regions_size = sizeof(g_regions) / sizeof(g_regions[0]);
 
 struct ISO639Language {
-    char* Level1Code; // ASCII
-    char* Level2CodeT; // ASCII
-    char* Level2CodeB; // ASCII
-    char* Level3Code; // ASCII
-    wchar_t* EnglishName;
-    char* NativeName; // UTF8
+    const char* Level1Code; // ASCII
+    const char* Level2CodeT; // ASCII
+    const char* Level2CodeB; // ASCII
+    const char* Level3Code; // ASCII
+    const char* EnglishName;
+    const char* NativeName; // UTF8
 };
 
 // Need right-to-left indicator?
 const ISO639Language g_languages[] = {
-    { "af", "afr", NULL, "afr", L"Afrikaans", "Afrikaans" },
-    { "ar", "ara", NULL, "ara", L"Arabic", "العربية" }, // 30 variations?
-    { "bo", "bod", "tib", "bod", L"Tibetan", "བོད་ཡིག" },
-    { "ca", "cat", NULL, "cat", L"Catalan", "Català" },
-    { "cs", "ces", "cze", "ces", L"Czech", "česky" },
-    { "da", "dan", NULL, "dan", L"Danish", "dansk" },
-    { "de", "deu", "ger", "deu", L"German", "Deutsch" },
-    { "en", "eng", NULL, "eng", L"English", "English" },
-    { "eo", "epo", NULL, "epo", L"Esperanto", "Esperanto" },
-    { "es", "spa", NULL, "spa", L"Spanish", "español" },
-    { "fi", "fin", NULL, "fin", L"Finnish", "suomi" },
-    { "fr", "fra", "fre", "fra", L"French", "Français" },
-    { "hu", "hun", NULL, "hun", L"Hungarian", "Magyar" },
-    { "id", "ind", NULL, "ind", L"Indonesian", "Bahasa Indonesia" },
-    { "it", "ita", NULL, "ita", L"Italian", "Italiano" },
-    { "ja", "jpn", NULL, "jpn", L"Japanese", "日本語 (にほんご／にっぽんご)" },
-    { "ko", "kor", NULL, "kor", L"Korean", "한국어 (韓國語), 조선말 (朝鮮語)" }//,
+    { "af", "afr", NULL, "afr", "Afrikaans", "Afrikaans" },
+    { "ar", "ara", NULL, "ara", "Arabic", "العربية" }, // 30 variations?
+    { "bo", "bod", "tib", "bod", "Tibetan", "བོད་ཡིག" },
+    { "ca", "cat", NULL, "cat", "Catalan", "Català" },
+    { "cs", "ces", "cze", "ces", "Czech", "česky" },
+    { "da", "dan", NULL, "dan", "Danish", "dansk" },
+    { "de", "deu", "ger", "deu", "German", "Deutsch" },
+    { "en", "eng", NULL, "eng", "English", "English" },
+    { "eo", "epo", NULL, "epo", "Esperanto", "Esperanto" },
+    { "es", "spa", NULL, "spa", "Spanish", "español" },
+    { "fi", "fin", NULL, "fin", "Finnish", "suomi" },
+    { "fr", "fra", "fre", "fra", "French", "Français" },
+    { "hu", "hun", NULL, "hun", "Hungarian", "Magyar" },
+    { "id", "ind", NULL, "ind", "Indonesian", "Bahasa Indonesia" },
+    { "it", "ita", NULL, "ita", "Italian", "Italiano" },
+    { "ja", "jpn", NULL, "jpn", "Japanese", "日本語 (にほんご／にっぽんご)" },
+    { "ko", "kor", NULL, "kor", "Korean", "한국어 (韓國語), 조선말 (朝鮮語)" },
     /*nl nld dut nld Dutch Nederlands 
     no nor - nor + 2 Norwegian Norsk 
     pl pol - pol Polish polski 
     pt por - por Portuguese Português 
-    ro ron rum ron Romanian română 
-    ru rus - rus Russian русский язык 
-    sk slk slo slk Slovak slovenčina 
+    ro ron rum ron Romanian română */
+    { "ru", "rus", NULL, "rus", "Russian", "русский язык" }
+    /*sk slk slo slk Slovak slovenčina 
     sv swe - swe Swedish svenska 
     tr tur - tur Turkish Türkçe 
     uk ukr - ukr Ukrainian Українська 
@@ -71,7 +73,7 @@ CIsoLang::CIsoLang()
     
 }
 
-void CIsoLang::Parse(const char* szCode, std::wstring& sLanguage, std::wstring& sRegion)
+void CIsoLang::Parse(const char* szCode, std::string& sLanguage, std::string& sRegion)
 {
     std::string sLangCode;
     std::string sRegionCode;
@@ -102,7 +104,7 @@ void CIsoLang::Parse_SplitCode(const char* szCode, std::string& sLangCode, std::
     for ( ; it != sCode.end(); ++it )
     {
         if (isalpha(*it))
-            sLang.push_back(*it);
+            sLangCode.push_back(*it);
         else
             break;
     }
@@ -116,13 +118,13 @@ void CIsoLang::Parse_SplitCode(const char* szCode, std::string& sLangCode, std::
     for ( ; it != sCode.end(); ++it )
     {
         if (isalpha(*it))
-            sRegion.push_back(*it);
+            sRegionCode.push_back(*it);
         else
             break;
     }     
 }
 
-void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::wstring& sLanguage)
+void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::string& sLanguage)
 {
     std::locale locDefault;
     std::string sCode(szLangCode);
@@ -130,7 +132,13 @@ void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::wstring& sLanguage
     
     sLanguage.clear();
     
-    std::transform(sCode.begin(), sCode.end(), sCode.begin(), std::bind2nd(std::tolower<char>, locDefault));
+    //std::transform(sCode.begin(), sCode.end(), sCode.begin(), std::bind2nd(std::ptr_fun(std::tolower<char>), locDefault));
+    for ( std::string::iterator it = sCode.begin();
+          it != sCode.end();
+          ++it )
+    {
+        *it = std::tolower(*it, locDefault);
+    }
     
     const char* psz = sCode.c_str();
     
@@ -164,7 +172,7 @@ void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::wstring& sLanguage
     }
 }
 
-void CIsoLang::Parse_GetRegion(const char* szRegionCode, std::wstring& sRegion)
+void CIsoLang::Parse_GetRegion(const char* szRegionCode, std::string& sRegion)
 {
     std::locale locDefault;
     std::string sCode(szRegionCode);
@@ -172,7 +180,13 @@ void CIsoLang::Parse_GetRegion(const char* szRegionCode, std::wstring& sRegion)
     
     sRegion.clear();
     
-    std::transform(sCode.begin(), sCode.end(), sCode.begin(), std::bind2nd(std::tolower<char>, locDefault));
+    //std::transform(sCode.begin(), sCode.end(), sCode.begin(), std::bind2nd(std::tolower<char>, locDefault));
+    for ( std::string::iterator it = sCode.begin();
+          it != sCode.end();
+          ++it )
+    {
+        *it = std::tolower(*it, locDefault);
+    }
     
     const char* psz = sCode.c_str();
     

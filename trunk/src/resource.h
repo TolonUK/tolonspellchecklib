@@ -22,6 +22,8 @@
 #define IDC_LIST1                       2008
 #define IDC_CANCEL_SPELLCHECK           2008
 #define IDC_CHECK1                      2009
+#define IDC_CANCEL_SPELLCHECK2          2009
+#define IDC_RESTART_SPELLCHECK          2009
 #define IDC_CHECK2                      2010
 #define IDC_CHECK3                      2011
 #define IDC_CHECK4                      2012

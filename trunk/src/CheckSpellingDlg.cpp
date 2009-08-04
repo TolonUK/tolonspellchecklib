@@ -170,6 +170,11 @@ void CCheckSpellingDlg::OnCmdChangeAll()
     ::MessageBox(GetHwnd(), L"OnCmdChangeAll()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
 }
 
+void CCheckSpellingDlg::OnCmdRestartSpellCheck()
+{
+    m_checker.StartSpellCheck(GetRichEditHwnd());
+}
+
 HWND CCheckSpellingDlg::GetRichEditHwnd() const
 {
     HWND hwnd = NULL;
