@@ -22,8 +22,6 @@ public:
 	tsc_result Init();
 	tsc_result Uninit();
 
-	tsc_result CheckWord(const char* szWord);
-
 	// API Support
 	tsc_result CheckWord(TSC_CHECKWORD_DATA* pData);
 	tsc_result ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData);

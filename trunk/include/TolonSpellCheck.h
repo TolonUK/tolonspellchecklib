@@ -123,7 +123,7 @@ typedef struct tagTSC_CHECKWORD {
 	// In/Out
 	union {
 		char* szResults8; // UTF-8
-		wchar_t szResults16; // Unicode
+		wchar_t* szResults16; // Unicode
 	} uResultString;
 	tsc_size_t nResultStringSize; // IN: no. of bytes in result string, OUT: no. of bytes used
 	// Out

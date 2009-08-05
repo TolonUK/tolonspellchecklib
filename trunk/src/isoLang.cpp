@@ -6,6 +6,7 @@
 // http://www.loc.gov/standards/iso639-2/php/English_list.php
 // http://en.wikipedia.org/wiki/List_of_ISO_639-2_codes
 // http://www.evertype.com/emono/
+// http://ftp.gnu.org/gnu/aspell/dict/0index.html
 
 struct ISO3166Region {
     const char* Alpha2Code; // ASCII
@@ -52,11 +53,11 @@ const ISO639Language g_languages[] = {
     { "it", "ita", NULL, "ita", "Italian", "Italiano" },
     { "ja", "jpn", NULL, "jpn", "Japanese", "日本語 (にほんご／にっぽんご)" },
     { "ko", "kor", NULL, "kor", "Korean", "한국어 (韓國語), 조선말 (朝鮮語)" },
-    /*nl nld dut nld Dutch Nederlands 
-    no nor - nor + 2 Norwegian Norsk 
+    { "nl", "nld", "dut", "nld", "Dutch", "Nederlands" },
+    /*no nor - nor + 2 Norwegian Norsk 
     pl pol - pol Polish polski 
     pt por - por Portuguese Português 
-    ro ron rum ron Romanian română */
+    ro ron rum ron Romanian română*/
     { "ru", "rus", NULL, "rus", "Russian", "русский язык" }
     /*sk slk slo slk Slovak slovenčina 
     sv swe - swe Swedish svenska 

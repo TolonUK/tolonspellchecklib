@@ -138,41 +138,6 @@ tsc_result CSession::CheckSpelling(TSC_CHECKSPELLING_DATA* pData)
 	return Success();
 }
 
-tsc_result CSession::CheckWord(const char* szWord)
-{
-	tsc_result result = TSC_E_FAIL;
-
-	if (!IsInitialised())
-		return Error_SessionNotInitialised();
-
-	if (!szWord)
-		return Error_ParamWasNull();
-
-	if ( enchant_dict_check(m_pEnchantDict, szWord, -1) == 0 )
-	{
-		// word found
-		result = TSC_S_OK;
-	}
-	else
-	{
-		// can't find word, get suggestions
-		result = TSC_S_FALSE;
-
-		/*char **suggs = NULL;
-		size_t n_suggs = 0;
-
-		suggs = enchant_dict_suggest( m_pEnchantDict,
-									  szWord,
-									  strlen(szWord),
-									  &n_suggs );
-
-		if (suggs && n_suggs)
-			enchant_dict_free_string_list(m_pEnchantDict, suggs);*/
-	}
-
-	return result;
-}
-
 tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
 {
 	if (!IsInitialised())
@@ -186,8 +151,61 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
 	
 	tsc_result tr = TSC_E_UNEXPECTED;
 	
-	tr = CheckWord(pData->uTestWord.szWord8);
-	
+	tr = CheckWord();
+	if ( enchant_dict_check(m_pEnchantDict, pData->uTestWord.szWord8, -1) == 0 )
+	{
+		// word found
+		tr = TSC_S_OK;
+        pData->bOk = true;
+	}
+	else
+	{
+		// can't find word, get suggestions
+		tr = TSC_S_FALSE;
+        pData->bOk = false;
+
+		char **suggs = NULL;
+		size_t n_suggs = 0;
+
+		suggs = enchant_dict_suggest( m_pEnchantDict,
+									  szWord,
+									  strlen(szWord),
+									  &n_suggs );
+
+        if ((pData->szResults8) && (pData->nResultStringSize))
+        {
+            memset(&pData->szResults8, 0, pData->nResultStringSize);
+        }
+
+		if (suggs && n_suggs)
+        {
+            // provide list of words separated by null characters.
+            char* szOut = pData->szResults8;
+            char* szSug = NULL;
+            size_t nOutDone = 0;
+            size_t nSugLen = 0;
+            for ( size_t i = 0; i < n_suggs; ++i )
+            {
+                szSug = suggs[i];
+
+                if (szSug)
+                {
+                    nSugLen = strlen(szSug) + 1;
+
+                    if ( (nOutDone + nSugLen) < pData->nResultStringSize )
+                    {
+                        memcpy(&szOut[nOutDone], szSug, nSugLen);
+                        nOutDone += nSugLen;
+                    }
+                }
+            }
+
+            szOut[nOutDone] = '\0'; // This gives a double null-terminator at the end.
+
+			enchant_dict_free_string_list(m_pEnchantDict, suggs);
+        }
+	}
+
 	if (FAILED(tr))
 		return tr;
 	
@@ -250,16 +268,10 @@ void CSession::cbEnchantDictDescribe( const char * const lang_tag,
         return;
 
 	wchar_t wszLangTag[64];
-	//wchar_t wszProvName[256];
-	//wchar_t wszProvDesc[256];
 	
 	wszLangTag[0] = 0;
-	//wszProvName[0] = 0;
-	//wszProvDesc[0] = 0;
 	
 	::MultiByteToWideChar(CP_UTF8, 0, lang_tag, -1, wszLangTag, 64);
-	//::MultiByteToWideChar(CP_UTF8, 0, provider_name, -1, wszProvName, 256);
-	//::MultiByteToWideChar(CP_UTF8, 0, provider_desc, -1, wszProvDesc, 256);
 	
     LANGUAGE_DESC_WIDEDATA ldwd = {0};
 	ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
@@ -385,22 +397,6 @@ tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pD
 
 		result = TSC_S_OK;
     }
-    
-
-	/*if (_stricmp(szLang, "en-gb") == 0)
-	{
-		strcpy(pData->szDisplayName, "English, United Kingdom (en-gb)");
-		result = TSC_S_OK;
-	}
-	else if (_stricmp(szLang, "en-us") == 0)
-	{
-		strcpy(pData->szDisplayName, "English, United States (en-us)");
-		result = TSC_S_OK;
-	}
-	else
-	{
-		result = TSC_S_FALSE;
-	}*/
 	
 	return result;
 }
