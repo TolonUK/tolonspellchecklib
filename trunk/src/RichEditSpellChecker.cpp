@@ -197,6 +197,8 @@ void CRichEditSpellChecker::WT_ProcessWord()
 		cw.cbSize = sizeof(cw);
 		cw.nWordSize = sUtf8Word.size();
 		cw.uTestWord.szWord8 = sUtf8Word.c_str();
+        cw.uResultString.szResults8 = new char[1024];
+        cw.nResultStringSize = 1024;
 		
 		tr = m_pSession->CheckWord(&cw);
 		
@@ -207,7 +209,28 @@ void CRichEditSpellChecker::WT_ProcessWord()
         else if (!cw.bOk)
         {
             //TODO: Something here!
+            OutputDebugString(L"Failed: ");
             OutputDebugString(sWord.c_str());
+            OutputDebugString(L", Suggest: ");
+            std::string s;
+            for (size_t i = 0; i < 1024; ++i)
+            {
+                if (cw.uResultString.szResults8[i] == 0)
+                {
+                    if (s.empty())
+                        break;
+                    else
+                    {
+                        OutputDebugStringA(s.c_str());
+                        OutputDebugStringA(", ");
+                        s.clear();
+                    }
+                }
+                else
+                {
+                    s.push_back(cw.uResultString.szResults8[i]);
+                }
+            }
             OutputDebugString(L"\r\n");
             Sleep(100);
         }

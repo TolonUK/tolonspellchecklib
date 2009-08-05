@@ -151,7 +151,6 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
 	
 	tsc_result tr = TSC_E_UNEXPECTED;
 	
-	tr = CheckWord();
 	if ( enchant_dict_check(m_pEnchantDict, pData->uTestWord.szWord8, -1) == 0 )
 	{
 		// word found
@@ -168,19 +167,20 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
 		size_t n_suggs = 0;
 
 		suggs = enchant_dict_suggest( m_pEnchantDict,
-									  szWord,
-									  strlen(szWord),
+									  pData->uTestWord.szWord8,
+									  strlen(pData->uTestWord.szWord8),
 									  &n_suggs );
 
-        if ((pData->szResults8) && (pData->nResultStringSize))
+        if ((pData->uResultString.szResults8) && (pData->nResultStringSize))
         {
-            memset(&pData->szResults8, 0, pData->nResultStringSize);
+            pData->uResultString.szResults8[0] = 0;
+			pData->uResultString.szResults8[1] = 0;
         }
 
 		if (suggs && n_suggs)
         {
             // provide list of words separated by null characters.
-            char* szOut = pData->szResults8;
+            char* szOut = pData->uResultString.szResults8;
             char* szSug = NULL;
             size_t nOutDone = 0;
             size_t nSugLen = 0;
