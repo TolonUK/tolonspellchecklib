@@ -34,6 +34,8 @@ public:
 
 	void SetInitialised(bool b)
 		{ m_bInitialised = b; }
+
+    tsc_result SetLanguage(const char* szCulture);
 	
 	tsc_result GetCurrentLanguage(wchar_t* ppwszLang);
 	tsc_result GetCurrentLanguage(char* ppszLang);
@@ -66,6 +68,7 @@ private:
 	EnchantDict* m_pEnchantDict;
 	TSC_SESSIONOPTIONS_DATA m_options;
 	const char* m_szLastError;
+    std::string m_szCurrentCulture;
 };
 
 } //namespace

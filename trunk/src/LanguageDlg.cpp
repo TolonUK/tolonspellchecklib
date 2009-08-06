@@ -195,8 +195,19 @@ void CLanguageDlg::OnCmdOk()
     }
     else
     {
+        std::string sChosenLang;
+
         // Get chosen language
+        GetChosenLanguage(sChosenLang);
+        
         // Set it on the session
+        tsc_result r = TSC_E_FAIL;
+        r = m_pSession->SetLanguage(sChosenLang);
+
+        if (TSC_FAILED(r))
+        {
+            ::MessageBox(GetHwnd(), L"Failed to set new language. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
+        }
     }
 }
 
@@ -206,4 +217,27 @@ void CLanguageDlg::OnCmdCancel()
 
 void CLanguageDlg::OnCmdMakeDefault()
 {
+}
+
+void CLanguageDlg::GetChosenLanguage(std::string& sLang)
+{
+    int nItem = -1;
+    nItem = ListView_GetNextItem(m_hwndLangList, -1, LVNI_SELECTED);
+
+    if (nItem != -1)
+    {
+        const int nBufLen = 13;
+        wchar_t wszBuf[nBufLen] = L'\0';
+
+        ListView_GetItemText( m_hwndLangList,
+                              iItem,
+                              COL_CODE,
+                              &wszBuf[0],
+                              nBufLen );
+
+        char szBuffer[nBufLen] = '\0';
+        ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, szBuffer, nBufLen, NULL, NULL);
+
+        sLang.assign(szBuffer);
+    }
 }

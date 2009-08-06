@@ -75,22 +75,9 @@ tsc_result CSession::Init()
 	// Initialise the enchant library
 	m_pEnchantBroker = enchant_broker_init();
 
-	if (m_pEnchantBroker)
-	{
-		m_pEnchantDict = enchant_broker_request_dict(m_pEnchantBroker, m_options.szDictionaryCulture);
-
-		if (m_pEnchantDict)
-		{
-			result = TSC_S_OK;
-		}
-		else
-		{
-			enchant_broker_free(m_pEnchantBroker);
-			m_pEnchantBroker = NULL;
-		}
-	}
-	
 	SetInitialised(true);
+
+    SetLanguage(m_options.szDictionaryCulture);
 
 	return result;
 }
@@ -317,7 +304,7 @@ tsc_result CSession::GetCurrentLanguage(char* szLang)
 	if (!szLang)
 		return TSC_E_POINTER;
 	
-	strcpy(szLang, m_options.szDictionaryCulture);
+	strcpy(szLang, m_szCurrentCulture.c_str());
 	return TSC_S_OK;
 }
 
@@ -416,6 +403,24 @@ tsc_result CSession::EnumLanguages(LanguageEnumFn pfn, void* pUserData)
 	enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, &elp);
 	
 	return Success();
+}
+
+tsc_result CSession::SetLanguage(const char* szCulture)
+{
+    tsc_result result = TSC_E_FAIL;
+
+	if (m_pEnchantBroker)
+	{
+        EnchantDict* pDict = NULL;
+		pDict = enchant_broker_request_dict(m_pEnchantBroker, szCulture);
+
+		if (pDict)
+		{
+            m_pEnchantDict = pDict;
+            m_szCurrentCulture.assign(szCulture);
+			result = TSC_S_OK;
+		}
+	}
 }
 
 tsc_result CSession::Error_NotImplemented()

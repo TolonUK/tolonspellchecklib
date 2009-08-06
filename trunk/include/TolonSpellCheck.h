@@ -72,7 +72,7 @@ typedef struct tagTSC_SESSIONOPTIONS {
 	tsc_bool bIgnoreUppercaseWords;
 	tsc_bool bIgnoreWordsWithNumbers;
 	tsc_bool bIgnoreUris;
-	char     szDictionaryCulture[12]; //UTF8, allow for "ab-cd-efgh"
+	char     szDictionaryCulture[12]; //UTF8, allow for "abc-def-ghij" (TODO)
 	char     szPreferredProvider[8]; // UTF8, { "aspell" | "ispell" | "myspell" | "uspell" | "voikko" | "zemb" }
 	tsc_byte nReserved1;
 	tsc_byte nReserved2;

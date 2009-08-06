@@ -30,6 +30,8 @@ private:
 
 	void InitLangList();
 
+    void GetChosenLanguage(std::string& sLang);
+
     HWND GetHwnd() const
     { return m_hwnd; }
 

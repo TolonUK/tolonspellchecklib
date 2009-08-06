@@ -54,8 +54,8 @@ const ISO639Language g_languages[] = {
     { "ja", "jpn", NULL, "jpn", "Japanese", "日本語 (にほんご／にっぽんご)" },
     { "ko", "kor", NULL, "kor", "Korean", "한국어 (韓國語), 조선말 (朝鮮語)" },
     { "nl", "nld", "dut", "nld", "Dutch", "Nederlands" },
-    /*no nor - nor + 2 Norwegian Norsk 
-    pl pol - pol Polish polski 
+    { "no", "nor", NULL, "nor", "Norwegian", "Norsk" },
+    /*pl pol - pol Polish polski 
     pt por - por Portuguese Português 
     ro ron rum ron Romanian română*/
     { "ru", "rus", NULL, "rus", "Russian", "русский язык" }
@@ -68,6 +68,46 @@ const ISO639Language g_languages[] = {
 };	
 
 const size_t g_languages_size = sizeof(g_languages) / sizeof(g_languages[0]);
+
+struct MacroLanguageMember {
+    const char* Code;
+    const char* ParentCode;
+    const char* EnglishName;
+    const char* NativeName;
+};
+
+const MacroLanguageMember g_language_variants[] = {
+    { "aao", "ara", "Algerian Saharan Arabic", "" },
+    { "abh", "ara", "Tajiki Arabic", "" },
+    { "abv", "ara", "Baharna Arabic", "" },
+    { "acm", "ara", "Mesopotamian Arabic", "" },
+    { "acq", "ara", "Ta'izzi-Adeni Arabic", "" },
+    { "acw", "ara", "Hijazi Arabic", "" },
+    { "acx", "ara", "Omani Arabic", "" },
+    { "acy", "ara", "Cypriot Arabic", "" },
+    { "adf", "ara", "Dhofari Arabic", "" },
+    { "aeb", "ara", "Tunisian Arabic", "" },
+    { "aec", "ara", "Saidi Arabic", "" },
+    { "afb", "ara", "Gulf Arabic", "" },
+    { "ajp", "ara", "South Levantine Arabic", "" },
+apc — North Levantine Arabic 
+apd — Sudanese Arabic 
+arb — Standard Arabic 
+arq — Algerian Arabic 
+ars — Najdi Arabic 
+ary — Moroccan Arabic 
+arz — Egyptian Arabic 
+auz — Uzbeki Arabic 
+avl — Eastern Egyptian Bedawi Arabic 
+ayh — Hadrami Arabic 
+ayl — Libyan Arabic 
+ayn — Sanaani Arabic 
+ayp — North Mesopotamian Arabic 
+bbz — Babalia Creole Arabic 
+pga — Sudanese Creole Arabic 
+shu — Chadian Arabic 
+ssh — Shihhi Arabic*/
+};
 
 CIsoLang::CIsoLang()
 {
