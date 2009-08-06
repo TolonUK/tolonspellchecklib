@@ -89,8 +89,8 @@ const MacroLanguageMember g_language_variants[] = {
     { "aeb", "ara", "Tunisian Arabic", "" },
     { "aec", "ara", "Saidi Arabic", "" },
     { "afb", "ara", "Gulf Arabic", "" },
-    { "ajp", "ara", "South Levantine Arabic", "" },
-apc — North Levantine Arabic 
+    { "ajp", "ara", "South Levantine Arabic", "" }
+/*apc — North Levantine Arabic 
 apd — Sudanese Arabic 
 arb — Standard Arabic 
 arq — Algerian Arabic 

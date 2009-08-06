@@ -202,7 +202,7 @@ void CLanguageDlg::OnCmdOk()
         
         // Set it on the session
         tsc_result r = TSC_E_FAIL;
-        r = m_pSession->SetLanguage(sChosenLang);
+        r = m_pSession->SetLanguage(sChosenLang.c_str());
 
         if (TSC_FAILED(r))
         {
@@ -227,15 +227,15 @@ void CLanguageDlg::GetChosenLanguage(std::string& sLang)
     if (nItem != -1)
     {
         const int nBufLen = 13;
-        wchar_t wszBuf[nBufLen] = L'\0';
+        wchar_t wszBuf[nBufLen] = L"\0";
 
         ListView_GetItemText( m_hwndLangList,
-                              iItem,
+                              nItem,
                               COL_CODE,
                               &wszBuf[0],
                               nBufLen );
 
-        char szBuffer[nBufLen] = '\0';
+        char szBuffer[nBufLen] = "\0";
         ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, szBuffer, nBufLen, NULL, NULL);
 
         sLang.assign(szBuffer);

@@ -421,6 +421,8 @@ tsc_result CSession::SetLanguage(const char* szCulture)
 			result = TSC_S_OK;
 		}
 	}
+
+    return result;
 }
 
 tsc_result CSession::Error_NotImplemented()

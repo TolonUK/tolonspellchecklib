@@ -47,6 +47,8 @@ private:
     
     void EnableDialogItem(int nDlgItem, BOOL bEnable);
 
+    void UpdateTitleBar();
+
 private:
     TolonSpellCheck::CSession* m_pSession;
     TSC_CHECKSPELLING_DATA* m_pData;

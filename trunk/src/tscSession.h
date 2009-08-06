@@ -4,6 +4,7 @@
 #include "TolonSpellCheckInternals.h"
 typedef int ssize_t;
 #include "enchant.h"
+#include <string>
 
 namespace TolonSpellCheck {
     

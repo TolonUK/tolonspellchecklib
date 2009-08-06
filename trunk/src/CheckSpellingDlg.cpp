@@ -15,7 +15,7 @@ using namespace TolonSpellCheck;
 static CCheckSpellingDlg* s_pThis;
 
 const UINT_PTR CCheckSpellingDlg::m_nCheckerPollEvent = 1;
-static const UINT s_nCheckerPollFrequency = 250; // milliseconds
+static const UINT s_nCheckerPollFrequency = 100; // milliseconds
 
 CCheckSpellingDlg::CCheckSpellingDlg(TolonSpellCheck::CSession* pSession, TSC_CHECKSPELLING_DATA* pData) :
 	m_pSession(pSession),
@@ -51,23 +51,7 @@ BOOL CCheckSpellingDlg::OnInitDialog()
     if (!pSession)
         return FALSE;
 
-    tsc_result r = 0;
-
-    // Set the title bar text to indicate the current language.
-    std::vector<wchar_t> sLangCode(13);
-    LANGUAGE_DESC_WIDEDATA LangDesc = {0};
-    LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-
-    r = pSession->GetCurrentLanguage(&(*sLangCode.begin()));
-    if (TSC_SUCCEEDED(r))
-        r = pSession->DescribeLanguage(&(*sLangCode.begin()), &LangDesc);
-
-    if (TSC_SUCCEEDED(r))
-    {
-        std::wstringstream ss;
-        ss << L"Spelling: " << LangDesc.wszDisplayName;
-        ::SetWindowText(GetHwnd(), ss.str().c_str());
-    }
+    UpdateTitleBar();
 
     // Start the spell check polling timer;
     ::SetTimer(GetHwnd(), m_nCheckerPollEvent, s_nCheckerPollFrequency, &TimerProc);
@@ -76,6 +60,32 @@ BOOL CCheckSpellingDlg::OnInitDialog()
     m_checker.StartSpellCheck(GetRichEditHwnd());
 
 	return TRUE;
+}
+
+void CCheckSpellingDlg::UpdateTitleBar()
+{
+    TolonSpellCheck::CSession* pSession = GetSession();
+
+    if (pSession)
+    {
+        tsc_result r = 0;
+
+        // Set the title bar text to indicate the current language.
+        std::vector<wchar_t> sLangCode(13);
+        LANGUAGE_DESC_WIDEDATA LangDesc = {0};
+        LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
+
+        r = pSession->GetCurrentLanguage(&(*sLangCode.begin()));
+        if (TSC_SUCCEEDED(r))
+            r = pSession->DescribeLanguage(&(*sLangCode.begin()), &LangDesc);
+
+        if (TSC_SUCCEEDED(r))
+        {
+            std::wstringstream ss;
+            ss << L"Spelling: " << LangDesc.wszDisplayName;
+            ::SetWindowText(GetHwnd(), ss.str().c_str());
+        }
+    }
 }
 
 int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -102,6 +112,8 @@ int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, 
             { s_pThis->OnCmdOptions(); }
         else if (nCmd == IDC_CANCEL_SPELLCHECK)
             { s_pThis->OnCmdCancelSpellCheck(); }
+		else if (nCmd == IDC_RESTART_SPELLCHECK)
+			{ s_pThis->OnCmdRestartSpellCheck(); }
         else if (nCmd == IDC_IGNORE_ONCE)
             { s_pThis->OnCmdIgnoreOnce(); }
         else if (nCmd == IDC_IGNORE_ALL)
@@ -136,6 +148,10 @@ void CCheckSpellingDlg::OnCmdOptions()
         if (FAILED(r))
         {
             ::MessageBox(GetHwnd(), L"Failed to display options window.", L"TolonSpellCheck", MB_OK | MB_ICONEXCLAMATION);
+        }
+        else
+        {
+            UpdateTitleBar();
         }
     }
 }
@@ -214,6 +230,40 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
         m_dwLastCheckerCharsTotal = dwCharsTotal;
 
         UpdateUI();
+    }
+
+    if ( nState == CRichEditSpellChecker::SpellCheckState_WAITING )
+    {
+        TSC_CHECKWORD_DATA* pCwd = m_checker.GetCheckWordData();
+
+        if (pCwd)
+        {
+            OutputDebugString(L"Failed: ");
+            OutputDebugStringA(pCwd->uTestWord.szWord8);
+            OutputDebugString(L", Suggest: ");
+            std::string s;
+            for (size_t i = 0; i < pCwd->nResultStringSize; ++i)
+            {
+                if (pCwd->uResultString.szResults8[i] == 0)
+                {
+                    if (s.empty())
+                        break;
+                    else
+                    {
+                        OutputDebugStringA(s.c_str());
+                        OutputDebugStringA(", ");
+                        s.clear();
+                    }
+                }
+                else
+                {
+                    s.push_back(pCwd->uResultString.szResults8[i]);
+                }
+            }
+            OutputDebugString(L"\r\n");
+        }
+
+        m_checker.ResumeSpellCheck();
     }
 }
 

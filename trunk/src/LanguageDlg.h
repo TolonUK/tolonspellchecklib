@@ -2,6 +2,7 @@
 
 #include "resource.h"
 #include "TolonSpellCheckInternals.h"
+#include <string>
 
 // CLanguageDlg dialog
 

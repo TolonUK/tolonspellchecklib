@@ -13,20 +13,33 @@
 using namespace std;
 using namespace TolonSpellCheck;
 
+static size_t s_nResultBufLen = 1024;
+
 CRichEditSpellChecker::CRichEditSpellChecker(CSession* pSession) : 
     m_hWndRichEdit(NULL),
 	m_pSession(pSession),
     m_nState(SpellCheckState_IDLE),
     m_dwCharsDone(0),
     m_dwCharsTotal(0),
-    m_bStopFlag(false)
+    m_bStopFlag(false),
+    m_hResumeEvent(NULL)
 {
     ::InitializeCriticalSection(&m_cs);
+
+    memset(&m_cwd, 0, sizeof(TSC_CHECKWORD_DATA));
+	m_cwd.cbSize = sizeof(TSC_CHECKWORD_DATA);
+    m_cwd.uResultString.szResults8 = new char[s_nResultBufLen];
+
+    m_hResumeEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 }
 
 CRichEditSpellChecker::~CRichEditSpellChecker()
 {
     ::DeleteCriticalSection(&m_cs);
+
+    delete [] m_cwd.uResultString.szResults8;
+
+    ::CloseHandle(m_hResumeEvent);
 }
 
 DWORD CRichEditSpellChecker::WT_RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
@@ -56,6 +69,7 @@ void CRichEditSpellChecker::StartSpellCheck(HWND hwndEditCtrl)
 void CRichEditSpellChecker::StopSpellCheck()
 {
     SetStopFlag();
+    ::SetEvent(m_hResumeEvent);
 }
 
 unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
@@ -192,47 +206,21 @@ void CRichEditSpellChecker::WT_ProcessWord()
 	if (!sWord.empty())
 	{
 		tsc_result tr = TSC_E_UNEXPECTED;
-        TSC_CHECKWORD_DATA cw = {0};
 		
-		cw.cbSize = sizeof(cw);
-		cw.nWordSize = sUtf8Word.size();
-		cw.uTestWord.szWord8 = sUtf8Word.c_str();
-        cw.uResultString.szResults8 = new char[1024];
-        cw.nResultStringSize = 1024;
+		m_cwd.nWordSize = sUtf8Word.size();
+		m_cwd.uTestWord.szWord8 = sUtf8Word.c_str();
+        m_cwd.nResultStringSize = s_nResultBufLen;
 		
-		tr = m_pSession->CheckWord(&cw);
+		tr = m_pSession->CheckWord(&m_cwd);
 		
 		if (TSC_FAILED(tr))
         {
             assert(false);
         }
-        else if (!cw.bOk)
+        else if (!m_cwd.bOk)
         {
-            //TODO: Something here!
-            OutputDebugString(L"Failed: ");
-            OutputDebugString(sWord.c_str());
-            OutputDebugString(L", Suggest: ");
-            std::string s;
-            for (size_t i = 0; i < 1024; ++i)
-            {
-                if (cw.uResultString.szResults8[i] == 0)
-                {
-                    if (s.empty())
-                        break;
-                    else
-                    {
-                        OutputDebugStringA(s.c_str());
-                        OutputDebugStringA(", ");
-                        s.clear();
-                    }
-                }
-                else
-                {
-                    s.push_back(cw.uResultString.szResults8[i]);
-                }
-            }
-            OutputDebugString(L"\r\n");
-            Sleep(100);
+            SetState(SpellCheckState_WAITING);
+            ::WaitForSingleObject(m_hResumeEvent, INFINITE);
         }
 	}
 }
@@ -287,4 +275,23 @@ bool CRichEditSpellChecker::IsStopFlagSet()
 void CRichEditSpellChecker::IncrementCharsDone()
 {
     m_dwCharsDone++;
+}
+
+TSC_CHECKWORD_DATA* CRichEditSpellChecker::GetCheckWordData()
+{
+    TSC_CHECKWORD_DATA* p = NULL;
+
+    if (GetState() == SpellCheckState_WAITING)
+        p = &m_cwd;
+
+    return p;
+}
+
+void CRichEditSpellChecker::ResumeSpellCheck()
+{
+    if (GetState() == SpellCheckState_WAITING)
+    {
+        SetState(SpellCheckState_WORKING);
+        ::SetEvent(m_hResumeEvent);
+    }
 }

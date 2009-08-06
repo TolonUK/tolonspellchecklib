@@ -1,6 +1,7 @@
 #ifndef _TOLON_RICHEDIT_SPELL_CHECKER_H__
 #define _TOLON_RICHEDIT_SPELL_CHECKER_H__
 
+#include "TolonSpellCheck.h"
 #include "utf8conv.h"
 #include <windows.h>
 #include <sstream>
@@ -42,6 +43,9 @@ class CRichEditSpellChecker
         void StopSpellCheck();
 
         void GetState(CRichEditSpellChecker::State& nState, DWORD& dwCharsDone, DWORD& dwCharsTotal);
+
+        TSC_CHECKWORD_DATA* GetCheckWordData();
+        void ResumeSpellCheck();
     
     private:
         DWORD WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
@@ -63,6 +67,9 @@ class CRichEditSpellChecker
         HWND GetRichEditHwnd() const
         { return m_hWndRichEdit; }
 
+        CRichEditSpellChecker::State GetState() const
+        { return m_nState; }
+
     private:
         HWND m_hWndRichEdit;
         std::wstringstream m_sWord;
@@ -77,6 +84,8 @@ class CRichEditSpellChecker
         DWORD m_dwCharsDone;
         DWORD m_dwCharsTotal;
         bool m_bStopFlag;
+        TSC_CHECKWORD_DATA m_cwd;
+        HANDLE m_hResumeEvent;
 };
 
 } // end namespace
