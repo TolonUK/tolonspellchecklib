@@ -60,4 +60,5 @@ private:
     TolonSpellCheck::CRichEditSpellChecker::State m_nLastCheckerState;
     DWORD m_dwLastCheckerCharsDone;
     DWORD m_dwLastCheckerCharsTotal;
+    bool m_bWaitingForInput;
 };

@@ -25,7 +25,8 @@ CCheckSpellingDlg::CCheckSpellingDlg(TolonSpellCheck::CSession* pSession, TSC_CH
     m_checker(pSession),
     m_nLastCheckerState(CRichEditSpellChecker::SpellCheckState_INVALID),
     m_dwLastCheckerCharsDone(0),
-    m_dwLastCheckerCharsTotal(0)
+    m_dwLastCheckerCharsTotal(0),
+    m_bWaitingForInput(false)
 {
     if (pData)
     {
@@ -163,7 +164,11 @@ void CCheckSpellingDlg::OnCmdCancelSpellCheck()
 
 void CCheckSpellingDlg::OnCmdIgnoreOnce()
 {
-    ::MessageBox(GetHwnd(), L"OnCmdIgnoreOnce()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
+    if (m_bWaitingForInput)
+    {
+        m_checker.ResumeSpellCheck();
+        m_bWaitingForInput = false;
+    }
 }
 
 void CCheckSpellingDlg::OnCmdIgnoreAll()
@@ -232,38 +237,51 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
         UpdateUI();
     }
 
-    if ( nState == CRichEditSpellChecker::SpellCheckState_WAITING )
+    if (    ( m_bWaitingForInput == false ) 
+         && ( nState == CRichEditSpellChecker::SpellCheckState_WAITING ) )
     {
         TSC_CHECKWORD_DATA* pCwd = m_checker.GetCheckWordData();
 
         if (pCwd)
         {
-            OutputDebugString(L"Failed: ");
-            OutputDebugStringA(pCwd->uTestWord.szWord8);
-            OutputDebugString(L", Suggest: ");
-            std::string s;
-            for (size_t i = 0; i < pCwd->nResultStringSize; ++i)
+            HWND hWndRichEdit = ::GetDlgItem(GetHwnd(), IDC_RICHEDIT);
+            if (hWndRichEdit)
             {
-                if (pCwd->uResultString.szResults8[i] == 0)
+                const int nStrLen = strlen(pCwd->uTestWord.szWord8);
+                std::vector<wchar_t> wsz(nStrLen + 1);
+                ::MultiByteToWideChar(CP_UTF8, 0, pCwd->uTestWord.szWord8, -1, &(*wsz.begin()), wsz.size());
+                ::SendMessage(hWndRichEdit, WM_SETTEXT, 0, reinterpret_cast<long>(&(*wsz.begin())));
+            }
+
+            HWND hWndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
+            if (hWndList)
+            {
+                std::string s;
+                ::SendMessage(hWndList, LB_RESETCONTENT, 0, 0);
+                for (size_t i = 0; i < pCwd->nResultStringSize; ++i)
                 {
-                    if (s.empty())
-                        break;
+                    if (pCwd->uResultString.szResults8[i] == 0)
+                    {
+                        if (s.empty())
+                            break;
+                        else
+                        {
+                            const int nStrLen = strlen(s.c_str());
+                            std::vector<wchar_t> wsz(nStrLen + 1);
+                            ::MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, &(*wsz.begin()), wsz.size());
+                            ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(&(*wsz.begin())));
+                            s.clear();
+                        }
+                    }
                     else
                     {
-                        OutputDebugStringA(s.c_str());
-                        OutputDebugStringA(", ");
-                        s.clear();
+                        s.push_back(pCwd->uResultString.szResults8[i]);
                     }
                 }
-                else
-                {
-                    s.push_back(pCwd->uResultString.szResults8[i]);
-                }
             }
-            OutputDebugString(L"\r\n");
         }
 
-        m_checker.ResumeSpellCheck();
+        m_bWaitingForInput = true;
     }
 }
 
