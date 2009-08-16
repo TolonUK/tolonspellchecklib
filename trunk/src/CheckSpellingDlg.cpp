@@ -106,28 +106,42 @@ int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, 
 
 	case WM_COMMAND:
         const WORD nCmd = LOWORD(wParam);
-        
-		if (nCmd == IDOK || nCmd == IDCANCEL)
-		{ EndDialog(hDlg, nCmd); }
-        else if (nCmd == IDC_OPTIONS)
-            { s_pThis->OnCmdOptions(); }
-        else if (nCmd == IDC_CANCEL_SPELLCHECK)
-            { s_pThis->OnCmdCancelSpellCheck(); }
-		else if (nCmd == IDC_RESTART_SPELLCHECK)
-			{ s_pThis->OnCmdRestartSpellCheck(); }
-        else if (nCmd == IDC_IGNORE_ONCE)
-            { s_pThis->OnCmdIgnoreOnce(); }
-        else if (nCmd == IDC_IGNORE_ALL)
-            { s_pThis->OnCmdIgnoreAll(); }
-        else if (nCmd == IDC_ADD_TO_DICTIONARY)
-            { s_pThis->OnCmdAddToDictionary(); }
-        else if (nCmd == IDC_CHANGE)
-            { s_pThis->OnCmdChange(); }
-        else if (nCmd == IDC_CHANGE_ALL)
-            { s_pThis->OnCmdChangeAll(); }
+        const WORD nCtlMsg = HIWORD(wParam);
 
-        bHandled = TRUE;
-		break;
+        switch(nCtlMsg)
+        {
+        case 0:
+            {
+		        if (nCmd == IDOK || nCmd == IDCANCEL)
+		        { EndDialog(hDlg, nCmd); }
+                else if (nCmd == IDC_OPTIONS)
+                    { s_pThis->OnCmdOptions(); }
+                else if (nCmd == IDC_CANCEL_SPELLCHECK)
+                    { s_pThis->OnCmdCancelSpellCheck(); }
+		        else if (nCmd == IDC_RESTART_SPELLCHECK)
+			        { s_pThis->OnCmdRestartSpellCheck(); }
+                else if (nCmd == IDC_IGNORE_ONCE)
+                    { s_pThis->OnCmdIgnoreOnce(); }
+                else if (nCmd == IDC_IGNORE_ALL)
+                    { s_pThis->OnCmdIgnoreAll(); }
+                else if (nCmd == IDC_ADD_TO_DICTIONARY)
+                    { s_pThis->OnCmdAddToDictionary(); }
+                else if (nCmd == IDC_CHANGE)
+                    { s_pThis->OnCmdChange(); }
+                else if (nCmd == IDC_CHANGE_ALL)
+                    { s_pThis->OnCmdChangeAll(); }
+
+                bHandled = TRUE;
+                break;
+            }
+        case LBN_SELCHANGE:
+            {
+                s_pThis->OnListBoxSelChange(reinterpret_cast<HWND>(lParam));
+
+                break;
+            }
+		    break;
+        }
 	}
 
 	return static_cast<INT_PTR>(bHandled);
@@ -244,13 +258,13 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
 
         if (pCwd)
         {
-            HWND hWndRichEdit = ::GetDlgItem(GetHwnd(), IDC_RICHEDIT);
-            if (hWndRichEdit)
+            HWND hWndEditWord = ::GetDlgItem(GetHwnd(), IDC_EDIT_WORD);
+            if (hWndEditWord)
             {
                 const int nStrLen = strlen(pCwd->uTestWord.szWord8);
                 std::vector<wchar_t> wsz(nStrLen + 1);
                 ::MultiByteToWideChar(CP_UTF8, 0, pCwd->uTestWord.szWord8, -1, &(*wsz.begin()), wsz.size());
-                ::SendMessage(hWndRichEdit, WM_SETTEXT, 0, reinterpret_cast<long>(&(*wsz.begin())));
+                ::SendMessage(hWndEditWord, WM_SETTEXT, 0, reinterpret_cast<long>(&(*wsz.begin())));
             }
 
             HWND hWndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
@@ -333,7 +347,8 @@ void CCheckSpellingDlg::UpdateUI()
     EnableDialogItem(IDC_CHANGE, bAllowGeneralInput);
     EnableDialogItem(IDC_CHANGE_ALL, bAllowGeneralInput);
     EnableDialogItem(IDC_SUGGESTION_LIST, bAllowGeneralInput);
-    EnableDialogItem(IDC_RICHEDIT, bAllowGeneralInput);
+    EnableDialogItem(IDC_EDIT_WORD, bAllowGeneralInput);
+    EnableDialogItem(IDC_EDIT_CHANGETO, bAllowGeneralInput);
 }
 
 void CCheckSpellingDlg::EnableDialogItem(int nItem, BOOL bEnable)
@@ -343,4 +358,37 @@ void CCheckSpellingDlg::EnableDialogItem(int nItem, BOOL bEnable)
     {
         ::EnableWindow(hwnd, bEnable);
     }
+}
+
+bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
+{
+    bool bHandled = false;
+    const HWND hwndSuggestions = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
+
+    if (hwndListBox == hwndSuggestions)
+    {
+        int nSel = ::SendMessage(hwndSuggestions, LB_GETCURSEL, 0, 0);
+        if (nSel != LB_ERR)
+        {
+            int nTextLen = ::SendMessage(hwndSuggestions, LB_GETTEXTLEN, nSel, 0);
+            if (nTextLen > 0)
+            {
+                nTextLen = nTextLen + 1;
+                std::vector<wchar_t> vString(nTextLen);
+                nTextLen = ::SendMessage(hwndSuggestions, LB_GETTEXT, nSel, reinterpret_cast<LPARAM>(&(*vString.begin())));
+                if (nTextLen > 0)
+                {
+                    HWND hwndChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
+                    if (hwndChangeTo)
+                    {
+                        ::SendMessage(hwndChangeTo, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(&(*vString.begin())));
+                    }
+                }
+            }
+        }
+
+        bHandled = true;
+    }
+
+    return bHandled;
 }

@@ -32,6 +32,9 @@ private:
     void OnCmdChangeAll();
     void OnCmdRestartSpellCheck();
 
+    // Control notification handlers
+    bool OnListBoxSelChange(HWND hListBox);
+
     // Timer handlers
     void OnTimer_PollChecker();
 
