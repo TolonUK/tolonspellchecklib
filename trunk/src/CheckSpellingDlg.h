@@ -52,6 +52,9 @@ private:
 
     void UpdateTitleBar();
 
+    void GetChangeToText(std::wstring& sWord);
+    void SetChangeToText(const wchar_t* sWord);
+
 private:
     TolonSpellCheck::CSession* m_pSession;
     TSC_CHECKSPELLING_DATA* m_pData;

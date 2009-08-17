@@ -10,6 +10,8 @@
 #include <richedit.h>
 #include "CheckSpellingDlg.h"
 
+#pragma warning (disable: 4786)
+
 using namespace std;
 using namespace TolonSpellCheck;
 

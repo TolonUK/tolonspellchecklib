@@ -207,7 +207,9 @@ void CCheckSpellingDlg::OnCmdChange()
 {
     if (m_bWaitingForInput)
     {
-        m_checker.ChangeAndResume();
+        std::wstring sWord;
+        GetChangeToText(sWord);
+        m_checker.ChangeAndResume(sWord.c_str());
         m_bWaitingForInput = false;
     }
 }
@@ -216,7 +218,9 @@ void CCheckSpellingDlg::OnCmdChangeAll()
 {
     if (m_bWaitingForInput)
     {
-        m_checker.ChangeAllAndResume();
+        std::wstring sWord;
+        GetChangeToText(sWord);
+        m_checker.ChangeAllAndResume(sWord.c_str());
         m_bWaitingForInput = false;
     }
 }
@@ -394,11 +398,7 @@ bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
                 nTextLen = ::SendMessage(hwndSuggestions, LB_GETTEXT, nSel, reinterpret_cast<LPARAM>(&(*vString.begin())));
                 if (nTextLen > 0)
                 {
-                    HWND hwndChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
-                    if (hwndChangeTo)
-                    {
-                        ::SendMessage(hwndChangeTo, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(&(*vString.begin())));
-                    }
+                    SetChangeToText(&(*vString.begin()));
                 }
             }
         }
@@ -407,4 +407,31 @@ bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
     }
 
     return bHandled;
+}
+
+void CCheckSpellingDlg::GetChangeToText(std::wstring& sWord)
+{
+    HWND hwndChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
+    if (hwndChangeTo)
+    {
+        int nTextLen = ::GetWindowTextLength(hwndChangeTo);
+
+        sWord.clear();
+        if (nTextLen > 0)
+        {
+            nTextLen = nTextLen + 1;
+            std::vector<wchar_t> vWord(nTextLen, L'\0');
+            ::GetWindowText(hwndChangeTo, &(*vWord.begin()), vWord.size());
+            sWord.assign(&(*vWord.begin()));
+        }
+    }
+}
+
+void CCheckSpellingDlg::SetChangeToText(const wchar_t* sWord)
+{
+    HWND hwndChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
+    if (hwndChangeTo && sWord)
+    {
+        ::SendMessage(hwndChangeTo, WM_SETTEXT, 0, reinterpret_cast<LPARAM>(sWord));
+    }
 }
