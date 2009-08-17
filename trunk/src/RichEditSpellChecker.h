@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <sstream>
 #include <vector>
+#include <map>
 
 namespace TolonSpellCheck {
 
@@ -46,10 +47,17 @@ class CRichEditSpellChecker
 
         TSC_CHECKWORD_DATA* GetCheckWordData();
         void ResumeSpellCheck();
+
+        // Spell Check action when waiting for input
+        void AddToDicAndResume();
+        void IgnoreAndResume();
+        void IgnoreAllAndResume();
+        void ChangeAndResume(const wchar_t* psNewWord);
+        void ChangeAllAndResume(const wchar_t* psNewWord);
     
     private:
         DWORD WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
-        void WT_DoSpellCheckWork(wchar_t* psData, size_t nChars);
+        void WT_DoSpellCheckWork(const wchar_t* psData, size_t nChars);
         void WT_ProcessWord();
         void WT_PreSpellCheck();
         void WT_PostSpellCheck();
@@ -70,6 +78,15 @@ class CRichEditSpellChecker
         CRichEditSpellChecker::State GetState() const
         { return m_nState; }
 
+        bool InWaitingState() const
+        { return GetState() == SpellCheckState_WAITING; }
+
+        // These functions provide the response logic when waiting on an unrecognized word.
+        void AddCurrentWordToCustomDic();
+        void AddCurrentWordToIgnoreList();
+        void ChangeCurrentWord(const wchar_t* psNewWord);
+        void AddCurrentWordToChangeList(const wchar_t* psNewWord);
+
     private:
         HWND m_hWndRichEdit;
         std::wstringstream m_sWord;
@@ -86,6 +103,8 @@ class CRichEditSpellChecker
         bool m_bStopFlag;
         TSC_CHECKWORD_DATA m_cwd;
         HANDLE m_hResumeEvent;
+        std::vector<std::wstring> m_vIgnoreList;
+        std::map<std::wstring, std::wstring> m_vChangeList;
 };
 
 } // end namespace

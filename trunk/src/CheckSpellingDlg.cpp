@@ -180,29 +180,45 @@ void CCheckSpellingDlg::OnCmdIgnoreOnce()
 {
     if (m_bWaitingForInput)
     {
-        m_checker.ResumeSpellCheck();
+        m_checker.IgnoreAndResume();
         m_bWaitingForInput = false;
     }
 }
 
 void CCheckSpellingDlg::OnCmdIgnoreAll()
 {
-    ::MessageBox(GetHwnd(), L"OnCmdIgnoreAll()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
+    if (m_bWaitingForInput)
+    {
+        m_checker.IgnoreAllAndResume();
+        m_bWaitingForInput = false;
+    }
 }
 
 void CCheckSpellingDlg::OnCmdAddToDictionary()
 {
-    ::MessageBox(GetHwnd(), L"OnCmdAddToDictionary()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
+    if (m_bWaitingForInput)
+    {
+        m_checker.AddToDicAndResume();
+        m_bWaitingForInput = false;
+    }
 }
 
 void CCheckSpellingDlg::OnCmdChange()
 {
-    ::MessageBox(GetHwnd(), L"OnCmdChange()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
+    if (m_bWaitingForInput)
+    {
+        m_checker.ChangeAndResume();
+        m_bWaitingForInput = false;
+    }
 }
 
 void CCheckSpellingDlg::OnCmdChangeAll()
 {
-    ::MessageBox(GetHwnd(), L"OnCmdChangeAll()", L"TolonSpellCheck", MB_OK | MB_ICONINFORMATION);
+    if (m_bWaitingForInput)
+    {
+        m_checker.ChangeAllAndResume();
+        m_bWaitingForInput = false;
+    }
 }
 
 void CCheckSpellingDlg::OnCmdRestartSpellCheck()

@@ -171,7 +171,7 @@ DWORD CRichEditSpellChecker::WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb
 	return dwResult;
 }
 
-void CRichEditSpellChecker::WT_DoSpellCheckWork(wchar_t* psData, size_t nChars)
+void CRichEditSpellChecker::WT_DoSpellCheckWork(const wchar_t* psData, size_t nChars)
 {
     size_t nDone = 0;
     for ( ; nDone < nChars; ++nDone )
@@ -281,7 +281,7 @@ TSC_CHECKWORD_DATA* CRichEditSpellChecker::GetCheckWordData()
 {
     TSC_CHECKWORD_DATA* p = NULL;
 
-    if (GetState() == SpellCheckState_WAITING)
+    if (InWaitingState())
         p = &m_cwd;
 
     return p;
@@ -289,9 +289,70 @@ TSC_CHECKWORD_DATA* CRichEditSpellChecker::GetCheckWordData()
 
 void CRichEditSpellChecker::ResumeSpellCheck()
 {
-    if (GetState() == SpellCheckState_WAITING)
+    if (InWaitingState())
     {
         SetState(SpellCheckState_WORKING);
         ::SetEvent(m_hResumeEvent);
     }
+}
+
+void CRichEditSpellChecker::AddToDicAndResume()
+{
+    if (InWaitingState())
+    {
+        AddCurrentWordToCustomDic();
+        ResumeSpellCheck();
+    }
+}
+
+void CRichEditSpellChecker::IgnoreAndResume()
+{
+    if (InWaitingState())
+    {
+        ResumeSpellCheck();
+    }
+}
+
+void CRichEditSpellChecker::IgnoreAllAndResume()
+{
+    if (InWaitingState())
+    {
+        AddCurrentWordToIgnoreList();
+        ResumeSpellCheck();
+    }
+}
+
+void CRichEditSpellChecker::ChangeAndResume(const wchar_t* psNewWord)
+{
+    if (InWaitingState())
+    {
+        ChangeCurrentWord(psNewWord);
+        ResumeSpellCheck();
+    }
+}
+
+void CRichEditSpellChecker::ChangeAllAndResume(const wchar_t* psNewWord)
+{
+    if (InWaitingState())
+    {
+        AddCurrentWordToChangeList(psNewWord);
+        ChangeCurrentWord(psNewWord);
+        ResumeSpellCheck();
+    }
+}
+
+void CRichEditSpellChecker::AddCurrentWordToCustomDic()
+{
+}
+
+void CRichEditSpellChecker::AddCurrentWordToIgnoreList()
+{
+}
+
+void CRichEditSpellChecker::ChangeCurrentWord(const wchar_t* psNewWord)
+{
+}
+
+void CRichEditSpellChecker::AddCurrentWordToChangeList(const wchar_t* psNewWord)
+{
 }
