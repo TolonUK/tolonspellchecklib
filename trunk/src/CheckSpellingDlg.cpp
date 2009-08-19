@@ -278,13 +278,17 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
 
         if (pCwd)
         {
+            m_checker.SelectCurrentWord();
+
             HWND hWndEditWord = ::GetDlgItem(GetHwnd(), IDC_EDIT_WORD);
-            if (hWndEditWord)
+            HWND hWndEditChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
+            if (hWndEditWord && hWndEditChangeTo)
             {
                 const int nStrLen = strlen(pCwd->uTestWord.szWord8);
                 std::vector<wchar_t> wsz(nStrLen + 1);
                 ::MultiByteToWideChar(CP_UTF8, 0, pCwd->uTestWord.szWord8, -1, &(*wsz.begin()), wsz.size());
-                ::SendMessage(hWndEditWord, WM_SETTEXT, 0, reinterpret_cast<long>(&(*wsz.begin())));
+                ::SetWindowText(hWndEditWord, &(*wsz.begin()));
+                ::SetWindowText(hWndEditChangeTo, &(*wsz.begin()));
             }
 
             HWND hWndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);

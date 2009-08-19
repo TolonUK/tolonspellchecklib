@@ -52,6 +52,7 @@ MANIFEST=1
 !endif
 
 # Directories used by "make":
+glibdir = $(GLIBDIR)
 rootdir = .
 topsrcdir = $(rootdir)\src
 includedir = $(rootdir)\include
@@ -134,7 +135,9 @@ INCLUDES = \
     -I$(includedir) \
     -I$(otherincludedir) \
     -I$(stlincludedir) \
-    -I$(boostincludedir)
+    -I$(boostincludedir) \
+    -I$(glibdir) \
+    -I$(glibdir)\glib
     
 LINKFLAGS = \
     -INCREMENTAL:NO \
@@ -202,6 +205,7 @@ LIBTOLONSPELLCHECK_RC=$(srcdir)\libtolonspellcheck.rc
 LIBTOLONSPELLCHECK_DEF=$(srcdir)\libtolonspellcheck.def
 
 LIBTOLONSPELLCHECK_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
     $(otherlibdir)\libenchant.lib \
     Advapi32.lib \
     comctl32.lib \

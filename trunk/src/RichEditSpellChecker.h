@@ -54,9 +54,10 @@ class CRichEditSpellChecker
         void IgnoreAllAndResume();
         void ChangeAndResume(const wchar_t* psNewWord);
         void ChangeAllAndResume(const wchar_t* psNewWord);
-    
+        void SelectCurrentWord();
+   
     private:
-        DWORD WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
+        //DWORD WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
         void WT_DoSpellCheckWork(const wchar_t* psData, size_t nChars);
         void WT_ProcessWord();
         void WT_PreSpellCheck();
@@ -69,8 +70,8 @@ class CRichEditSpellChecker
         void IncrementCharsDone();
 
         static unsigned int __stdcall WT_CheckSpelling(void* p);
-        static DWORD CALLBACK WT_RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
-        static bool IsUnicodeAlpha(wchar_t wch);
+        //static DWORD CALLBACK WT_RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
+        static bool IsUnicodeAlpha(wchar_t wch, size_t n);
 
         HWND GetRichEditHwnd() const
         { return m_hWndRichEdit; }
@@ -81,6 +82,9 @@ class CRichEditSpellChecker
         DWORD GetCharsDone() const
         { return m_dwCharsDone; }
 
+        DWORD GetTotalChars() const
+        { return m_dwCharsTotal; }
+
         bool InWaitingState() const
         { return GetState() == SpellCheckState_WAITING; }
 
@@ -89,7 +93,7 @@ class CRichEditSpellChecker
         void AddCurrentWordToIgnoreList();
         void ChangeCurrentWord(const wchar_t* psNewWord);
         void AddCurrentWordToChangeList(const wchar_t* psNewWord);
-        void SelectCurrentWord();
+        int GetCurrentWordLength() const;
 
     private:
         HWND m_hWndRichEdit;

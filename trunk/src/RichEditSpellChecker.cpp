@@ -9,6 +9,7 @@
 #include "tscSession.h"
 #include <richedit.h>
 #include "CheckSpellingDlg.h"
+#include <glib.h>
 
 #pragma warning (disable: 4786)
 
@@ -44,7 +45,7 @@ CRichEditSpellChecker::~CRichEditSpellChecker()
     ::CloseHandle(m_hResumeEvent);
 }
 
-DWORD CRichEditSpellChecker::WT_RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
+/*DWORD CRichEditSpellChecker::WT_RichEditStreamOutCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb)
 {
 	CRichEditSpellChecker* pThis = reinterpret_cast<CRichEditSpellChecker*>(dwCookie);
 	
@@ -52,7 +53,7 @@ DWORD CRichEditSpellChecker::WT_RichEditStreamOutCallback(DWORD dwCookie, LPBYTE
 		return pThis->WT_DoCallbackWork(pbBuff, cb, pcb);
 	else
 		return static_cast<DWORD>(-1);
-}
+}*/
 
 void CRichEditSpellChecker::StartSpellCheck(HWND hwndEditCtrl)
 {
@@ -80,10 +81,10 @@ unsigned int CRichEditSpellChecker::WT_CheckSpelling(void* p)
 
     if (pThis)
     {
-	    EDITSTREAM es;
+	    /*EDITSTREAM es;
 	    es.dwCookie = reinterpret_cast<DWORD>(pThis);
 	    es.dwError = 0;
-	    es.pfnCallback = &CRichEditSpellChecker::WT_RichEditStreamOutCallback;
+	    es.pfnCallback = &CRichEditSpellChecker::WT_RichEditStreamOutCallback;*/
     	
 	    pThis->WT_PreSpellCheck();
 
@@ -142,7 +143,7 @@ void CRichEditSpellChecker::WT_PostSpellCheck()
     }
 }
 
-DWORD CRichEditSpellChecker::WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb)
+/*DWORD CRichEditSpellChecker::WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb)
 {
     DWORD dwResult = 0;
     const size_t nWideChars = cb / sizeof(std::wstring::value_type);
@@ -171,19 +172,26 @@ DWORD CRichEditSpellChecker::WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG* pcb
     *pcb = nWideChars * sizeof(std::wstring::value_type);
 	
 	return dwResult;
-}
+}*/
 
 void CRichEditSpellChecker::WT_DoSpellCheckWork(const wchar_t* psData, size_t nChars)
 {
+    size_t nCharsThisWord = 0;
     size_t nDone = 0;
     for ( ; nDone < nChars; ++nDone )
     {
         if (*psData == NULL)
             break;
-        else if (IsUnicodeAlpha(*psData))
+        else if (IsUnicodeAlpha(*psData, nCharsThisWord))
+        {
 			m_sWord << *psData;
+            nCharsThisWord++;
+        }
 		else
+        {
 			WT_ProcessWord();
+            nCharsThisWord = 0;
+        }
 
         IncrementCharsDone();
 
@@ -212,7 +220,7 @@ void CRichEditSpellChecker::WT_ProcessWord()
         it = m_xChangeList.find(sWord);
         if (it != m_xChangeList.end())
         {
-            ChangeCurrentWord(it->second);
+            ChangeCurrentWord(it->second.c_str());
             bDoProcessing = false;
         }
     }
@@ -249,11 +257,57 @@ void CRichEditSpellChecker::WT_ProcessWord()
     m_sWord.str(L"");
 }
 
-bool CRichEditSpellChecker::IsUnicodeAlpha(wchar_t wch)
+bool CRichEditSpellChecker::IsUnicodeAlpha(wchar_t wch, size_t n)
 {
-    WORD nCharType = 0;
-    ::GetStringTypeEx(LOCALE_USER_DEFAULT, CT_CTYPE1, &wch, 1, &nCharType);
-    return (nCharType & C1_ALPHA) != 0;
+    //::GetStringTypeEx(LOCALE_USER_DEFAULT, CT_CTYPE3, &wch, 1, &nCharType);
+    //return (nCharType & (C3_ALPHA | C3_LEXICAL)) != 0;
+
+    GUnicodeType type;
+	type = g_unichar_type(wch);
+
+	switch (type) {
+	case G_UNICODE_MODIFIER_LETTER:
+	case G_UNICODE_LOWERCASE_LETTER:
+	case G_UNICODE_TITLECASE_LETTER:
+	case G_UNICODE_UPPERCASE_LETTER:
+	case G_UNICODE_OTHER_LETTER:
+	case G_UNICODE_COMBINING_MARK:
+	case G_UNICODE_ENCLOSING_MARK:
+	case G_UNICODE_NON_SPACING_MARK:
+	case G_UNICODE_DECIMAL_NUMBER:
+	case G_UNICODE_LETTER_NUMBER:
+	case G_UNICODE_OTHER_NUMBER:
+	case G_UNICODE_CONNECT_PUNCTUATION:
+                return true;     // Enchant 1.3.0 defines word chars like this.
+
+	case G_UNICODE_CONTROL:
+	case G_UNICODE_FORMAT:
+	case G_UNICODE_UNASSIGNED:
+	case G_UNICODE_PRIVATE_USE:
+	case G_UNICODE_SURROGATE:
+	case G_UNICODE_DASH_PUNCTUATION:
+	case G_UNICODE_CLOSE_PUNCTUATION:
+	case G_UNICODE_FINAL_PUNCTUATION:
+	case G_UNICODE_INITIAL_PUNCTUATION:
+	case G_UNICODE_OTHER_PUNCTUATION:
+	case G_UNICODE_OPEN_PUNCTUATION:
+	case G_UNICODE_CURRENCY_SYMBOL:
+	case G_UNICODE_MODIFIER_SYMBOL:
+	case G_UNICODE_MATH_SYMBOL:
+	case G_UNICODE_OTHER_SYMBOL:
+	case G_UNICODE_LINE_SEPARATOR:
+	case G_UNICODE_PARAGRAPH_SEPARATOR:
+	case G_UNICODE_SPACE_SEPARATOR:
+	default:
+		if ((n > 0) && (wch == L'\'')) {
+		        return true;  // Char ' is accepted only within a word.
+		}
+		else if ((n > 0) && (type == G_UNICODE_DASH_PUNCTUATION)) {
+			return true; // hyphens only accepted within a word.
+		}
+
+		return false;
+	}
 }
 
 void CRichEditSpellChecker::GetState(CRichEditSpellChecker::State& nState, DWORD& dwCharsDone, DWORD& dwCharsTotal)
@@ -408,8 +462,12 @@ void CRichEditSpellChecker::ChangeCurrentWord(const wchar_t* psNewWord)
 
         if (hwnd)
         {
+            const int nCurrentLength = GetCurrentWordLength();
+            const int nNewLength = std::wstring(psNewWord).size();
             SelectCurrentWord();
             ::SendMessage(hwnd, EM_REPLACESEL, TRUE, reinterpret_cast<LPARAM>(psNewWord));
+            SetCharsDone(GetCharsDone() + (nNewLength - nCurrentLength));
+            SetTotalChars(GetTotalChars() + (nNewLength - nCurrentLength));
         }
     }
 }
@@ -437,4 +495,9 @@ void CRichEditSpellChecker::SelectCurrentWord()
         ::SendMessage(hwnd, EM_SETSEL, dwCharsDone - sWord.size(), dwCharsDone);
         ::SendMessage(hwnd, EM_SCROLLCARET, 0, 0);
     }
+}
+
+int CRichEditSpellChecker::GetCurrentWordLength() const
+{
+    return m_sWord.str().size();
 }
