@@ -78,6 +78,9 @@ class CRichEditSpellChecker
         CRichEditSpellChecker::State GetState() const
         { return m_nState; }
 
+        DWORD GetCharsDone() const
+        { return m_dwCharsDone; }
+
         bool InWaitingState() const
         { return GetState() == SpellCheckState_WAITING; }
 
@@ -86,6 +89,7 @@ class CRichEditSpellChecker
         void AddCurrentWordToIgnoreList();
         void ChangeCurrentWord(const wchar_t* psNewWord);
         void AddCurrentWordToChangeList(const wchar_t* psNewWord);
+        void SelectCurrentWord();
 
     private:
         HWND m_hWndRichEdit;
@@ -104,7 +108,7 @@ class CRichEditSpellChecker
         TSC_CHECKWORD_DATA m_cwd;
         HANDLE m_hResumeEvent;
         std::vector<std::wstring> m_vIgnoreList;
-        std::map<std::wstring, std::wstring> m_vChangeList;
+        std::map<std::wstring, std::wstring> m_xChangeList;
 };
 
 } // end namespace

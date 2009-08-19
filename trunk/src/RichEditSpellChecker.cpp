@@ -198,33 +198,55 @@ void CRichEditSpellChecker::WT_DoSpellCheckWork(const wchar_t* psData, size_t nC
 
 void CRichEditSpellChecker::WT_ProcessWord()
 {
+    bool bDoProcessing = true;
 	wstring sWord(m_sWord.str());
-    string sUtf8Word;
 
-	m_sWord.str(L"");
-
-    m_oConv.utf8FromUnicode(sWord.c_str(), sUtf8Word);
-
-	if (!sWord.empty())
-	{
-		tsc_result tr = TSC_E_UNEXPECTED;
-		
-		m_cwd.nWordSize = sUtf8Word.size();
-		m_cwd.uTestWord.szWord8 = sUtf8Word.c_str();
-        m_cwd.nResultStringSize = s_nResultBufLen;
-		
-		tr = m_pSession->CheckWord(&m_cwd);
-		
-		if (TSC_FAILED(tr))
+    // Check to see if the word is on the ignore or change list.
+    if (std::find(m_vIgnoreList.begin(), m_vIgnoreList.end(), sWord) != m_vIgnoreList.end())
+    {
+        bDoProcessing = false;
+    }
+    else
+    {
+        std::map<std::wstring, std::wstring>::iterator it;
+        it = m_xChangeList.find(sWord);
+        if (it != m_xChangeList.end())
         {
-            assert(false);
+            ChangeCurrentWord(it->second);
+            bDoProcessing = false;
         }
-        else if (!m_cwd.bOk)
-        {
-            SetState(SpellCheckState_WAITING);
-            ::WaitForSingleObject(m_hResumeEvent, INFINITE);
-        }
-	}
+    }
+
+    // Now check the word if required
+    if (bDoProcessing)
+    {
+        string sUtf8Word;
+
+        m_oConv.utf8FromUnicode(sWord.c_str(), sUtf8Word);
+
+	    if (!sWord.empty())
+	    {
+		    tsc_result tr = TSC_E_UNEXPECTED;
+    		
+		    m_cwd.nWordSize = sUtf8Word.size();
+		    m_cwd.uTestWord.szWord8 = sUtf8Word.c_str();
+            m_cwd.nResultStringSize = s_nResultBufLen;
+    		
+		    tr = m_pSession->CheckWord(&m_cwd);
+    		
+		    if (TSC_FAILED(tr))
+            {
+                assert(false);
+            }
+            else if (!m_cwd.bOk)
+            {
+                SetState(SpellCheckState_WAITING);
+                ::WaitForSingleObject(m_hResumeEvent, INFINITE);
+            }
+	    }
+    }
+
+    m_sWord.str(L"");
 }
 
 bool CRichEditSpellChecker::IsUnicodeAlpha(wchar_t wch)
@@ -291,6 +313,8 @@ TSC_CHECKWORD_DATA* CRichEditSpellChecker::GetCheckWordData()
 
 void CRichEditSpellChecker::ResumeSpellCheck()
 {
+    assert(InWaitingState());
+
     if (InWaitingState())
     {
         SetState(SpellCheckState_WORKING);
@@ -300,6 +324,8 @@ void CRichEditSpellChecker::ResumeSpellCheck()
 
 void CRichEditSpellChecker::AddToDicAndResume()
 {
+    assert(InWaitingState());
+
     if (InWaitingState())
     {
         AddCurrentWordToCustomDic();
@@ -309,6 +335,8 @@ void CRichEditSpellChecker::AddToDicAndResume()
 
 void CRichEditSpellChecker::IgnoreAndResume()
 {
+    assert(InWaitingState());
+
     if (InWaitingState())
     {
         ResumeSpellCheck();
@@ -317,6 +345,8 @@ void CRichEditSpellChecker::IgnoreAndResume()
 
 void CRichEditSpellChecker::IgnoreAllAndResume()
 {
+    assert(InWaitingState());
+
     if (InWaitingState())
     {
         AddCurrentWordToIgnoreList();
@@ -326,6 +356,8 @@ void CRichEditSpellChecker::IgnoreAllAndResume()
 
 void CRichEditSpellChecker::ChangeAndResume(const wchar_t* psNewWord)
 {
+    assert(InWaitingState());
+
     if (InWaitingState())
     {
         ChangeCurrentWord(psNewWord);
@@ -335,6 +367,8 @@ void CRichEditSpellChecker::ChangeAndResume(const wchar_t* psNewWord)
 
 void CRichEditSpellChecker::ChangeAllAndResume(const wchar_t* psNewWord)
 {
+    assert(InWaitingState());
+
     if (InWaitingState())
     {
         AddCurrentWordToChangeList(psNewWord);
@@ -345,16 +379,62 @@ void CRichEditSpellChecker::ChangeAllAndResume(const wchar_t* psNewWord)
 
 void CRichEditSpellChecker::AddCurrentWordToCustomDic()
 {
+    assert(InWaitingState());
+
+    if (InWaitingState())
+    {
+
+    }
 }
 
 void CRichEditSpellChecker::AddCurrentWordToIgnoreList()
 {
+    assert(InWaitingState());
+
+    if (InWaitingState())
+    {
+        std::wstring sWord(m_sWord.str());
+        m_vIgnoreList.push_back(sWord);
+    }
 }
 
 void CRichEditSpellChecker::ChangeCurrentWord(const wchar_t* psNewWord)
 {
+    assert(psNewWord);
+
+    if (psNewWord)
+    {
+        HWND hwnd = GetRichEditHwnd();
+
+        if (hwnd)
+        {
+            SelectCurrentWord();
+            ::SendMessage(hwnd, EM_REPLACESEL, TRUE, reinterpret_cast<LPARAM>(psNewWord));
+        }
+    }
 }
 
 void CRichEditSpellChecker::AddCurrentWordToChangeList(const wchar_t* psNewWord)
 {
+    assert(InWaitingState());
+
+    if (InWaitingState())
+    {
+        std::wstring sOldWord(m_sWord.str());
+        std::wstring sNewWord(psNewWord);
+        m_xChangeList.insert(std::make_pair(sOldWord, sNewWord));
+    }
+}
+
+void CRichEditSpellChecker::SelectCurrentWord()
+{
+    HWND hwnd = GetRichEditHwnd();
+    if (hwnd)
+    {
+        DWORD dwCharsDone = GetCharsDone();
+        std::wstring sWord(m_sWord.str());
+
+        ::SendMessage(hwnd, EM_SETSEL, dwCharsDone - sWord.size(), dwCharsDone);
+        ::SendMessage(hwnd, EM_SCROLLCARET, 0, 0);
+    }
 }
