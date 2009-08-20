@@ -11,11 +11,11 @@ set glib-srcball=glib-%glib-version%.tar.bz2
 echo Decompressing libraries...
 cd .\contrib
 echo    decompressing gettext...
-rem gunzip -c %gettext-srcball% | tar x
+gunzip -c %gettext-srcball% | tar x
 echo    decompressing libiconv...
-rem gunzip -c %libiconv-srcball% | tar x
+gunzip -c %libiconv-srcball% | tar x
 echo    decompressing glib...
-rem bunzip2 -c %glib-srcball% | tar x
+bunzip2 -c %glib-srcball% | tar x
 cd ..
 
 :RENAME
