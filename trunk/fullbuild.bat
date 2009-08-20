@@ -2,7 +2,7 @@
 set topdir=%cd%
 set gettext-version=0.14.5
 set libiconv-version=1.9.1
-set glib-version=2.20.4
+set glib-version=2.18.3
 set gettext-srcball=gettext-%gettext-version%.tar.gz
 set libiconv-srcball=libiconv-%libiconv-version%.tar.gz
 set glib-srcball=glib-%glib-version%.tar.bz2
