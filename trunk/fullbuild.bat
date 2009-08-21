@@ -27,13 +27,13 @@ GOTO DECOMPRESS
 echo Decompressing libraries...
 cd .\contrib
 echo    decompressing gettext...
-rem gunzip -c %gettext-srcball% | tar x
+gzip -d -c %gettext-srcball% | tar x
 echo    decompressing libiconv...
-rem gunzip -c %libiconv-srcball% | tar x
+gzip -d -c %libiconv-srcball% | tar x
 echo    decompressing glib...
-rem bunzip2 -c %glib-srcball% | tar x
+bzip2 -d -c %glib-srcball% | tar x
 echo    decompressing enchant...
-rem gunzip -c %enchant-srcball% | tar x
+gzip -d -c %enchant-srcball% | tar x
 cd ..
 
 :RENAME
@@ -44,7 +44,7 @@ rename glib-%glib-version% glib
 cd ..
 
 :BUILD
-mkdir usr
+mkdir %usrdir%
 
 echo Making libiconv (no NLS)...
 cd %topdir%
