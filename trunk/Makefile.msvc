@@ -317,6 +317,24 @@ test-tolonspellcheck_clean:
 
 check : all
 
+install : force
+	-mkdir $(prefix)
+	-mkdir $(prefix)\include
+	$(INSTALL_DATA) $(includedir)\TolonSpellCheck.h $(prefix)\include\TolonSpellCheck.h
+	-mkdir $(prefix)\bin
+	$(INSTALL_DATA) $(outdir)\tsc-test.exe $(prefix)\bin\tsc-test.exe
+!if $(MANIFEST)
+        $(INSTALL_DATA) $(outdir)\tsc-test.exe.manifest $(prefix)\bin\tsc-test.exe.manifest
+!endif
+!if $(DLL)
+    $(INSTALL_DATA) $(outdir)\libtolonspellcheck.dll $(prefix)\bin\libtolonspellcheck.dll
+!if $(MANIFEST)
+        $(INSTALL_DATA) $(outdir)\libtolonspellcheck.dll.manifest $(prefix)\bin\libtolonspellcheck.dll.manifest
+!endif
+!endif
+	-mkdir $(prefix)\lib
+	$(INSTALL_DATA) $(outdir)\libtolonspellcheck.lib $(prefix)\lib\libtolonspellcheck.lib
+
 mostlyclean : clean
 
 clean: libtolonspellcheck_clean test-tolonspellcheck_clean

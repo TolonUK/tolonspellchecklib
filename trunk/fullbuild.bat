@@ -106,5 +106,13 @@ set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GL
 set cmd=
 cd ..\..\..
 
+echo Making tolonspellchecklib...
+cd %topdir%
+set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=0
+%cmd% clean
+%cmd%
+%cmd% install
+set cmd=
+
 :EXIT
 cd %topdir%
