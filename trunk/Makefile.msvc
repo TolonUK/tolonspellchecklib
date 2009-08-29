@@ -72,7 +72,11 @@ prefix = $(PREFIX)
 exec_prefix = $(prefix)
 #bindir = $(exec_prefix)\bin
 otherlibdir = $(exec_prefix)\lib
+!if defined(STL_LIB_PATH)
 stllibdir = $(STL_LIB_PATH)
+!else
+stllibdir = .
+!endif
 otherincludedir = $(exec_prefix)\include
 stlincludedir = $(STL_INCLUDE_PATH)
 boostincludedir = $(BOOST_INCLUDE_PATH)

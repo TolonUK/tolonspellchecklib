@@ -10,6 +10,7 @@
 #include <richedit.h>
 #include "CheckSpellingDlg.h"
 #include <glib.h>
+#include <algorithm>
 
 #pragma warning (disable: 4786)
 
