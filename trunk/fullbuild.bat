@@ -46,6 +46,7 @@ cd ..
 :BUILD
 mkdir %usrdir%
 
+:BUILD_LIBICONV_FIRST
 echo Making libiconv (no NLS)...
 cd %topdir%
 cd .\contrib\libiconv-%libiconv-version%
@@ -54,16 +55,20 @@ nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir%
 nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% install
 cd ..\..
 
+:BUILD_LIBINTL
 echo Making libintl...
 cd %topdir%
 cd .\contrib\gettext-%gettext-version%\gettext-runtime
 nmake -f Makefile.msvc config.h
 cd .\intl
+copy %topdir%\contrib\localename-msvc9.diff .
+patch -i localename-msvc9.diff
 nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% clean
 nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% 
 nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% install
 cd ..\..\..\..
 
+:BUILD_LIBICONV_SECOND
 echo Making libiconv (no NLS)...
 cd %topdir%
 cd .\contrib\libiconv-%libiconv-version%
@@ -72,6 +77,7 @@ nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir%
 nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% install
 cd ..\..
 
+:BUILD_LIBGLIB
 echo Making libglib and libgmodule...
 cd %topdir%
 cd .\contrib\glib
@@ -90,6 +96,7 @@ copy gmodule-2.0.lib %usrdir%\lib
 copy libgmodule-2.0-0.dll %usrdir%\bin 
 cd ..\..\..
 
+:BUILD_ENCHANT
 echo Making enchant...
 cd %topdir%
 cd .\contrib\enchant-%enchant-version%\src\myspell
@@ -106,6 +113,7 @@ set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GL
 set cmd=
 cd ..\..\..
 
+:BUILD_TOLONSPELLCHECK
 echo Making tolonspellchecklib...
 cd %topdir%
 set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=0

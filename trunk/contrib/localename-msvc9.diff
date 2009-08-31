@@ -1,0 +1,36 @@
+*** localename-original.c	Fri May 20 21:08:16 2005
+--- localename.c	Sun Dec 14 16:55:18 2008
+***************
+*** 1356,1362 ****
+        case LANG_PUNJABI:
+  	switch (sub)
+  	  {
+! 	  case SUBLANG_PUNJABI_INDIA: return "pa_IN"; /* Gurmukhi script */
+  	  case SUBLANG_PUNJABI_PAKISTAN: return "pa_PK"; /* Arabic script */
+  	  }
+  	return "pa";
+--- 1356,1362 ----
+        case LANG_PUNJABI:
+  	switch (sub)
+  	  {
+! 	  case 0x00: return "pa_IN"; /* SUBLANG_PUNJABI_INDIA - Gurmukhi script */
+  	  case SUBLANG_PUNJABI_PAKISTAN: return "pa_PK"; /* Arabic script */
+  	  }
+  	return "pa";
+***************
+*** 1364,1370 ****
+        case LANG_ROMANIAN:
+  	switch (sub)
+  	  {
+! 	  case SUBLANG_ROMANIAN_ROMANIA: return "ro_RO";
+  	  case SUBLANG_ROMANIAN_MOLDOVA: return "ro_MD";
+  	  }
+  	return "ro";
+--- 1364,1370 ----
+        case LANG_ROMANIAN:
+  	switch (sub)
+  	  {
+! 	  case 0x00: return "ro_RO"; /* SUBLANG_ROMANIAN_ROMANIA */
+  	  case SUBLANG_ROMANIAN_MOLDOVA: return "ro_MD";
+  	  }
+  	return "ro";
