@@ -106,7 +106,7 @@ patch -i dictmgr.diff
 patch -i myspell_checker.diff
 cd ..\..\msvc
 copy /Y %topdir%\contrib\enchant-makefile.msvc makefile.msvc
-set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=0
+set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
 %cmd% clean
 %cmd%
 %cmd% install
@@ -116,7 +116,7 @@ cd ..\..\..
 :BUILD_TOLONSPELLCHECK
 echo Making tolonspellchecklib...
 cd %topdir%
-set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=0
+set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
 %cmd% clean
 %cmd%
 %cmd% install
