@@ -141,7 +141,7 @@ INCLUDES = \
     -I$(stlincludedir) \
     -I$(boostincludedir) \
     -I$(glibdir) \
-    -I$(glibdir)\glib
+    -I$(glibdir)\\glib
     
 LINKFLAGS = \
     -INCREMENTAL:NO \

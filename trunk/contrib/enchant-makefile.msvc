@@ -574,20 +574,20 @@ install : force
 	$(INSTALL_DATA) $(outdir)\enchant.exe $(prefix)\bin\enchant.exe
     $(INSTALL_DATA) $(outdir)\enchant-lsmod.exe $(prefix)\bin\enchant-lsmod.exe
     $(INSTALL_DATA) $(outdir)\test-enchant.exe $(prefix)\bin\test-enchant.exe
-!if $(MANIFEST)
-        $(INSTALL_DATA) $(outdir)\enchant.exe.manifest $(prefix)\bin\enchant.exe.manifest
-        $(INSTALL_DATA) $(outdir)\enchant-lsmod.exe.manifest $(prefix)\bin\enchant-lsmod.exe.manifest
-        $(INSTALL_DATA) $(outdir)\test-enchant.exe.manifest $(prefix)\bin\test-enchant.exe.manifest
-!endif
+#!if $(MANIFEST)
+#        $(INSTALL_DATA) $(outdir)\enchant.exe.manifest $(prefix)\bin\enchant.exe.manifest
+#        $(INSTALL_DATA) $(outdir)\enchant-lsmod.exe.manifest $(prefix)\bin\enchant-lsmod.exe.manifest
+#        $(INSTALL_DATA) $(outdir)\test-enchant.exe.manifest $(prefix)\bin\test-enchant.exe.manifest
+#!endif
 !if $(DLL)
     $(INSTALL_DATA) $(outdir)\libenchant.dll $(prefix)\bin\libenchant.dll
     $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll $(prefix)\bin\libenchant_ispell.dll
     $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll $(prefix)\bin\libenchant_myspell.dll
-!if $(MANIFEST)
-        $(INSTALL_DATA) $(outdir)\libenchant.dll.manifest $(prefix)\bin\libenchant.dll.manifest
-        $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll.manifest $(prefix)\bin\libenchant_ispell.dll.manifest
-        $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll.manifest $(prefix)\bin\libenchant_myspell.dll.manifest
-!endif
+#!if $(MANIFEST)
+#        $(INSTALL_DATA) $(outdir)\libenchant.dll.manifest $(prefix)\bin\libenchant.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll.manifest $(prefix)\bin\libenchant_ispell.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll.manifest $(prefix)\bin\libenchant_myspell.dll.manifest
+#!endif
 !endif
 	-mkdir $(prefix)\lib
 	$(INSTALL_DATA) $(outdir)\libenchant.lib $(prefix)\lib\libenchant.lib

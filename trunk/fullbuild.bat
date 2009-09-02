@@ -16,11 +16,13 @@ IF /I "%1"=="debug" GOTO OPT_DEBUG
 :OPT_RELEASE
 set debug=0
 set usrdir=%topdir%\usr-release
+set mflags=-MD
 GOTO DECOMPRESS
 
 :OPT_DEBUG
 set debug=1
 set usrdir=%topdir%\usr-debug
+set mflags=-MDd
 GOTO DECOMPRESS
 
 :DECOMPRESS
@@ -50,9 +52,9 @@ mkdir %usrdir%
 echo Making libiconv (no NLS)...
 cd %topdir%
 cd .\contrib\libiconv-%libiconv-version%
-nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% clean
-nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir%
-nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% install
+nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% clean
+nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir%
+nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% install
 cd ..\..
 
 :BUILD_LIBINTL
@@ -63,19 +65,21 @@ nmake -f Makefile.msvc config.h
 cd .\intl
 copy %topdir%\contrib\localename-msvc9.diff .
 patch -i localename-msvc9.diff
-nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% clean
-nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% 
-nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% install
-cd ..\..\..\..
+nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% clean
+nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% 
+nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% install
+mt -manifest %topdir%\contrib\gettext-%gettext-version%\gettext-runtime\intl\intl.dll.manifest -outputresource:%usrdir%\bin\intl.dll;#1
 
 :BUILD_LIBICONV_SECOND
 echo Making libiconv (no NLS)...
 cd %topdir%
 cd .\contrib\libiconv-%libiconv-version%
-nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% clean
-nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir%
-nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% install
-cd ..\..
+nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% clean
+nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir%
+nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% install
+mt -manifest %topdir%\contrib\libiconv-%libiconv-version%\libcharset\lib\charset.dll.manifest -outputresource:%usrdir%\bin\charset.dll;#1
+mt -manifest %topdir%\contrib\libiconv-%libiconv-version%\lib\iconv.dll.manifest -outputresource:%usrdir%\bin\iconv.dll;#1
+mt -manifest %topdir%\contrib\libiconv-%libiconv-version%\src\iconv.exe.manifest -outputresource:%usrdir%\bin\iconv.exe;#1
 
 :BUILD_LIBGLIB
 echo Making libglib and libgmodule...
@@ -87,14 +91,16 @@ nmake -f makefile.msc INTL=%usrdir%
 cd ..\..\..\glib
 nmake -f Makefile.msc INTL=%usrdir% clean
 nmake -f Makefile.msc INTL=%usrdir%
+mt -manifest libglib-2.0-0.dll.manifest -outputresource:libglib-2.0-0.dll;#1
 copy .\glib-2.0.lib %usrdir%\lib 
 copy .\libglib-2.0-0.dll %usrdir%\bin 
 cd ..\gmodule
 nmake -f Makefile.msc INTL=%usrdir% clean
 nmake -f Makefile.msc INTL=%usrdir% 
+mt -manifest libgmodule-2.0-0.dll.manifest -outputresource:libgmodule-2.0-0.dll;#1
 copy gmodule-2.0.lib %usrdir%\lib 
 copy libgmodule-2.0-0.dll %usrdir%\bin 
-cd ..\..\..
+
 
 :BUILD_ENCHANT
 echo Making enchant...
@@ -106,7 +112,7 @@ patch -i dictmgr.diff
 patch -i myspell_checker.diff
 cd ..\..\msvc
 copy /Y %topdir%\contrib\enchant-makefile.msvc makefile.msvc
-set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
+set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
 %cmd% clean
 %cmd%
 %cmd% install
@@ -116,7 +122,7 @@ cd ..\..\..
 :BUILD_TOLONSPELLCHECK
 echo Making tolonspellchecklib...
 cd %topdir%
-set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=-MD DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
+set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
 %cmd% clean
 %cmd%
 %cmd% install
