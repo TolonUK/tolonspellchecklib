@@ -1,1 +1,8 @@
-nmake -f Makefile.msvc DLL=1 DEBUG=1 PREFIX=c:\usr-msvc6-debug MANIFEST=0 GLIBDIR="D:\DEV\enchant\trunk\lib\glib-msvc6\include\glib-2.0" %1
+set debug=1
+set mflags=-MDd
+set usrdir=%cd%\usr-debug
+set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%cd%\contrib\glib MANIFEST=1
+%cmd% clean
+%cmd%
+%cmd% install
+set cmd=
