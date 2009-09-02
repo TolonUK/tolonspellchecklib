@@ -47,6 +47,9 @@ cd ..
 
 :BUILD
 mkdir %usrdir%
+mkdir %usrdir%\bin
+mkdir %usrdir%\include
+mkdir %usrdir%\lib
 
 :BUILD_LIBICONV_FIRST
 echo Making libiconv (no NLS)...
