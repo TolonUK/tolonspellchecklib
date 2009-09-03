@@ -15,12 +15,14 @@ IF /I "%1"=="debug" GOTO OPT_DEBUG
 
 :OPT_RELEASE
 set debug=0
+set glib_debug=0
 set usrdir=%topdir%\usr-release
 set mflags=-MD
 GOTO DECOMPRESS
 
 :OPT_DEBUG
 set debug=1
+set glib_debug=1
 set usrdir=%topdir%\usr-debug
 set mflags=-MDd
 GOTO DECOMPRESS
@@ -86,6 +88,7 @@ mt -manifest %topdir%\contrib\libiconv-%libiconv-version%\src\iconv.exe.manifest
 
 :BUILD_LIBGLIB
 echo Making libglib and libgmodule...
+if %glib_debug% == 0 set debug=
 cd %topdir%
 cd .\contrib\glib
 nmake -f Makefile.msc config.h glibconfig.h 
@@ -103,7 +106,7 @@ nmake -f Makefile.msc INTL=%usrdir%
 mt -manifest libgmodule-2.0-0.dll.manifest -outputresource:libgmodule-2.0-0.dll;#1
 copy gmodule-2.0.lib %usrdir%\lib 
 copy libgmodule-2.0-0.dll %usrdir%\bin 
-
+set debug=%glib_debug%
 
 :BUILD_ENCHANT
 echo Making enchant...

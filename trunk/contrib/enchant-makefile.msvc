@@ -571,9 +571,13 @@ install : force
 	$(INSTALL_DATA) $(topsrcdir)\enchant.h $(prefix)\include\enchant.h
 #	-mkdir $(exec_prefix)
 	-mkdir $(prefix)\bin
+	-mkdir $(prefix)\pdb
 	$(INSTALL_DATA) $(outdir)\enchant.exe $(prefix)\bin\enchant.exe
-    $(INSTALL_DATA) $(outdir)\enchant-lsmod.exe $(prefix)\bin\enchant-lsmod.exe
-    $(INSTALL_DATA) $(outdir)\test-enchant.exe $(prefix)\bin\test-enchant.exe
+	$(INSTALL_DATA) $(outdir)\enchant-lsmod.exe $(prefix)\bin\enchant-lsmod.exe
+	$(INSTALL_DATA) $(outdir)\test-enchant.exe $(prefix)\bin\test-enchant.exe
+	$(INSTALL_DATA) $(outdir)\pdb\enchant.pdb $(prefix)\pdb\enchant.pdb
+	$(INSTALL_DATA) $(outdir)\pdb\enchant-lsmod.pdb $(prefix)\pdb\enchant-lsmod.pdb
+	$(INSTALL_DATA) $(outdir)\pdb\test-enchant.pdb $(prefix)\pdb\test-enchant.pdb
 #!if $(MANIFEST)
 #        $(INSTALL_DATA) $(outdir)\enchant.exe.manifest $(prefix)\bin\enchant.exe.manifest
 #        $(INSTALL_DATA) $(outdir)\enchant-lsmod.exe.manifest $(prefix)\bin\enchant-lsmod.exe.manifest
@@ -583,6 +587,9 @@ install : force
     $(INSTALL_DATA) $(outdir)\libenchant.dll $(prefix)\bin\libenchant.dll
     $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll $(prefix)\bin\libenchant_ispell.dll
     $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll $(prefix)\bin\libenchant_myspell.dll
+    $(INSTALL_DATA) $(outdir)\pdb\libenchant.pdb $(prefix)\pdb\libenchant.pdb
+    $(INSTALL_DATA) $(outdir)\pdb\libenchant_ispell.pdb $(prefix)\pdb\libenchant_ispell.pdb
+    $(INSTALL_DATA) $(outdir)\pdb\libenchant_myspell.pdb $(prefix)\pdb\libenchant_myspell.pdb
 #!if $(MANIFEST)
 #        $(INSTALL_DATA) $(outdir)\libenchant.dll.manifest $(prefix)\bin\libenchant.dll.manifest
 #        $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll.manifest $(prefix)\bin\libenchant_ispell.dll.manifest
@@ -591,8 +598,8 @@ install : force
 !endif
 	-mkdir $(prefix)\lib
 	$(INSTALL_DATA) $(outdir)\libenchant.lib $(prefix)\lib\libenchant.lib
-    $(INSTALL_DATA) $(outdir)\libenchant_ispell.lib $(prefix)\lib\libenchant_ispell.lib
-    $(INSTALL_DATA) $(outdir)\libenchant_myspell.lib $(prefix)\lib\libenchant_myspell.lib
+	$(INSTALL_DATA) $(outdir)\libenchant_ispell.lib $(prefix)\lib\libenchant_ispell.lib
+	$(INSTALL_DATA) $(outdir)\libenchant_myspell.lib $(prefix)\lib\libenchant_myspell.lib
 
 mostlyclean : clean
 

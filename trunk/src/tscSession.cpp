@@ -28,6 +28,7 @@ static const char* const s_szErrErr =
 CSession::CSession(TSC_CREATESESSION_DATA* pData) :
 	m_bInitialised(false),
 	m_pEnchantBroker(NULL),
+    m_pEnchantDict(NULL),
 	m_szLastError(s_szErrErr)
 {
 	memset(&m_options, 0, sizeof(TSC_SESSIONOPTIONS_DATA));
