@@ -20,6 +20,7 @@ const ISO3166Region g_regions[] = {
     { "au", "Australia", "Australia" },
     { "bg", "Bulgaria", "Bulgaria" },
     { "bo", "Bolivia", "Bolivia" },
+    { "br", "Brazil", "Brazil" },
     { "ca", "Canada", "Canada" },
     { "ch", "Switzerland", "Switzerland" },
     { "cz", "Czech Republic", "Czech Republic" },
@@ -42,6 +43,7 @@ const ISO3166Region g_regions[] = {
     { "ir", "Iran", "Iran" },
     { "is", "Iceland", "Iceland" },
     { "it", "Italy", "Italy" },
+    { "ke", "Kenya", "Kenya" },
     { "kh", "Cambodia", "Cambodia" },
     { "lt", "Lithuania", "Lithuania" },
     { "lv", "Latvia", "Latvia" },
@@ -56,11 +58,19 @@ const ISO3166Region g_regions[] = {
     { "nz", "New Zeland", "New Zeland" },
     { "ph", "Philippines", "Philippines" },
     { "pl", "Poland", "Poland" },
+    { "pt", "Portugal", "Portugal" },
     { "ro", "Romania", "Romania" },
     { "ru", "Russia", "Russia" },
     { "rw", "Rwanda", "Rwanda" },
+    { "se", "Sweden", "Sweden" },
+    { "si", "Slovenia", "Slovenia" },
+    { "sk", "Slovakia", "Slovakia" },
+    { "th", "Thailand", "Thailand" },
     { "tr", "Turkey", "Turkey" },
+    { "tz", "Tanzania", "Tanzania" },
+    { "ua", "Ukraine", "Ukraine" },
     { "us", "United States", "United States" },
+    { "uz", "Uzbekistan", "Uzbekistan" },
     { "za", "South Africa", "South Africa" }
 };
 
@@ -129,7 +139,7 @@ const ISO639Language g_languages[] = {
     { "mr", "mar", NULL, "mar", "Marathi", "मराठी" },
     { "ms", "may", "msa", "may", "Malay", "bahasa Melayu, بهاس ملايو" },
     { "nb", "nob", NULL, "nob", "Norwegian Bokmål", "bokmål" },
-    { "ne" "nep", NULL, "nep", "Nepali", "नेपाली" },
+    { "ne", "nep", NULL, "nep", "Nepali", "नेपाली" },
     { "nl", "nld", "dut", "nld", "Dutch", "Nederlands" },
     { "nn", "nno", NULL, "nno", "Norwegian Nynorsk", "nynorsk" },
     { "no", "nor", NULL, "nor", "Norwegian", "Norsk" },
@@ -140,16 +150,30 @@ const ISO639Language g_languages[] = {
     { "pa", "pan", NULL, "pan", "Punjabi", "ਪੰਜਾਬੀ" },
     { "pl", "pol", NULL, "pol", "Polish", "polski" },
     { "qu", "que", NULL, "que", "Quechua", "Runa Simi, Kichwa" },
-   // pt por - por Portuguese Português 
+    { "pt", "por", NULL, "por", "Portuguese", "Português" },
     { "ro", "rum", "ron", "rum", "Romanian", "română" },
     { "ru", "rus", NULL, "rus", "Russian", "русский язык" },
-    { "rw", "kin", NULL, "kin", "Kinyarwanda", "kinyaRwanda" }
-    /*sk slk slo slk Slovak slovenčina 
-    sv swe - swe Swedish svenska 
-    tr tur - tur Turkish Türkçe 
-    uk ukr - ukr Ukrainian Українська 
-    vo vol - vol Volapük Volapük
-    zh zho chi zho + 13 Chinese 中文 (Zhōngwén), 汉语, 漢語 */
+    { "rw", "kin", NULL, "kin", "Kinyarwanda", "kinyaRwanda" },
+    { "sk", "slk", "slo", "slk", "Slovak", "slovenčina" },
+    { "sl", "slv", NULL, "slv", "Slovenian", "slovenščina" },
+    { "ss", "ssw", NULL, "ssw", "Swati", "siSwati" },
+    { "st", "sot", NULL, "sot", "Sotho", "Sesotho" },
+    { "sv", "swe", NULL, "swe", "Swedish", "svenska" },
+    { "sw", "swa", NULL, "swa", "Swahili", "kiswahili" },
+    { "ta", "tam", NULL, "tam", "Tamil", "தமிழ்" },
+    { "th", "tha", NULL, "tha", "Thai", "ภาษาไทย" },
+    { "tl", "tgl", NULL, "tgl", "Tagalog", "Tagalog" },
+    { "tn", "tsn", NULL, "tsn", "Tswana", "Setswana" },
+    //tr tur - tur Turkish Türkçe 
+    { "ts", "tso", NULL, "tso", "Tsonga", "Xitsonga" },
+    { NULL, "tet", NULL, "tet", "Tetum", "Tetun" },
+    { "uk", "ukr", NULL, "ukr", "Ukrainian", "українська мова" },
+    { "uz", "uzb", NULL, "uzb", "Uzbek", "O'zbek, Ўзбек, أۇزبېك" },
+    { "ve", "ven", NULL, "ven", "Venda", "Tshivenḓa" },
+    { "vi", "vie", NULL, "vie", "Vietnamese", "Tiếng Việt" },
+    { "xh", "xho", NULL, "xho", "Xhosa", "isiXhosa" },
+    //zh zho chi zho + 13 Chinese 中文 (Zhōngwén), 汉语, 漢語 
+    { "zu", "zul", NULL, "zul", "Zulu", "isiZulu" }
 };	
 
 const size_t g_languages_size = sizeof(g_languages) / sizeof(g_languages[0]);
@@ -272,10 +296,13 @@ void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::string& sLanguage)
     {
         for (size_t i = 0; i < g_languages_size; ++i)
         {
-            if (memcmp(psz, g_languages[i].Level1Code, nCodeSize) == 0)
+            if (g_languages[i].Level1Code != NULL)
             {
-                sLanguage.assign(g_languages[i].EnglishName);
-                break;
+                if (memcmp(psz, g_languages[i].Level1Code, nCodeSize) == 0)
+                {
+                    sLanguage.assign(g_languages[i].EnglishName);
+                    break;
+                }
             }
         }
     }
@@ -285,7 +312,8 @@ void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::string& sLanguage)
         
         for (size_t i = 0; i < g_languages_size; ++i)
         {
-            bFound = memcmp(psz, g_languages[i].Level2CodeT, nCodeSize) == 0;
+            if (g_languages[i].Level2CodeT != NULL)
+                bFound = memcmp(psz, g_languages[i].Level2CodeT, nCodeSize) == 0;
             if (!bFound && (g_languages[i].Level2CodeB != NULL))
                 bFound = memcmp(psz, g_languages[i].Level2CodeB, nCodeSize) == 0;
             
