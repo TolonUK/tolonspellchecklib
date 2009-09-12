@@ -111,7 +111,10 @@ set debug=%glib_debug%
 :BUILD_ENCHANT
 echo Making enchant...
 cd %topdir%
-cd .\contrib\enchant-%enchant-version%\src\myspell
+cd .\contrib\enchant-%enchant-version%\src
+copy /Y %topdir%\contrib\enchant.c.patch
+patch -i enchant.c.patch
+cd .\myspell
 copy /Y %topdir%\contrib\dictmgr.diff .
 copy /Y %topdir%\contrib\myspell_checker.diff .
 patch -i dictmgr.diff

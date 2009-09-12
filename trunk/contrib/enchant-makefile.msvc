@@ -327,7 +327,8 @@ srcdir = $(topsrcdir)
 
 LIBENCHANT_DEFINES = \
     -D_ENCHANT_BUILD=1 \
-    -DWINDLL
+    -DWINDLL \
+    -D_WIN32_WINNT=0x0500
 
 LIBENCHANT_DLL=$(outdir)\libenchant.dll
 LIBENCHANT_LIB=$(outdir)\libenchant.lib
@@ -338,7 +339,8 @@ LIBENCHANT_RC=$(srcdir)\libenchant.rc
 LIBENCHANT_LIBS = \
     $(otherlibdir)\glib-2.0.lib \
     $(otherlibdir)\gmodule-2.0.lib \
-    Advapi32.lib
+    Advapi32.lib \
+    Kernel32.lib
 
 LIBENCHANT_OBJECTS = \
     $(objdir)\enchant.obj \
