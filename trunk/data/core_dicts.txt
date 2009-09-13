@@ -1,4 +1,13 @@
 Language,Locale,DateUpdated,DateDownloaded,Src
 English,en_au,2008-09-25,2009-09-13,http://users.bigpond.com/dnwilson/en_AU.zip
+English,en_ca,2002-03-15,2009-09-13,http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/dictionaries/en_CA.zip
 English,en_gb,2006-11-30,2009-09-13,http://en-gb.pyxidium.co.uk/dictionary/en_GB.zip
+English,en_nz,2002-05-18,2009-09-13,http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/dictionaries/en_NZ.zip
 English,en_us,2006-02-07,2009-09-13,http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/dictionaries/en_US.zip
+English,en_za,2006-01-20,2009-09-13,http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/dictionaries/en_ZA.zip
+French,fr_fr,2009-09-11,2009-09-13,http://extensions.services.openoffice.org/project/french-dictionary-classic-reform1990
+German,de_at,2009-07-01,2009-09-13,http://extensions.services.openoffice.org/project/dict-de_AT_frami
+German,de_ch,2009-07-01,2009-09-13,http://extensions.services.openoffice.org/project/dict-de_CH_frami
+German,de_de,2009-07-01,2009-09-13,http://extensions.services.openoffice.org/project/dict-de_DE_frami
+Portugese,pt_pt,2009-03-09,2009-09-13,http://natura.di.uminho.pt/download/sources/Dictionaries/myspell/
+Portugese,pt_bz,2009-03-25,2009-09-13,http://www.broffice.org/verortografico/baixar
