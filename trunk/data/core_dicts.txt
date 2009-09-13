@@ -1,0 +1,4 @@
+Language,Locale,DateUpdated,DateDownloaded,Src
+English,en_au,2008-09-25,2009-09-13,http://users.bigpond.com/dnwilson/en_AU.zip
+English,en_gb,2006-11-30,2009-09-13,http://en-gb.pyxidium.co.uk/dictionary/en_GB.zip
+English,en_us,2006-02-07,2009-09-13,http://ftp.services.openoffice.org/pub/OpenOffice.org/contrib/dictionaries/en_US.zip
