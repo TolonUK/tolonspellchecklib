@@ -93,30 +93,7 @@ BOOL CLanguageDlg::OnInitDialog()
 	ListView_SetColumnWidth(m_hwndLangList, 0, LVSCW_AUTOSIZE);
 	
 	// Get default language
-	tsc_result result = TSC_S_OK;
-	wchar_t wszLang[13];
-	LANGUAGE_DESC_WIDEDATA ldwd;
-	memset(wszLang, 0, sizeof(wszLang));
-	memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
-	
-	ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);    
-	result = m_pSession->GetCurrentLanguage(wszLang);
-	
-	if (SUCCEEDED(result))
-	{        
-		result = m_pSession->DescribeLanguage(wszLang, &ldwd);
-		
-		if (SUCCEEDED(result))
-		{
-			HWND hwnd = GetDlgItem(m_hwnd, IDC_DEFAULTLANG_STATIC);
-			if (hwnd)
-			{
-				wstring ws(L"Default: ");
-				ws.append(ldwd.wszDisplayName);
-				SetWindowText(hwnd, ws.c_str());
-			}
-		}
-	}
+    UpdateLanguageDisplay();
 	
 	return TRUE;
 }
@@ -129,7 +106,7 @@ void CLanguageDlg::InitLangList()
 		return;
 	
 	// Obtain HWND
-	m_hwndLangList = GetDlgItem(m_hwnd, IDC_DIC_LIST);
+	m_hwndLangList = GetDlgItem(IDC_DIC_LIST);
 
     // Set styles
     ListView_SetExtendedListViewStyleEx(m_hwndLangList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
@@ -188,7 +165,9 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 
 void CLanguageDlg::OnCmdOk()
 {
-    if (!m_pSession)
+    TolonSpellCheck::CSession* pSession = GetSession();
+
+    if (!pSession)
     {
         ::MessageBox(GetHwnd(), L"Internal Error. Could not set the chosen dictionary.", L"TolonSpellCheck", MB_OK | MB_ICONEXCLAMATION);
         return;
@@ -202,7 +181,7 @@ void CLanguageDlg::OnCmdOk()
         
         // Set it on the session
         tsc_result r = TSC_E_FAIL;
-        r = m_pSession->SetLanguage(sChosenLang.c_str());
+        r = pSession->SetLanguage(sChosenLang.c_str());
 
         if (TSC_FAILED(r))
         {
@@ -240,4 +219,64 @@ void CLanguageDlg::GetChosenLanguage(std::string& sLang)
 
         sLang.assign(szBuffer);
     }
+}
+
+void CLanguageDlg::UpdateLanguageDisplay()
+{
+    TolonSpellCheck::CSession* pSession = GetSession();
+
+    if (pSession)
+    {
+        tsc_result result = TSC_S_OK;
+
+        LANGUAGE_DESC_WIDEDATA ldwd;
+	wchar_t wszLang[13];
+        memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
+	memset(wszLang, 0, sizeof(wszLang));
+	    
+	ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);    
+	result = pSession->GetCurrentLanguage(wszLang);
+	
+	if (TSC_SUCCEEDED(result))
+        {
+		    result = m_pSession->DescribeLanguage(wszLang, &ldwd);
+    		
+		    if (TSC_SUCCEEDED(result))
+		    {
+			    HWND hwnd = GetDlgItem(IDC_DEFAULTLANG_STATIC);
+			    if (hwnd)
+			    {
+				    wstring ws(L"Default: ");
+				    ws.append(ldwd.wszDisplayName);
+				    SetWindowText(hwnd, ws.c_str());
+			    }
+		    }
+	    }
+    }
+}
+
+HWND CLanguageDlg::GetDlgItem(int nDlgItem) const
+{
+    HWND hMain = GetHwnd();
+    HWND hItem = NULL;
+
+    if (hMain)
+    {
+        hItem = ::GetDlgItem(hMain, nDlgItem);
+    }
+
+    assert(hItem != NULL);
+    return hItem;
+}
+
+HWND CLanguageDlg::GetHwnd() const
+{ 
+    assert(m_hwnd != NULL);
+    return m_hwnd;
+}
+
+TolonSpellCheck::CSession* CLanguageDlg::GetSession() const
+{ 
+    assert(m_pSession != NULL);
+    return m_pSession;
 }

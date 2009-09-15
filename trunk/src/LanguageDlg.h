@@ -4,9 +4,8 @@
 #include "TolonSpellCheckInternals.h"
 #include <string>
 
-// CLanguageDlg dialog
-
-class CLanguageDlg 
+class CLanguageDlg
+//! Provides the user interface to choose the current session language.
 {
 protected:
 	static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
@@ -33,8 +32,19 @@ private:
 
     void GetChosenLanguage(std::string& sLang);
 
-    HWND GetHwnd() const
-    { return m_hwnd; }
+    //! Returns the TolonSpellCheck session object.
+    TolonSpellCheck::CSession* GetSession() const;
+
+    // User Interface Updating
+    //! Returns the window handle for the specified dialog component.
+    HWND GetDlgItem(int nDlgItem) const;
+
+    //! Returns the window handle for this window.
+    HWND GetHwnd() const;
+
+    //! Reads the language string from the current session and displays 
+    //! it in the IDC_DEFAULTLANG_STATIC control.
+    void UpdateLanguageDisplay();
 
 private:
 	TolonSpellCheck::CSession* const m_pSession;
