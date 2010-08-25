@@ -105,10 +105,10 @@ MT = mt
 WARN_CFLAGS = -W1
 
 !if $(DEBUG)
-OPTIMFLAGS = -Od
+OPTIMFLAGS = -Od -Zi
 !else
 # Some people prefer -O2 -G6 instead of -O1, but -O2 is not reliable in MSVC5.
-OPTIMFLAGS = -DNDEBUG -D_NDEBUG -O1
+OPTIMFLAGS = -DNDEBUG -D_NDEBUG -O1 -Zi
 !endif
 
 OUTPUTFLAGS = \
@@ -328,7 +328,8 @@ srcdir = $(topsrcdir)
 LIBENCHANT_DEFINES = \
     -D_ENCHANT_BUILD=1 \
     -DWINDLL \
-    -D_WIN32_WINNT=0x0500
+    -D_WIN32_WINNT=0x0500 \
+    -DENCHANT_VERSION_STRING=\"$(ENCHANT_VERSION)\"
 
 LIBENCHANT_DLL=$(outdir)\libenchant.dll
 LIBENCHANT_LIB=$(outdir)\libenchant.lib
@@ -346,7 +347,6 @@ LIBENCHANT_OBJECTS = \
     $(objdir)\enchant.obj \
     $(objdir)\prefix.obj \
     $(objdir)\pwl.obj
-
 
 
 $(objdir)\pwl.obj : $(srcdir)\pwl.c
