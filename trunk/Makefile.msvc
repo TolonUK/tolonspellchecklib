@@ -1,12 +1,23 @@
-# -*- Makefile -*- for TolonSpellCheckLib
+# -*- Makefile -*- for libenchant
 #
-# NMAKE -f Makefile.msvc DLL=1
+# This makefile targets the Microsoft Visual C++ platform and is intended to build the enchant library along with its executables and test programs.
+# It was written by Tolon (alex@tolon.co.uk). He thinks it was originally based on an MSVC makefile from glib, but can't quite remember.
+# Tolon surrenders all rights regarding this file to the enchant project (http://www.abisource.com/enchant).
+# Please direct any comments, bug-fixes, etc. to alex@tolon.co.uk.
 #
-#ENCHANT_MAJOR_VERSION=0
-#ENCHANT_MINOR_VERSION=0
-#ENCHANT_MICRO_VERSION=0
-#BUILDNUMBER=0
-#ENCHANT_VERSION="$(ENCHANT_MAJOR_VERSION).$(ENCHANT_MINOR_VERSION).$(ENCHANT_MICRO_VERSION)"
+# Example of my usage of this makefile with MSVC9:
+#   NMAKE -f Makefile.msvc DLL=1 PREFIX=C:\usr-msvc9 GLIBDIR=D:\dev\lib\glib
+#
+# Example of my usage of this makefile with MSVC6:
+#   NMAKE -f Makefile.msvc DLL=1 PREFIX=C:\usr-msvc6 GLIBDIR=D:\dev\lib\glib MANIFEST=0
+#
+# This makefile expects glib-2.0.lib and gmodule-2.0.lib to be available in the $(PREFIX)\lib folder.
+
+ENCHANT_MAJOR_VERSION=0
+ENCHANT_MINOR_VERSION=0
+ENCHANT_MICRO_VERSION=0
+BUILDNUMBER=0
+ENCHANT_VERSION="$(ENCHANT_MAJOR_VERSION).$(ENCHANT_MINOR_VERSION).$(ENCHANT_MICRO_VERSION)"
 
 #### Start of system configuration section. ####
 
@@ -52,10 +63,9 @@ MANIFEST=1
 
 # Directories used by "make":
 glibdir = $(GLIBDIR)
-rootdir = .
+rootdir = .\..
 topsrcdir = $(rootdir)\src
-includedir = $(rootdir)\include
-testdir = $(rootdir)\test
+toptestdir = $(rootdir)\tests
 bindir=$(rootdir)\bin
 !if $(DEBUG)
 outdir=$(rootdir)\bin\debug
@@ -71,14 +81,7 @@ prefix = $(PREFIX)
 exec_prefix = $(prefix)
 #bindir = $(exec_prefix)\bin
 otherlibdir = $(exec_prefix)\lib
-!if defined(STL_LIB_PATH)
-stllibdir = $(STL_LIB_PATH)
-!else
-stllibdir = .
-!endif
-otherincludedir = $(exec_prefix)\include
-stlincludedir = $(STL_INCLUDE_PATH)
-boostincludedir = $(BOOST_INCLUDE_PATH)
+includedir = $(prefix)\include
 #datadir = $(prefix)\share
 #localedir = $(datadir)\locale
 #aliaspath =
@@ -112,7 +115,6 @@ OUTPUTFLAGS = \
     -Fo"$(objdir)\\" 
 
 WINFLAGS = \
-    -D_X86_ \
     -DWINDOWS \
     -D_WINDOWS \
     -DWIN32 \
@@ -125,6 +127,7 @@ DEBUGFLAGS = -Zi
 EXCEPTIONFLAGS = -EHsc
 
 CFLAGS = \
+    -FI "$(topsrcdir)\config.h.win32" \
     $(MFLAGS) \
     $(WARN_CFLAGS) \
     $(EXCEPTIONFLAGS) \
@@ -133,15 +136,12 @@ CFLAGS = \
     $(OUTPUTFLAGS)
 
 INCLUDES = \
-    -I. \
     -I$(topsrcdir) \
     -I$(rootdir) \
     -I$(includedir) \
-    -I$(otherincludedir) \
-    -I$(stlincludedir) \
-    -I$(boostincludedir) \
     -I$(glibdir) \
-    -I$(glibdir)\\glib
+    -I$(glibdir)\glib \
+    -I$(glibdir)\gmodule
     
 LINKFLAGS = \
     -INCREMENTAL:NO \
@@ -151,8 +151,7 @@ LINKFLAGS = \
     -MACHINE:X86 \
     -OPT:REF \
     -OPT:ICF \
-    -DEBUG \
-    -LIBPATH:$(stllibdir)
+    -DEBUG 
 
 AR = lib
 AR_FLAGS = /out:
@@ -171,7 +170,6 @@ SHELL = /bin/sh
 
 CC_OBJ = $(CC) $(INCLUDES) $(CFLAGS) -c 
 
-#CC_LINK = $(CC) $(CFLAGS) $(LINKFLAGS) 
 CC_LINK = $(LINK) $(LINKFLAGS) 
 LINK_EXE = $(CC_LINK) /SUBSYSTEM:CONSOLE
 LINK_DLL = $(CC_LINK) /DLL /SUBSYSTEM:WINDOWS
@@ -184,7 +182,8 @@ EMBED_MANIFEST =
 CLEAN_MANIFEST =
 !endif
 
-all: makedirs libtolonspellcheck test-tolonspellcheck
+# test-enchantxx isn't part of all as it has problems on MSVC6.
+all: makedirs libenchant libenchant_ispell libenchant_myspell enchant enchant_lsmod test-enchant
 
 makedirs: force
     -mkdir $(bindir)
@@ -194,128 +193,375 @@ makedirs: force
     -mkdir $(pdbdir)
 
 ################################################################################
-#### LIBTOLONSPELLCHECK ####
-
-srcdir = $(topsrcdir)
-
-LIBTOLONSPELLCHECK_DEFINES = \
-    -DWINDLL
-
-LIBTOLONSPELLCHECK_DLL=$(outdir)\libtolonspellcheck.dll
-LIBTOLONSPELLCHECK_LIB=$(outdir)\libtolonspellcheck.lib
-LIBTOLONSPELLCHECK_PDB=$(pdbdir)\libtolonspellcheck.pdb
-LIBTOLONSPELLCHECK_RES=$(srcdir)\libtolonspellcheck.res
-LIBTOLONSPELLCHECK_RC=$(srcdir)\libtolonspellcheck.rc
-LIBTOLONSPELLCHECK_DEF=$(srcdir)\libtolonspellcheck.def
-
-LIBTOLONSPELLCHECK_LIBS = \
-    $(otherlibdir)\glib-2.0.lib \
-    $(otherlibdir)\libenchant.lib \
-    Advapi32.lib \
-    comctl32.lib \
-    user32.lib
-
-LIBTOLONSPELLCHECK_OBJECTS = \
-    $(objdir)\tscDLL.obj \
-    $(objdir)\tscModule.obj \
-    $(objdir)\tscSession.obj \
-    $(objdir)\CheckSpellingDlg.obj \
-    $(objdir)\LanguageDlg.obj \
-    $(objdir)\SpellingOptionsDlg.obj \
-    $(objdir)\RichEditSpellChecker.obj \
-    $(objdir)\utf8conv.obj \
-    $(objdir)\isoLang.obj
-
-$(objdir)\tscDLL.obj : $(srcdir)\tscDLL.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-
-$(objdir)\tscModule.obj : $(srcdir)\tscModule.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-
-$(objdir)\tscSession.obj : $(srcdir)\tscSession.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-    
-$(objdir)\CheckSpellingDlg.obj : $(srcdir)\CheckSpellingDlg.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-
-$(objdir)\LanguageDlg.obj : $(srcdir)\LanguageDlg.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-    
-$(objdir)\SpellingOptionsDlg.obj : $(srcdir)\SpellingOptionsDlg.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-
-$(objdir)\RichEditSpellChecker.obj : $(srcdir)\RichEditSpellChecker.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-    
-$(objdir)\utf8conv.obj : $(srcdir)\utf8conv.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-    
-$(objdir)\isoLang.obj : $(srcdir)\isoLang.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
-    
-$(LIBTOLONSPELLCHECK_RES) : $(LIBTOLONSPELLCHECK_RC)
-	rc -Fo $(LIBTOLONSPELLCHECK_RES) $(LIBTOLONSPELLCHECK_RC)
-    
-#$(LIBTOLONSPELLCHECK_RC) : $(LIBTOLONSPELLCHECK_RC).in
-#    sed \
-#        -e 's/@ENCHANT_MAJOR_VERSION@/$(ENCHANT_MAJOR_VERSION)/g' \
-#        -e 's/@ENCHANT_MINOR_VERSION@/$(ENCHANT_MINOR_VERSION)/g' \
-#        -e 's/@ENCHANT_MICRO_VERSION@/$(ENCHANT_MICRO_VERSION)/g' \
-#        -e 's/BUILDNUMBER/$(BUILDNUMBER)/g' $(LIBENCHANT_RC).in > $(LIBENCHANT_RC)
-
-!if !$(DLL)
-libtolonspellcheck: LIBTOLONSPELLCHECK_LIB
-libtolonspellcheck_clean: libtolonspellcheck_lib_clean
-!else
-libtolonspellcheck: LIBTOLONSPELLCHECK_DLL
-libtolonspellcheck_clean: libtolonspellcheck_dll_clean
-!endif
-
-LIBTOLONSPELLCHECK_LIB : $(LIBTOLONSPELLCHECK_OBJECTS)
-	-$(RM) $(LIBTOLONSPELLCHECK_LIB)
-	$(AR) $(AR_FLAGS)$(LIBTOLONSPELLCHECK_LIB) $(LIBTOLONSPELLCHECK_OBJECTS)
-
-# libtolonspellcheck.dll and libtolonspellcheck.lib are created together.
-LIBTOLONSPELLCHECK_DLL : $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_RES)
-	$(LINK_DLL) -DEF:$(LIBTOLONSPELLCHECK_DEF) $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_LIBS) $(LIBTOLONSPELLCHECK_RES) -OUT:$(LIBTOLONSPELLCHECK_DLL)
-    $(EMBED_MANIFEST:exe_name=libtolonspellcheck.dll)
-    $(CLEAN_MANIFEST:exe_name=libtolonspellcheck.dll)
-
-libtolonspellcheck_lib_clean:
-    $(RM) $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_LIB)
-
-libtolonspellcheck_dll_clean:
-    $(RM) $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_LIB) $(LIBTOLONSPELLCHECK_DLL) $(LIBTOLONSPELLCHECK_PDB) $(LIBTOLONSPELLCHECK_RES)
-    
-################################################################################
-#### TEST-TOLONSPELLCHECK ####
+#### ENCHANT ####
 
 srcdir = $(toptestdir)
 
-TEST_TOLONSPELLCHECK_EXE=$(outdir)\tsc-test.exe
-TEST_TOLONSPELLCHECK_PDB=$(pdbdir)\tsc-test.pdb
+ENCHANT_EXE=$(outdir)\enchant.exe
+ENCHANT_PDB=$(pdbdir)\enchant.pdb
 
-TEST_TOLONSPELLCHECK_DEFINES = \
-    -D_CONSOLE
+ENCHANT_DEFINES = \
+    -D_CONSOLE \
+    -DVERSION=\"$(ENCHANT_VERSION)\"
     
-TEST_TOLONSPELLCHECK_LIBS = \
-    $(libdir)\libtolonspellcheck.lib
+ENCHANT_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(libdir)\libenchant.lib
 
-TEST_TOLONSPELLCHECK_OBJECTS = \
-    $(objdir)\tscTest.obj
+ENCHANT_OBJECTS = \
+    $(objdir)\enchant-ispell.obj
 
-$(objdir)\tscTest.obj : $(testdir)\tscTest.cpp
-	$(CC_OBJ) $** $(TEST_TOLONSPELLCHECK_DEFINES)
+$(objdir)\enchant-ispell.obj : $(srcdir)\enchant-ispell.c
+	$(CC_OBJ) $** $(ENCHANT_DEFINES)
 
-test-tolonspellcheck: $(TEST_TOLONSPELLCHECK_EXE) 
+enchant: $(ENCHANT_EXE)
 
-$(TEST_TOLONSPELLCHECK_EXE): $(TEST_TOLONSPELLCHECK_OBJECTS)
-    $(LINK_EXE) $(TEST_TOLONSPELLCHECK_OBJECTS) $(TEST_TOLONSPELLCHECK_LIBS) -OUT:$(TEST_TOLONSPELLCHECK_EXE)
-    $(EMBED_MANIFEST:exe_name=tsc-test.exe)
-    $(CLEAN_MANIFEST:exe_name=tsc-test.exe)
+$(ENCHANT_EXE): $(ENCHANT_OBJECTS)
+	$(LINK_EXE) $(ENCHANT_OBJECTS) $(ENCHANT_LIBS) -OUT:$(ENCHANT_EXE)
+    $(EMBED_MANIFEST:exe_name=enchant.exe)
+    $(CLEAN_MANIFEST:exe_name=enchant.exe)
     
-test-tolonspellcheck_clean:
-    $(RM) $(TEST_TOLONSPELLCHECK_OBJECTS) $(TEST_TOLONSPELLCHECK_EXE) $(TEST_TOLONSPELLCHECK_PDB)
+enchant_clean:
+    $(RM) $(ENCHANT_OBJECTS) $(ENCHANT_EXE) $(ENCHANT_PDB)
+
+################################################################################
+#### ENCHANT-LSMOD ####
+
+srcdir = $(toptestdir)
+
+ENCHANT_LSMOD_EXE=$(outdir)\enchant-lsmod.exe
+ENCHANT_LSMOD_PDB=$(pdbdir)\enchant-lsmod.pdb
+
+ENCHANT_LSMOD_DEFINES = \
+    -D_CONSOLE \
+    -DVERSION=\"$(ENCHANT_VERSION)\"
+    
+ENCHANT_LSMOD_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(libdir)\libenchant.lib
+
+ENCHANT_LSMOD_OBJECTS = \
+    $(objdir)\enchant-lsmod.obj
+
+$(objdir)\enchant-lsmod.obj : $(srcdir)\enchant-lsmod.c
+	$(CC_OBJ) $** $(ENCHANT_LSMOD_DEFINES)
+
+enchant_lsmod: $(ENCHANT_LSMOD_EXE) 
+
+$(ENCHANT_LSMOD_EXE): $(ENCHANT_LSMOD_OBJECTS)
+    $(LINK_EXE) $(ENCHANT_LSMOD_OBJECTS) $(ENCHANT_LSMOD_LIBS) -OUT:$(ENCHANT_LSMOD_EXE)
+    $(EMBED_MANIFEST:exe_name=enchant-lsmod.exe)
+    $(CLEAN_MANIFEST:exe_name=enchant-lsmod.exe)
+    
+enchant_lsmod_clean: 
+    $(RM) $(ENCHANT_LSMOD_OBJECTS) $(ENCHANT_LSMOD_EXE) $(ENCHANT_LSMOD_PDB)
+
+################################################################################
+#### TEST-ENCHANT ####
+
+srcdir = $(toptestdir)
+
+TEST_ENCHANT_EXE=$(outdir)\test-enchant.exe
+TEST_ENCHANT_PDB=$(pdbdir)\test-enchant.pdb
+
+TEST_ENCHANT_DEFINES = \
+    -D_CONSOLE \
+    -DVERSION=\"$(ENCHANT_VERSION)\"
+    
+TEST_ENCHANT_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(libdir)\libenchant.lib
+
+TEST_ENCHANT_OBJECTS = \
+    $(objdir)\test-enchant.obj
+
+$(objdir)\test-enchant.obj : $(srcdir)\test-enchant.c
+	$(CC_OBJ) $** $(TEST_ENCHANT_DEFINES)
+
+test-enchant: $(TEST_ENCHANT_EXE) 
+
+$(TEST_ENCHANT_EXE): $(TEST_ENCHANT_OBJECTS)
+    $(LINK_EXE) $(TEST_ENCHANT_OBJECTS) $(TEST_ENCHANT_LIBS) -OUT:$(TEST_ENCHANT_EXE)
+    $(EMBED_MANIFEST:exe_name=test-enchant.exe)
+    $(CLEAN_MANIFEST:exe_name=test-enchant.exe)
+    
+test-enchant_clean:
+    $(RM) $(TEST_ENCHANT_OBJECTS) $(TEST_ENCHANT_EXE) $(TEST_ENCHANT_PDB)
+
+################################################################################
+#### TEST-ENCHANTXX ####
+
+srcdir = $(toptestdir)
+
+TEST_ENCHANTXX_EXE=$(outdir)\test-enchantxx.exe
+TEST_ENCHANTXX_PDB=$(pdbdir)\test-enchantxx.pdb
+
+TEST_ENCHANTXX_DEFINES = \
+    -D_CONSOLE \
+    -DVERSION=\"$(ENCHANT_VERSION)\"
+    
+TEST_ENCHANTXX_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(libdir)\libenchant.lib
+
+TEST_ENCHANTXX_OBJECTS = \
+    $(objdir)\test-enchantxx.obj
+
+$(objdir)\test-enchantxx.obj : $(srcdir)\test-enchantxx.cpp
+	$(CC_OBJ) $** $(TEST_ENCHANTXX_DEFINES)
+
+test-enchantxx: $(TEST_ENCHANTXX_EXE) 
+
+$(TEST_ENCHANTXX_EXE): $(TEST_ENCHANTXX_OBJECTS)
+    $(LINK_EXE) $(TEST_ENCHANTXX_OBJECTS) $(TEST_ENCHANTXX_LIBS) -OUT:$(TEST_ENCHANTXX_EXE)
+    $(EMBED_MANIFEST:exe_name=test-enchantxx.exe)
+    $(CLEAN_MANIFEST:exe_name=test-enchantxx.exe)
+    
+test-enchantxx_clean:
+    $(RM) $(TEST_ENCHANTXX_OBJECTS) $(TEST_ENCHANTXX_EXE) $(TEST_ENCHANTXX_PDB)
+
+################################################################################
+#### LIBENCHANT ####
+
+srcdir = $(topsrcdir)
+
+LIBENCHANT_DEFINES = \
+    -D_ENCHANT_BUILD=1 \
+    -DWINDLL \
+    -D_WIN32_WINNT=0x0500 \
+    -DENCHANT_VERSION_STRING=\"$(ENCHANT_VERSION)\"
+
+LIBENCHANT_DLL=$(outdir)\libenchant.dll
+LIBENCHANT_LIB=$(outdir)\libenchant.lib
+LIBENCHANT_PDB=$(pdbdir)\libenchant.pdb
+LIBENCHANT_RES=$(srcdir)\libenchant.res
+LIBENCHANT_RC=$(srcdir)\libenchant.rc
+
+LIBENCHANT_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(otherlibdir)\gmodule-2.0.lib \
+    Advapi32.lib \
+    Kernel32.lib
+
+LIBENCHANT_OBJECTS = \
+    $(objdir)\enchant.obj \
+    $(objdir)\prefix.obj \
+    $(objdir)\pwl.obj
+
+
+$(objdir)\pwl.obj : $(srcdir)\pwl.c
+	$(CC_OBJ) $** $(LIBENCHANT_DEFINES)
+
+$(objdir)\prefix.obj : $(srcdir)\prefix.c
+	$(CC_OBJ) $** $(LIBENCHANT_DEFINES)
+
+$(objdir)\enchant.obj : $(srcdir)\enchant.c 
+	$(CC_OBJ) $** $(LIBENCHANT_DEFINES)
+    
+$(LIBENCHANT_RES) : $(LIBENCHANT_RC)
+	rc -Fo $(LIBENCHANT_RES) $(LIBENCHANT_RC)
+    
+$(LIBENCHANT_RC) : $(LIBENCHANT_RC).in
+    sed \
+        -e "s/@ENCHANT_MAJOR_VERSION@/$(ENCHANT_MAJOR_VERSION)/g" \
+        -e "s/@ENCHANT_MINOR_VERSION@/$(ENCHANT_MINOR_VERSION)/g" \
+        -e "s/@ENCHANT_MICRO_VERSION@/$(ENCHANT_MICRO_VERSION)/g" \
+        -e "s/BUILDNUMBER/$(BUILDNUMBER)/g" $(LIBENCHANT_RC).in > $(LIBENCHANT_RC)
+
+!if !$(DLL)
+libenchant: LIBENCHANT_LIB
+libenchant_clean: libenchant_lib_clean
+!else
+libenchant: LIBENCHANT_DLL
+libenchant_clean: libenchant_dll_clean
+!endif
+
+LIBENCHANT_LIB : $(LIBENCHANT_OBJECTS)
+	-$(RM) libenchant.lib
+	$(AR) $(AR_FLAGS)$(LIBENCHANT_LIB) $(LIBENCHANT_OBJECTS)
+
+# libenchant.dll and libenchant.lib are created together.
+LIBENCHANT_DLL : $(LIBENCHANT_OBJECTS) $(LIBENCHANT_RES)
+	$(LINK_DLL) $(LIBENCHANT_OBJECTS) $(LIBENCHANT_LIBS) $(LIBENCHANT_RES) -OUT:$(LIBENCHANT_DLL)
+    $(EMBED_MANIFEST:exe_name=libenchant.dll)
+    $(CLEAN_MANIFEST:exe_name=libenchant.dll)
+
+libenchant_lib_clean:
+    $(RM) $(LIBENCHANT_OBJECTS) $(LIBENCHANT_LIB)
+
+libenchant_dll_clean:
+    $(RM) $(LIBENCHANT_OBJECTS) $(LIBENCHANT_LIB) $(LIBENCHANT_DLL) $(LIBENCHANT_PDB) $(LIBENCHANT_RES) $(LIBENCHANT_RC)
+
+################################################################################
+#### LIBENCHANT_ISPELL ####
+
+srcdir = $(topsrcdir)\ispell
+
+LIBENCHANT_ISPELL_DEFINES = \
+    -D "_ENCHANT_BUILD=1" \
+    -D "ISPELL_PROVIDER_EXPORTS" \
+    -D_USRDLL \
+    -D_WINDLL
+
+LIBENCHANT_ISPELL_DLL=$(outdir)\libenchant_ispell.dll
+LIBENCHANT_ISPELL_LIB=$(libdir)\libenchant_ispell.lib
+LIBENCHANT_ISPELL_PDB=$(pdbdir)\libenchant_ispell.pdb
+
+LIBENCHANT_ISPELL_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(otherlibdir)\gmodule-2.0.lib \
+    $(libdir)\libenchant.lib \
+    Advapi32.lib
+
+LIBENCHANT_ISPELL_OBJECTS = \
+    $(objdir)\correct.obj \
+    $(objdir)\good.obj \
+    $(objdir)\hash.obj \
+    $(objdir)\ispell_checker.obj \
+    $(objdir)\lookup.obj \
+    $(objdir)\makedent.obj \
+    $(objdir)\tgood.obj
+
+!if !$(DLL)
+libenchant_ispell: LIBENCHANT_ISPELL_LIB
+libenchant_ispell_clean: libenchant_ispell_lib_clean
+!else
+libenchant_ispell: LIBENCHANT_ISPELL_DLL
+libenchant_ispell_clean: libenchant_ispell_dll_clean
+!endif
+
+$(objdir)\correct.obj : $(srcdir)\correct.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+
+$(objdir)\good.obj : $(srcdir)\good.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+
+$(objdir)\hash.obj : $(srcdir)\hash.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+
+$(objdir)\ispell_checker.obj : $(srcdir)\ispell_checker.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+   
+$(objdir)\lookup.obj : $(srcdir)\lookup.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+    
+$(objdir)\makedent.obj : $(srcdir)\makedent.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+    
+$(objdir)\tgood.obj : $(srcdir)\tgood.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_ISPELL_DEFINES)
+    
+LIBENCHANT_ISPELL_LIB : $(LIBENCHANT_ISPELL_OBJECTS)
+	-$(RM) $(LIBENCHANT_ISPELL_LIB)
+	$(AR) $(AR_FLAGS)$(LIBENCHANT_ISPELL_LIB) $(LIBENCHANT_ISPELL_OBJECTS)
+
+# libenchant_ispell.dll and libenchant_ispell.lib are created together.
+LIBENCHANT_ISPELL_DLL : $(LIBENCHANT_ISPELL_OBJECTS)
+    $(LINK_DLL) $(LIBENCHANT_ISPELL_OBJECTS) $(LIBENCHANT_ISPELL_LIBS) -OUT:$(LIBENCHANT_ISPELL_DLL)
+    $(EMBED_MANIFEST:exe_name=libenchant_ispell.dll)
+    $(CLEAN_MANIFEST:exe_name=libenchant_ispell.dll)
+    
+libenchant_ispell_lib_clean:
+    $(RM) $(LIBENCHANT_ISPELL_OBJECTS) $(LIBENCHANT_ISPELL_LIB)
+
+libenchant_ispell_dll_clean:
+    $(RM) $(LIBENCHANT_ISPELL_OBJECTS) $(LIBENCHANT_ISPELL_LIB) $(LIBENCHANT_ISPELL_DLL) $(LIBENCHANT_ISPELL_PDB)
+
+################################################################################
+#### LIBENCHANT_MYSPELL ####
+
+srcdir = $(topsrcdir)\myspell
+
+LIBENCHANT_MYSPELL_DEFINES = \
+    -D "HUNSPELL_STATIC" \
+    -D "_ENCHANT_BUILD=1" \
+    -D "_USRDLL" \
+    -D "MYSPELL_PROVIDER_EXPORTS" \
+    -D "_WINDLL"
+    
+LIBENCHANT_MYSPELL_DLL=$(outdir)\libenchant_myspell.dll
+LIBENCHANT_MYSPELL_LIB=$(libdir)\libenchant_myspell.lib
+LIBENCHANT_MYSPELL_PDB=$(pdbdir)\libenchant_myspell.pdb
+
+LIBENCHANT_MYSPELL_LIBS = \
+    $(otherlibdir)\glib-2.0.lib \
+    $(otherlibdir)\gmodule-2.0.lib \
+    $(libdir)\libenchant.lib \
+    Advapi32.lib
+
+LIBENCHANT_MYSPELL_OBJECTS = \
+    $(objdir)\affentry.obj \
+    $(objdir)\affixmgr.obj \
+    $(objdir)\dictmgr.obj \
+    $(objdir)\csutil.obj \
+    $(objdir)\utf_info.obj \
+    $(objdir)\hashmgr.obj \
+    $(objdir)\suggestmgr.obj \
+    $(objdir)\hunspell.obj \
+    $(objdir)\filemgr.obj \
+    $(objdir)\phonet.obj \
+    $(objdir)\hunzip.obj \
+    $(objdir)\myspell_checker.obj
+        
+!if !$(DLL)
+libenchant_myspell: LIBENCHANT_MYSPELL_LIB
+libenchant_myspell_clean: libenchant_myspell_lib_clean
+!else
+libenchant_myspell: LIBENCHANT_MYSPELL_DLL
+libenchant_myspell_clean: libenchant_myspell_dll_clean
+!endif
+
+$(objdir)\affentry.obj : $(srcdir)\affentry.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+
+$(objdir)\affixmgr.obj : $(srcdir)\affixmgr.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+
+$(objdir)\dictmgr.obj : $(srcdir)\dictmgr.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+
+$(objdir)\csutil.obj : $(srcdir)\csutil.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+
+$(objdir)\utf_info.obj : $(srcdir)\utf_info.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+$(objdir)\hashmgr.obj : $(srcdir)\hashmgr.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+$(objdir)\suggestmgr.obj : $(srcdir)\suggestmgr.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+$(objdir)\hunspell.obj : $(srcdir)\hunspell.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+$(objdir)\filemgr.obj : $(srcdir)\filemgr.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+$(objdir)\phonet.obj : $(srcdir)\phonet.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+   
+$(objdir)\hunzip.obj : $(srcdir)\hunzip.cxx
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+$(objdir)\myspell_checker.obj : $(srcdir)\myspell_checker.cpp
+	$(CC_OBJ) $** $(LIBENCHANT_MYSPELL_DEFINES)
+    
+LIBENCHANT_MYSPELL_LIB : $(LIBENCHANT_MYSPELL_OBJECTS)
+	-$(RM) $(LIBENCHANT_MYSPELL_LIB)
+	$(AR) $(AR_FLAGS)$(LIBENCHANT_MYSPELL_LIB) $(LIBENCHANT_MYSPELL_OBJECTS)
+
+# libenchant_myspell.dll and libenchant_myspell.lib are created together.
+LIBENCHANT_MYSPELL_DLL : $(LIBENCHANT_MYSPELL_OBJECTS)
+    $(LINK_DLL) $(LIBENCHANT_MYSPELL_OBJECTS) $(LIBENCHANT_MYSPELL_LIBS) -OUT:$(LIBENCHANT_MYSPELL_DLL)
+    $(EMBED_MANIFEST:exe_name=libenchant_myspell.dll)
+    $(CLEAN_MANIFEST:exe_name=libenchant_myspell.dll)
+    
+libenchant_myspell_lib_clean:
+    $(RM) $(LIBENCHANT_MYSPELL_OBJECTS) $(LIBENCHANT_MYSPELL_LIB)
+
+libenchant_myspell_dll_clean:
+    $(RM) $(LIBENCHANT_MYSPELL_OBJECTS) $(LIBENCHANT_MYSPELL_LIB) $(LIBENCHANT_MYSPELL_DLL) $(LIBENCHANT_MYSPELL_PDB)
 
 ################################################################################
 
@@ -324,24 +570,42 @@ check : all
 install : force
 	-mkdir $(prefix)
 	-mkdir $(prefix)\include
-	$(INSTALL_DATA) $(includedir)\TolonSpellCheck.h $(prefix)\include\TolonSpellCheck.h
+	$(INSTALL_DATA) $(topsrcdir)\enchant.h $(prefix)\include\enchant.h
+#	-mkdir $(exec_prefix)
 	-mkdir $(prefix)\bin
-	$(INSTALL_DATA) $(outdir)\tsc-test.exe $(prefix)\bin\tsc-test.exe
+	-mkdir $(prefix)\pdb
+	$(INSTALL_DATA) $(outdir)\enchant.exe $(prefix)\bin\enchant.exe
+	$(INSTALL_DATA) $(outdir)\enchant-lsmod.exe $(prefix)\bin\enchant-lsmod.exe
+	$(INSTALL_DATA) $(outdir)\test-enchant.exe $(prefix)\bin\test-enchant.exe
+	$(INSTALL_DATA) $(outdir)\pdb\enchant.pdb $(prefix)\pdb\enchant.pdb
+	$(INSTALL_DATA) $(outdir)\pdb\enchant-lsmod.pdb $(prefix)\pdb\enchant-lsmod.pdb
+	$(INSTALL_DATA) $(outdir)\pdb\test-enchant.pdb $(prefix)\pdb\test-enchant.pdb
 #!if $(MANIFEST)
-#        $(INSTALL_DATA) $(outdir)\tsc-test.exe.manifest $(prefix)\bin\tsc-test.exe.manifest
+#        $(INSTALL_DATA) $(outdir)\enchant.exe.manifest $(prefix)\bin\enchant.exe.manifest
+#        $(INSTALL_DATA) $(outdir)\enchant-lsmod.exe.manifest $(prefix)\bin\enchant-lsmod.exe.manifest
+#        $(INSTALL_DATA) $(outdir)\test-enchant.exe.manifest $(prefix)\bin\test-enchant.exe.manifest
 #!endif
 !if $(DLL)
-    $(INSTALL_DATA) $(outdir)\libtolonspellcheck.dll $(prefix)\bin\libtolonspellcheck.dll
+    $(INSTALL_DATA) $(outdir)\libenchant.dll $(prefix)\bin\libenchant.dll
+    $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll $(prefix)\bin\libenchant_ispell.dll
+    $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll $(prefix)\bin\libenchant_myspell.dll
+    $(INSTALL_DATA) $(outdir)\pdb\libenchant.pdb $(prefix)\pdb\libenchant.pdb
+    $(INSTALL_DATA) $(outdir)\pdb\libenchant_ispell.pdb $(prefix)\pdb\libenchant_ispell.pdb
+    $(INSTALL_DATA) $(outdir)\pdb\libenchant_myspell.pdb $(prefix)\pdb\libenchant_myspell.pdb
 #!if $(MANIFEST)
-#        $(INSTALL_DATA) $(outdir)\libtolonspellcheck.dll.manifest $(prefix)\bin\libtolonspellcheck.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant.dll.manifest $(prefix)\bin\libenchant.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll.manifest $(prefix)\bin\libenchant_ispell.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll.manifest $(prefix)\bin\libenchant_myspell.dll.manifest
 #!endif
 !endif
 	-mkdir $(prefix)\lib
-	$(INSTALL_DATA) $(outdir)\libtolonspellcheck.lib $(prefix)\lib\libtolonspellcheck.lib
+	$(INSTALL_DATA) $(outdir)\libenchant.lib $(prefix)\lib\libenchant.lib
+	$(INSTALL_DATA) $(outdir)\libenchant_ispell.lib $(prefix)\lib\libenchant_ispell.lib
+	$(INSTALL_DATA) $(outdir)\libenchant_myspell.lib $(prefix)\lib\libenchant_myspell.lib
 
 mostlyclean : clean
 
-clean: libtolonspellcheck_clean test-tolonspellcheck_clean
+clean: libenchant_clean libenchant_ispell_clean libenchant_myspell_clean enchant_clean enchant_lsmod_clean test-enchant_clean test-enchantxx_clean
 
 distclean : clean
 
