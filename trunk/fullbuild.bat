@@ -4,7 +4,7 @@ set topdir=%cd%
 set gettext-version=0.14.5
 set libiconv-version=1.9.1
 set glib-version=2.18.3
-set enchant-version=27782
+set enchant-version=29322
 set gettext-srcball=gettext-%gettext-version%.tar.gz
 set libiconv-srcball=libiconv-%libiconv-version%.tar.gz
 set glib-srcball=glib-%glib-version%.tar.bz2
@@ -76,7 +76,7 @@ nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% insta
 mt -manifest %topdir%\contrib\gettext-%gettext-version%\gettext-runtime\intl\intl.dll.manifest -outputresource:%usrdir%\bin\intl.dll;#1
 
 :BUILD_LIBICONV_SECOND
-echo Making libiconv (no NLS)...
+echo Making libiconv (NLS)...
 cd %topdir%
 cd .\contrib\libiconv-%libiconv-version%
 nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% clean
