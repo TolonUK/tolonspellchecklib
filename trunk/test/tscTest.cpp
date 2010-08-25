@@ -338,6 +338,8 @@ bool test_word()
     memset(&cw, 0xff, sizeof(TSC_CHECKWORD_DATA));
     cw.cbSize = sizeof(TSC_CHECKWORD_DATA);
     cw.uTestWord.szWord8 = szWordToTest;
+    cw.uResultString.szResults8 = NULL;
+    cw.nResultStringSize = 0;
     r = ::tscCheckWord(c, &cw);   
     util_is_success("tscCheckWord", r, bTestResult);
     
