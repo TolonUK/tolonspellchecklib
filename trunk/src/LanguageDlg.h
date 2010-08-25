@@ -46,6 +46,9 @@ private:
     //! it in the IDC_DEFAULTLANG_STATIC control.
     void UpdateLanguageDisplay();
 
+	//! The comparison function for sorting this control.
+	int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort); 
+
 private:
 	TolonSpellCheck::CSession* const m_pSession;
 	HWND m_hwnd;

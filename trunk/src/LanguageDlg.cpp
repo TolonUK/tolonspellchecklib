@@ -26,7 +26,7 @@ static struct COLUMN_DATA {
     int Width;
     const wchar_t* Name;
 } s_columns[COLUMN_COUNT] = {
-    { COL_CODE, 80,						   L"Code" },
+    { COL_CODE, 80,                       L"Code" },
     { COL_NAME, LVSCW_AUTOSIZE_USEHEADER, L"Language" }
 };
 
@@ -279,4 +279,9 @@ TolonSpellCheck::CSession* CLanguageDlg::GetSession() const
 { 
     assert(m_pSession != NULL);
     return m_pSession;
+}
+
+int CALLBACK CLanguageDlg::CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+    return 0;
 }
