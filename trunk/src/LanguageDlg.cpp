@@ -39,34 +39,34 @@ static CLanguageDlg* s_pThis;
 
 bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserData)
 {
-	bool bResult = false;
-	
-	CLanguageDlg* pThis = reinterpret_cast<CLanguageDlg*>(pUserData);
-	
-	if (pData && pThis)
-	{
-		LVITEM lvi = {0};
-		
-		lvi.mask = LVIF_TEXT;
-		lvi.iItem = 0;
+    bool bResult = false;
+    
+    CLanguageDlg* pThis = reinterpret_cast<CLanguageDlg*>(pUserData);
+    
+    if (pData && pThis)
+    {
+        LVITEM lvi = {0};
+        
+        lvi.mask = LVIF_TEXT;
+        lvi.iItem = 0;
         
         lvi.iSubItem = COL_CODE;
         lvi.pszText = pData->wszCodeName;
-        ListView_InsertItem(pThis->m_hwndLangList, &lvi);
+        ListView_InsertItem(pThis->GetLangListHwnd(), &lvi);
         
-		ListView_SetItemText(pThis->m_hwndLangList, lvi.iItem, COL_NAME, pData->wszDisplayName);
-		
-		bResult = true;
-	}
-	
-	return bResult;
+        ListView_SetItemText(pThis->GetLangListHwnd(), lvi.iItem, COL_NAME, pData->wszDisplayName);
+        
+        bResult = true;
+    }
+    
+    return bResult;
 }
 
 CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent /*=NULL*/) :
-	m_pSession(pSession),
-	m_hwnd(NULL),
-	m_hwndParent(hwndParent),
-	m_hwndLangList(NULL)
+    m_pSession(pSession),
+    m_hwnd(NULL),
+    m_hwndParent(hwndParent),
+    m_hwndLangList(NULL)
 {
 
 }
@@ -77,50 +77,53 @@ CLanguageDlg::~CLanguageDlg()
 
 int CLanguageDlg::DoModal()
 {
-	s_pThis = this;
-	DialogBox(g_hInstDll, MAKEINTRESOURCE(CLanguageDlg::IDD), m_hwndParent, CLanguageDlg::WndProc);
-	return 0;
+    s_pThis = this;
+    DialogBox(g_hInstDll, MAKEINTRESOURCE(CLanguageDlg::IDD), m_hwndParent, CLanguageDlg::WndProc);
+    return 0;
 }
 
 // CLanguageDlg message handlers
 BOOL CLanguageDlg::OnInitDialog()
 {
-	// Sort out controls
-	InitLangList();
-	
-	// Populate language list
-	m_pSession->EnumLanguages(static_cast<LanguageEnumFn>(&CLanguageDlg::LangEnumCallback), this);
-	ListView_SetColumnWidth(m_hwndLangList, 0, LVSCW_AUTOSIZE);
-	
-	// Get default language
+    // Sort out controls
+    InitLangList();
+    
+    // Populate language list
+    m_pSession->EnumLanguages(static_cast<LanguageEnumFn>(&CLanguageDlg::LangEnumCallback), this);
+    
+    // Fix up language list now it's populated with data
+    ListView_SetColumnWidth(GetLangListHwnd(), 0, LVSCW_AUTOSIZE);
+    ListView_SortItems(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
+    
+    // Get default language
     UpdateLanguageDisplay();
-	
-	return TRUE;
+    
+    return TRUE;
 }
 
 void CLanguageDlg::InitLangList()
 {
-	assert(m_hwnd);
-	
-	if (!m_hwnd)
-		return;
-	
-	// Obtain HWND
-	m_hwndLangList = GetDlgItem(IDC_DIC_LIST);
+    assert(m_hwnd);
+    
+    if (!m_hwnd)
+        return;
+    
+    // Obtain HWND
+    m_hwndLangList = GetDlgItem(IDC_DIC_LIST);
 
     // Set styles
-    ListView_SetExtendedListViewStyleEx(m_hwndLangList, LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
-	
-	// Set up columns
-	LVCOLUMN lvc = {0};
-	lvc.mask = LVCF_TEXT;
-	int nItem = 0;
+    ListView_SetExtendedListViewStyleEx(GetLangListHwnd(), LVS_EX_FULLROWSELECT, LVS_EX_FULLROWSELECT);
+    
+    // Set up columns
+    LVCOLUMN lvc = {0};
+    lvc.mask = LVCF_TEXT;
+    int nItem = 0;
     
     for ( int i = 0; i < COLUMN_COUNT; ++i )
     {
         lvc.pszText = const_cast<wchar_t*>(s_columns[i].Name);
-        nItem = ListView_InsertColumn(m_hwndLangList, s_columns[i].Id, &lvc);
-		ListView_SetColumnWidth(m_hwndLangList, nItem, s_columns[i].Width);
+        nItem = ListView_InsertColumn(GetLangListHwnd(), s_columns[i].Id, &lvc);
+        ListView_SetColumnWidth(GetLangListHwnd(), nItem, s_columns[i].Width);
     }
 }
 
@@ -128,27 +131,27 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 {
     BOOL bHandled = FALSE;
     
-	if (!s_pThis)
-		return 0;
-	
-	if (!s_pThis->m_hwnd)
-		s_pThis->m_hwnd = hDlg;
-	
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return s_pThis->OnInitDialog();
+    if (!s_pThis)
+        return 0;
+    
+    if (!s_pThis->m_hwnd)
+        s_pThis->m_hwnd = hDlg;
+    
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return s_pThis->OnInitDialog();
 
-	case WM_COMMAND:
+    case WM_COMMAND:
         const WORD nCmd = LOWORD(wParam);
         
-		if (nCmd == IDOK)
+        if (nCmd == IDOK)
         { 
             s_pThis->OnCmdOk();
             EndDialog(hDlg, nCmd);
         }
         else if (nCmd == IDCANCEL)
-		{
+        {
             s_pThis->OnCmdCancel();
             EndDialog(hDlg, nCmd);
         }
@@ -157,10 +160,10 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
         
         bHandled = TRUE;
         
-		break;
-	}
+        break;
+    }
     
-	return bHandled;
+    return bHandled;
 }
 
 void CLanguageDlg::OnCmdOk()
@@ -174,7 +177,7 @@ void CLanguageDlg::OnCmdOk()
     }
     else
     {
-        std::string sChosenLang;
+        string sChosenLang;
 
         // Get chosen language
         GetChosenLanguage(sChosenLang);
@@ -198,17 +201,17 @@ void CLanguageDlg::OnCmdMakeDefault()
 {
 }
 
-void CLanguageDlg::GetChosenLanguage(std::string& sLang)
+void CLanguageDlg::GetChosenLanguage(string& sLang)
 {
     int nItem = -1;
-    nItem = ListView_GetNextItem(m_hwndLangList, -1, LVNI_SELECTED);
+    nItem = ListView_GetNextItem(GetLangListHwnd(), -1, LVNI_SELECTED);
 
     if (nItem != -1)
     {
         const int nBufLen = 13;
         wchar_t wszBuf[nBufLen] = L"\0";
 
-        ListView_GetItemText( m_hwndLangList,
+        ListView_GetItemText( GetLangListHwnd(),
                               nItem,
                               COL_CODE,
                               &wszBuf[0],
@@ -230,28 +233,28 @@ void CLanguageDlg::UpdateLanguageDisplay()
         tsc_result result = TSC_S_OK;
 
         LANGUAGE_DESC_WIDEDATA ldwd;
-	wchar_t wszLang[13];
+        wchar_t wszLang[13];
         memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
-	memset(wszLang, 0, sizeof(wszLang));
-	    
-	ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);    
-	result = pSession->GetCurrentLanguage(wszLang);
-	
-	if (TSC_SUCCEEDED(result))
+        memset(wszLang, 0, sizeof(wszLang));
+        
+        ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);    
+        result = pSession->GetCurrentLanguage(wszLang);
+        
+        if (TSC_SUCCEEDED(result))
         {
-		    result = m_pSession->DescribeLanguage(wszLang, &ldwd);
-    		
-		    if (TSC_SUCCEEDED(result))
-		    {
-			    HWND hwnd = GetDlgItem(IDC_DEFAULTLANG_STATIC);
-			    if (hwnd)
-			    {
-				    wstring ws(L"Default: ");
-				    ws.append(ldwd.wszDisplayName);
-				    SetWindowText(hwnd, ws.c_str());
-			    }
-		    }
-	    }
+            result = m_pSession->DescribeLanguage(wszLang, &ldwd);
+            
+            if (TSC_SUCCEEDED(result))
+            {
+                HWND hwnd = GetDlgItem(IDC_DEFAULTLANG_STATIC);
+                if (hwnd)
+                {
+                    wstring ws(L"Default: ");
+                    ws.append(ldwd.wszDisplayName);
+                    SetWindowText(hwnd, ws.c_str());
+                }
+            }
+        }
     }
 }
 
@@ -275,13 +278,42 @@ HWND CLanguageDlg::GetHwnd() const
     return m_hwnd;
 }
 
+HWND CLanguageDlg::GetLangListHwnd() const
+{ 
+    assert(m_hwndLangList != NULL);
+    return m_hwndLangList;
+}
+
 TolonSpellCheck::CSession* CLanguageDlg::GetSession() const
 { 
     assert(m_pSession != NULL);
     return m_pSession;
 }
 
-int CALLBACK CLanguageDlg::CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+//! @param lParam1 The list view index of the first item to compare.
+//! @param lParam2 The list view index of the second item to compare.
+//! @param lParamSort Indicates the order of the sort; ascending or descending.
+int CALLBACK CLanguageDlg::CompareFunc( LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort ) 
 {
-    return 0;
+    CLanguageDlg* pThis = reinterpret_cast<CLanguageDlg*>(lParamSort);
+    const size_t nTextBufferLength = 64;
+    static wchar_t sText1[nTextBufferLength], sText2[nTextBufferLength];
+    
+    int nSortColumn = COL_NAME;
+    bool bSortAsc = true;
+    
+    sText1[0] = L'\0';
+    ListView_GetItemText( pThis->GetLangListHwnd(), lParam1, nSortColumn, sText1, nTextBufferLength );
+    sText2[0] = L'\0';
+    ListView_GetItemText( pThis->GetLangListHwnd(), lParam2, nSortColumn, sText2, nTextBufferLength );
+    
+    // We're dealing with a windows user interface, so use the Win32 string comparison.
+    int nComp = CompareString( LOCALE_USER_DEFAULT, LINGUISTIC_IGNORECASE, sText1, wcslen(sText1), sText2, wcslen(sText2) );
+    
+    // CompareString documentation says substract 2 to return standard <0, ==0, and >0 values.
+    nComp = nComp - 2;
+    if (bSortAsc)
+        return -nComp;
+    else
+        return nComp;
 }

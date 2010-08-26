@@ -1,1 +1,4 @@
 * Finish CompareProc function
+  -- Add header column click support
+
+* Check root makefile is fixed
