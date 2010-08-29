@@ -27,6 +27,7 @@ private:
     void OnCmdOk();
     void OnCmdCancel();
     void OnCmdMakeDefault();
+    void OnDicListColClick(LPARAM lParam);
 
     void InitLangList();
 
@@ -60,4 +61,9 @@ private:
     HWND m_hwnd;
     HWND m_hwndParent;
     HWND m_hwndLangList;
+
+    struct {
+        int nCol;
+        bool bAsc;
+    } m_SortOptions;
 };

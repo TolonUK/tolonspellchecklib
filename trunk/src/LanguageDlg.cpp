@@ -4,7 +4,9 @@
 #include "LanguageDlg.h"
 #include "TolonSpellCheckInternals.h"
 #include "tscSession.h"
+#include <iostream>
 #include <string>
+#include <sstream>
 #include <windows.h>
 #include <commctrl.h>
 #include <assert.h>
@@ -30,8 +32,10 @@ static struct COLUMN_DATA {
     { COL_NAME, LVSCW_AUTOSIZE_USEHEADER, L"Language" }
 };
 
-static const int s_nColDisplayName;
-static const int s_nColCodeName;
+//static const int s_nColDisplayName;
+//static const int s_nColCodeName;
+
+static const bool s_bDefaultSortAsc = true;
 
 // CLanguageDlg dialog
 
@@ -68,7 +72,8 @@ CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent 
     m_hwndParent(hwndParent),
     m_hwndLangList(NULL)
 {
-
+    m_SortOptions.bAsc = s_bDefaultSortAsc;
+    m_SortOptions.nCol = COL_NAME;
 }
 
 CLanguageDlg::~CLanguageDlg()
@@ -93,7 +98,7 @@ BOOL CLanguageDlg::OnInitDialog()
     
     // Fix up language list now it's populated with data
     ListView_SetColumnWidth(GetLangListHwnd(), 0, LVSCW_AUTOSIZE);
-    ListView_SortItems(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
+    ListView_SortItemsEx(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
     
     // Get default language
     UpdateLanguageDisplay();
@@ -139,28 +144,43 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
     
     switch (message)
     {
+    case WM_COMMAND:
+        {
+            const WORD nCmd = LOWORD(wParam);
+            
+            if (nCmd == IDOK)
+            { 
+                s_pThis->OnCmdOk();
+                EndDialog(hDlg, nCmd);
+            }
+            else if (nCmd == IDCANCEL)
+            {
+                s_pThis->OnCmdCancel();
+                EndDialog(hDlg, nCmd);
+            }
+            else if (nCmd == IDC_MAKEDEFAULT_BTN)
+            { s_pThis->OnCmdMakeDefault(); }
+            
+            bHandled = TRUE;
+            
+            break;
+        }
+
     case WM_INITDIALOG:
         return s_pThis->OnInitDialog();
 
-    case WM_COMMAND:
-        const WORD nCmd = LOWORD(wParam);
-        
-        if (nCmd == IDOK)
-        { 
-            s_pThis->OnCmdOk();
-            EndDialog(hDlg, nCmd);
-        }
-        else if (nCmd == IDCANCEL)
+    case WM_NOTIFY:
+        switch (((LPNMHDR)lParam)->code)
         {
-            s_pThis->OnCmdCancel();
-            EndDialog(hDlg, nCmd);
-        }
-        else if (nCmd == IDC_MAKEDEFAULT_BTN)
-        { s_pThis->OnCmdMakeDefault(); }
-        
-        bHandled = TRUE;
-        
+        case LVN_COLUMNCLICK:
+            if (((LPNMHDR)lParam)->idFrom == IDC_DIC_LIST)
+            {
+                s_pThis->OnDicListColClick(lParam);
+                return TRUE;
+            }
+            break; 
         break;
+        }
     }
     
     return bHandled;
@@ -299,8 +319,8 @@ int CALLBACK CLanguageDlg::CompareFunc( LPARAM lParam1, LPARAM lParam2, LPARAM l
     const size_t nTextBufferLength = 64;
     static wchar_t sText1[nTextBufferLength], sText2[nTextBufferLength];
     
-    int nSortColumn = COL_NAME;
-    bool bSortAsc = true;
+    const int nSortColumn = pThis->m_SortOptions.nCol;
+    const bool bAsc = pThis->m_SortOptions.bAsc;
     
     sText1[0] = L'\0';
     ListView_GetItemText( pThis->GetLangListHwnd(), lParam1, nSortColumn, sText1, nTextBufferLength );
@@ -308,12 +328,28 @@ int CALLBACK CLanguageDlg::CompareFunc( LPARAM lParam1, LPARAM lParam2, LPARAM l
     ListView_GetItemText( pThis->GetLangListHwnd(), lParam2, nSortColumn, sText2, nTextBufferLength );
     
     // We're dealing with a windows user interface, so use the Win32 string comparison.
-    int nComp = CompareString( LOCALE_USER_DEFAULT, LINGUISTIC_IGNORECASE, sText1, wcslen(sText1), sText2, wcslen(sText2) );
-    
+    int nComp = CompareString( LOCALE_USER_DEFAULT, NORM_IGNORECASE, sText1, wcslen(sText1), sText2, wcslen(sText2) );
+
     // CompareString documentation says substract 2 to return standard <0, ==0, and >0 values.
     nComp = nComp - 2;
-    if (bSortAsc)
+    if (bAsc)
         return -nComp;
     else
         return nComp;
+}
+
+void CLanguageDlg::OnDicListColClick(LPARAM lParam)
+{
+    const NMLISTVIEW* pnmlv = reinterpret_cast<const NMLISTVIEW*>(lParam);
+
+    if (pnmlv->iSubItem == m_SortOptions.nCol)
+    {
+        m_SortOptions.bAsc = !m_SortOptions.bAsc;
+    }
+    else
+    {
+        m_SortOptions.nCol = pnmlv->iSubItem;
+    }
+
+    ListView_SortItemsEx(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
 }
