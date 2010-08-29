@@ -115,9 +115,15 @@ tsc_result TSC_CALLTYPE
 		return Error_Internal_NullModulePtr();
 
 	tsc_result r = TSC_E_FAIL;
-	r = pM->CreateSession(pSessionID, pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
+    if (pSessionID)
+    {
+	    r = pM->CreateSession(pSessionID, pData);
+
+	    //if (TSC_FAILED(r))
+		    //Error_GetLastModuleError(pM);
+    }
+
 	return r;
 }
 
