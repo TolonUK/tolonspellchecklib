@@ -1,46 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0C948D9F-7F7D-4857-A768-9ED308A1436E}"
-	ProjectSection(SolutionItems) = preProject
-		libtolonspellcheck.def = libtolonspellcheck.def
-		libtolonspellcheck.rc = libtolonspellcheck.rc
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "headers", "headers", "{4579B79C-8156-4306-A7FC-B2B99D36992B}"
-	ProjectSection(SolutionItems) = preProject
-		CheckSpellingDlg.h = CheckSpellingDlg.h
-		isoLang.h = isoLang.h
-		LanguageDlg.h = LanguageDlg.h
-		resource.h = resource.h
-		RichEditSpellChecker.h = RichEditSpellChecker.h
-		SpellingOptionsDlg.h = SpellingOptionsDlg.h
-		targetver.h = targetver.h
-		TolonSpellCheckInternals.h = TolonSpellCheckInternals.h
-		tscModule.h = tscModule.h
-		tscSession.h = tscSession.h
-		utf8conv.h = utf8conv.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "source", "source", "{3C49E504-3DF6-47B4-A01C-C7BD5CCFAC99}"
-	ProjectSection(SolutionItems) = preProject
-		CheckSpellingDlg.cpp = CheckSpellingDlg.cpp
-		isoLang.cpp = isoLang.cpp
-		LanguageDlg.cpp = LanguageDlg.cpp
-		RichEditSpellChecker.cpp = RichEditSpellChecker.cpp
-		SpellingOptionsDlg.cpp = SpellingOptionsDlg.cpp
-		tscDLL.cpp = tscDLL.cpp
-		tscModule.cpp = tscModule.cpp
-		tscSession.cpp = tscSession.cpp
-		utf8conv.cpp = utf8conv.cpp
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TolonSpellCheckLib", "TolonSpellCheckLib.vcproj", "{5199D5CF-DBC3-48EF-BE9D-377E2B143C89}"
 EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5199D5CF-DBC3-48EF-BE9D-377E2B143C89}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5199D5CF-DBC3-48EF-BE9D-377E2B143C89}.Debug|Win32.Build.0 = Debug|Win32
+		{5199D5CF-DBC3-48EF-BE9D-377E2B143C89}.Release|Win32.ActiveCfg = Release|Win32
+		{5199D5CF-DBC3-48EF-BE9D-377E2B143C89}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{4579B79C-8156-4306-A7FC-B2B99D36992B} = {0C948D9F-7F7D-4857-A768-9ED308A1436E}
-		{3C49E504-3DF6-47B4-A01C-C7BD5CCFAC99} = {0C948D9F-7F7D-4857-A768-9ED308A1436E}
 	EndGlobalSection
 EndGlobal
