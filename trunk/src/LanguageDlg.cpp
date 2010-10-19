@@ -333,9 +333,9 @@ int CALLBACK CLanguageDlg::CompareFunc( LPARAM lParam1, LPARAM lParam2, LPARAM l
     // CompareString documentation says substract 2 to return standard <0, ==0, and >0 values.
     nComp = nComp - 2;
     if (bAsc)
-        return -nComp;
-    else
         return nComp;
+    else
+        return -nComp;
 }
 
 void CLanguageDlg::OnDicListColClick(LPARAM lParam)
