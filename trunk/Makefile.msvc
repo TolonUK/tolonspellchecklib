@@ -77,8 +77,12 @@ stllibdir = $(STL_LIB_PATH)
 stllibdir = .
 !endif
 otherincludedir = $(exec_prefix)\include
+!if defined(STL_INCLUDE_PATH)
 stlincludedir = $(STL_INCLUDE_PATH)
+!endif
+!if defined(BOOST_INCLUDE_PATH)
 boostincludedir = $(BOOST_INCLUDE_PATH)
+!endif
 #datadir = $(prefix)\share
 #localedir = $(datadir)\locale
 #aliaspath =
@@ -138,11 +142,19 @@ INCLUDES = \
     -I$(rootdir) \
     -I$(includedir) \
     -I$(otherincludedir) \
-    -I$(stlincludedir) \
-    -I$(boostincludedir) \
     -I$(glibdir) \
     -I$(glibdir)\\glib
     
+!if defined (stlincludedir)
+INCLUDES = $(INCLUDES) \
+    -I$(stlincludedir)
+!endif
+
+!if defined (boostincludedir)
+INCLUDES = $(INCLUDES) \
+    -I$(boostincludedir)
+!endif
+
 LINKFLAGS = \
     -INCREMENTAL:NO \
     -MANIFEST \
