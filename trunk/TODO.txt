@@ -1,8 +1,6 @@
-* Finish CompareProc function
-  -- Add header column asc/desc arrow
+DONE * Finish CompareProc function
+* Add header column asc/desc arrow
 
 * The working directory must be set to the same as the exe, otherwise the code to load the dlls and dictionaries does not work!
 
 * The code for the CreateSession module function should check that the session has been initialised properly and return some kind of error if it hasn't.
-
-* The sorting for the language list seems to be wrong when the dialog is first opened.
