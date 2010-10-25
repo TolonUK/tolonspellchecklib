@@ -157,7 +157,7 @@ bool test_abnormal_init_uninit()
     tsc_result r;
     TSC_INIT_DATA id;
     
-    util_begin_test("Testing abnormal tscInit/tscUninit sequences...");
+    util_begin_test("test_abnormal_init_uninit()\r\nTesting abnormal tscInit/tscUninit sequences...");
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
@@ -191,7 +191,7 @@ bool test_getversion()
     TSC_INIT_DATA id;
     TSC_VERSION_DATA vd;
     
-    util_begin_test("Testing tscGetVersion...");
+    util_begin_test("test_getversion()\r\nTesting tscGetVersion...");
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
@@ -216,7 +216,7 @@ bool test_no_init()
     const tsc_result rExpected = E_UNEXPECTED;
     tsc_result r = 0;
     
-    util_begin_test("Testing API use without calling tscInit() first...");
+    util_begin_test("test_no_init()\r\nTesting API use without calling tscInit() first...");
     
     // Because the library has not been initialised, the functions below
     // should return TSC_E_UNEXPECTED without attempting to use any of the
@@ -259,7 +259,7 @@ bool test_normal_init_uninit()
     tsc_result r;
     TSC_INIT_DATA id;
     
-    util_begin_test("Testing normal tscInit/tscUninit sequence...");
+    util_begin_test("test_normal_init_uninit()\r\nTesting normal tscInit/tscUninit sequence...");
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
@@ -282,7 +282,7 @@ bool test_show_options()
     tsc_result r;
     tsc_cookie c = TSC_NULL_COOKIE;
     
-    util_begin_test("Testing tscShowOptionsWindow...");
+    util_begin_test("test_show_options()\r\nTesting tscShowOptionsWindow...");
     
     // Init module
     TSC_INIT_DATA id;
@@ -327,7 +327,7 @@ bool test_word()
     tsc_cookie c = TSC_NULL_COOKIE;
     const char* szWordToTest = "helllllo";
     
-    util_begin_test("Testing tscCheckWord(\"helllo\")...");
+    util_begin_test("test_word()\r\nTesting tscCheckWord(\"helllo\")...");
     
     // Prologue
     subtest_tscInit(bTestResult);
