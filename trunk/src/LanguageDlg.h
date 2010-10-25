@@ -2,6 +2,8 @@
 
 #include "resource.h"
 #include "TolonSpellCheckInternals.h"
+#include <windows.h>
+#include <commctrl.h>
 #include <string>
 
 class CLanguageDlg
@@ -22,12 +24,16 @@ public:
     int DoModal();
 
 private:
+    // Windows message handlers
+    void OnCommand(int id, HWND hwndCtl, UINT codeNotify);
+    BOOL OnNotify(UINT_PTR idFrom, UINT code, const LPNMHDR lpnmh);
+
     // Message Handlers
     BOOL OnInitDialog();
     void OnCmdOk();
     void OnCmdCancel();
     void OnCmdMakeDefault();
-    void OnDicListColClick(LPARAM lParam);
+    void OnDicListColClick(const NMLISTVIEW* pnmlv);
 
     void InitLangList();
 

@@ -10,20 +10,20 @@
 using namespace std;
 using namespace TolonSpellCheck;
 
-static const char* const s_szErrSessionAlreadyInitialised = 
-    "Error, session object has already been initialised.";
-static const char* const s_szErrSessionNotInitialised = 
-    "Error, session object not initialised.";
-static const char* const s_szErrNotImplemented =
-    "Error, method not fully implemented.";
-static const char* const s_szErrParamWasNull =
-    "Error, one or more parameters were null.";
-static const char* const s_szErrStructSizeInvalid =
-    "Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szSuccess =
-    "Success.";
+    "S0000 - Success.";
+static const char* const s_szErrSessionAlreadyInitialised = 
+    "S0001 - Error, session object has already been initialised.";
+static const char* const s_szErrSessionNotInitialised = 
+    "S0002 - Error, session object not initialised.";
+static const char* const s_szErrNotImplemented =
+    "S0003 - Error, method not fully implemented.";
+static const char* const s_szErrParamWasNull =
+    "S0004 - Error, one or more parameters were null.";
+static const char* const s_szErrStructSizeInvalid =
+    "S0005 - Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szErrErr =
-    "Internal error, error text not set!";
+    "S9999 - Internal error, error text not set!";
 
 CSession::CSession(TSC_CREATESESSION_DATA* pData) :
     m_bInitialised(false),

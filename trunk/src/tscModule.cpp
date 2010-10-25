@@ -4,22 +4,24 @@
 using namespace TolonSpellCheck;
 using namespace std;
 
-static const char* const s_szErrInvalidSessionCookie =
-	"Error, invalid session cookie.";
-static const char* const s_szErrModuleAlreadyInitialised = 
-	"Error, module object has already been initialised.";
-static const char* const s_szErrModuleNotInitialised = 
-	"Error, module object not initialised.";
-static const char* const s_szErrNotImplemented =
-	"Error, method not fully implemented.";
-static const char* const s_szErrParamWasNull =
-	"Error, one or more parameters were null.";
-static const char* const s_szErrStructSizeInvalid =
-	"Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szSuccess =
-	"Success.";
+	"M0000 - Success.";
+static const char* const s_szErrInvalidSessionCookie =
+	"M0001 - Error, invalid session cookie.";
+static const char* const s_szErrModuleAlreadyInitialised = 
+	"M0002 - Error, module object has already been initialised.";
+static const char* const s_szErrModuleNotInitialised = 
+	"M0003 - Error, module object not initialised.";
+static const char* const s_szErrNotImplemented =
+	"M0004 - Error, method not fully implemented.";
+static const char* const s_szErrParamWasNull =
+	"M0005 - Error, one or more parameters were null.";
+static const char* const s_szErrStructSizeInvalid =
+	"M0006 - Error, cbSize member of structure was set to an unrecognized value.";
+static const char* const s_szErrSessionCreationFailed =
+    "M0008 - Error, session creation failed.";
 static const char* const s_szErrErr =
-	"Internal error, error text not set!";
+	"M9999 - Internal error, error text not set!";
 
 CModule* CModule::sm_pThis;
 
@@ -59,6 +61,7 @@ tsc_result CModule::Init(TSC_INIT_DATA* pData)
 		return Error_StructSizeInvalid();
 	
 	m_sHostName = pData->szAppName;
+
 	SetInitialised(true);
 	return Success();
 }
@@ -103,12 +106,27 @@ tsc_result CModule::CreateSession( tsc_cookie* pSessionID, TSC_CREATESESSION_DAT
 	if (pData->cbSize != sizeof(TSC_CREATESESSION_DATA))
 		return Error_StructSizeInvalid();
 	
-	CSession* pS = new CSession(pData);
-	pS->Init();
-	*pSessionID = GetNextSessionCookie();
-	m_xSessions.insert(std::make_pair(*pSessionID, pS));
-	
-	return Success();
+    bool bSessionOk = false;
+    CSession* pS = NULL;
+    try { pS = new CSession(pData); } catch (bad_alloc& e) { }
+
+    if (pS)
+    {
+	    pS->Init();
+        bSessionOk = pS->IsInitialised();
+    }
+
+    if (bSessionOk)
+    {
+	    *pSessionID = GetNextSessionCookie();
+	    m_xSessions.insert(std::make_pair(*pSessionID, pS));
+	    return Success();
+    }
+    else
+    {
+        delete pS;
+        return Error_SessionCreationFailed();
+    }
 }
 
 tsc_result CModule::DestroySession( tsc_cookie SessionID )
@@ -290,6 +308,12 @@ tsc_result CModule::Error_ParamWasNull()
 {
 	m_szLastError = s_szErrParamWasNull;
 	return TSC_E_POINTER;
+}
+
+tsc_result CModule::Error_SessionCreationFailed()
+{
+    m_szLastError = s_szErrSessionCreationFailed;
+    return TSC_E_UNEXPECTED;
 }
 
 tsc_result CModule::Error_StructSizeInvalid()

@@ -7,8 +7,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <windows.h>
-#include <commctrl.h>
+#include <windowsx.h>
 #include <assert.h>
 
 extern HINSTANCE g_hInstDll;
@@ -31,9 +30,6 @@ static struct COLUMN_DATA {
     { COL_CODE, 80,                       L"Code" },
     { COL_NAME, LVSCW_AUTOSIZE_USEHEADER, L"Language" }
 };
-
-//static const int s_nColDisplayName;
-//static const int s_nColCodeName;
 
 static const bool s_bDefaultSortAsc = true;
 
@@ -145,42 +141,18 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
     switch (message)
     {
     case WM_COMMAND:
-        {
-            const WORD nCmd = LOWORD(wParam);
-            
-            if (nCmd == IDOK)
-            { 
-                s_pThis->OnCmdOk();
-                EndDialog(hDlg, nCmd);
-            }
-            else if (nCmd == IDCANCEL)
-            {
-                s_pThis->OnCmdCancel();
-                EndDialog(hDlg, nCmd);
-            }
-            else if (nCmd == IDC_MAKEDEFAULT_BTN)
-            { s_pThis->OnCmdMakeDefault(); }
-            
-            bHandled = TRUE;
-            
-            break;
-        }
+        s_pThis->OnCommand(static_cast<int>(LOWORD(wParam)), reinterpret_cast<HWND>(lParam), static_cast<UINT>(HIWORD(wParam)));
+        bHandled = TRUE;
+        break;
 
     case WM_INITDIALOG:
-        return s_pThis->OnInitDialog();
+        bHandled = s_pThis->OnInitDialog();
+        break;
 
     case WM_NOTIFY:
-        switch (((LPNMHDR)lParam)->code)
-        {
-        case LVN_COLUMNCLICK:
-            if (((LPNMHDR)lParam)->idFrom == IDC_DIC_LIST)
-            {
-                s_pThis->OnDicListColClick(lParam);
-                return TRUE;
-            }
-            break; 
+        LPNMHDR pnmh = reinterpret_cast<LPNMHDR>(lParam);
+        bHandled = s_pThis->OnNotify(pnmh->idFrom, pnmh->code, pnmh);
         break;
-        }
     }
     
     return bHandled;
@@ -202,13 +174,20 @@ void CLanguageDlg::OnCmdOk()
         // Get chosen language
         GetChosenLanguage(sChosenLang);
         
-        // Set it on the session
-        tsc_result r = TSC_E_FAIL;
-        r = pSession->SetLanguage(sChosenLang.c_str());
-
-        if (TSC_FAILED(r))
+        if (sChosenLang.empty())
         {
-            ::MessageBox(GetHwnd(), L"Failed to set new language. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
+            ::MessageBox(GetHwnd(), L"No language chosen. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
+        }
+        else
+        {
+            // Set it on the session
+            tsc_result r = TSC_E_FAIL;
+            r = pSession->SetLanguage(sChosenLang.c_str());
+
+            if (TSC_FAILED(r))
+            {
+                ::MessageBox(GetHwnd(), L"Failed to set new language. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
+            }
         }
     }
 }
@@ -223,10 +202,14 @@ void CLanguageDlg::OnCmdMakeDefault()
 
 void CLanguageDlg::GetChosenLanguage(string& sLang)
 {
-    int nItem = -1;
+    int nItem = LB_ERR;
     nItem = ListView_GetNextItem(GetLangListHwnd(), -1, LVNI_SELECTED);
 
-    if (nItem != -1)
+    if (nItem == LB_ERR)
+    {
+        sLang.clear();
+    }
+    else
     {
         const int nBufLen = 13;
         wchar_t wszBuf[nBufLen] = L"\0";
@@ -338,10 +321,8 @@ int CALLBACK CLanguageDlg::CompareFunc( LPARAM lParam1, LPARAM lParam2, LPARAM l
         return -nComp;
 }
 
-void CLanguageDlg::OnDicListColClick(LPARAM lParam)
+void CLanguageDlg::OnDicListColClick(const NMLISTVIEW* pnmlv)
 {
-    const NMLISTVIEW* pnmlv = reinterpret_cast<const NMLISTVIEW*>(lParam);
-
     if (pnmlv->iSubItem == m_SortOptions.nCol)
     {
         m_SortOptions.bAsc = !m_SortOptions.bAsc;
@@ -352,4 +333,39 @@ void CLanguageDlg::OnDicListColClick(LPARAM lParam)
     }
 
     ListView_SortItemsEx(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
+}
+
+void CLanguageDlg::OnCommand(int id, HWND hwndCtl, UINT codeNotify)
+{
+    if (id == IDOK)
+    { 
+        OnCmdOk();
+        EndDialog(GetHwnd(), id);
+    }
+    else if (id == IDCANCEL)
+    {
+        OnCmdCancel();
+        EndDialog(GetHwnd(), id);
+    }
+    else if (id == IDC_MAKEDEFAULT_BTN)
+    { OnCmdMakeDefault(); }
+}
+
+BOOL CLanguageDlg::OnNotify(UINT_PTR idFrom, UINT code, const LPNMHDR lpnmh)
+{
+    BOOL bHandled = FALSE;
+
+    switch (code)
+    {
+    case LVN_COLUMNCLICK:
+        if (idFrom == IDC_DIC_LIST)
+        {
+            const NMLISTVIEW* pnmlv = reinterpret_cast<const NMLISTVIEW*>(lpnmh);
+            s_pThis->OnDicListColClick(pnmlv);
+            bHandled = TRUE;
+        }
+        break; 
+    }
+
+    return bHandled;
 }

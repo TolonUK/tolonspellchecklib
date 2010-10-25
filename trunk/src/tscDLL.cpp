@@ -12,15 +12,10 @@ static const char* s_szLastError;
 
 // Error strings (to be localised)
 static const char* const s_szErrIntNullModulePtr = 
-	"Internal Error, a null module pointer was encountered. Please contact technical support.";
+	"D0001 - Internal Error, a null module pointer was encountered. Please contact technical support.";
 static const char* const s_szErrParamWasNull =
-	"Error, one or more parameters were null.";
+	"D0002 - Error, one or more parameters were null.";
 	
-/*static void Error_GetLastModuleError(CModule* pM)
-{
-	s_szLastError = pM->GetLastError();
-}*/
-
 static tsc_result Error_Internal_NullModulePtr()
 {
 	s_szLastError = s_szErrIntNullModulePtr;
@@ -44,8 +39,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->Init(pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -58,8 +52,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->Uninit();
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -72,28 +65,9 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->GetVersion(pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
-
-/*tsc_result TSC_CALLTYPE
-	tscGetLastError( const char ** ppszError )
-{
-	if (!ppszError)
-		return Error_ParamWasNull();
-	
-	if (s_szLastError)
-	{
-		*ppszError = s_szLastError;
-		return TSC_S_OK;
-	}
-	else
-	{
-		*ppszError = NULL;
-		return TSC_S_FALSE;
-	}
-}*/
 
 const char* TSC_CALLTYPE
 	tscGetLastError()
@@ -116,13 +90,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 
-    if (pSessionID)
-    {
-	    r = pM->CreateSession(pSessionID, pData);
-
-	    //if (TSC_FAILED(r))
-		    //Error_GetLastModuleError(pM);
-    }
+	r = pM->CreateSession(pSessionID, pData);
 
 	return r;
 }
@@ -136,8 +104,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->DestroySession(SessionID);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -151,8 +118,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->GetSessionOptions(SessionID, pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -166,8 +132,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->SetSessionOptions(SessionID, pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -181,8 +146,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->ShowOptionsWindow(SessionID, pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -196,8 +160,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->CheckSpelling(SessionID, pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
@@ -211,8 +174,7 @@ tsc_result TSC_CALLTYPE
 
 	tsc_result r = TSC_E_FAIL;
 	r = pM->CheckWord(SessionID, pData);
-	//if (TSC_FAILED(r))
-		//Error_GetLastModuleError(pM);
+
 	return r;
 }
 
