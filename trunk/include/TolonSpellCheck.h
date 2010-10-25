@@ -141,9 +141,6 @@ TSC_API tsc_result TSC_CALLTYPE
 TSC_API tsc_result TSC_CALLTYPE 
 	tscGetVersion( TSC_VERSION_DATA* pData );
 
-/*TSC_API tsc_result TSC_CALLTYPE
-	tscGetLastError( const char ** ppszError );*/
-
 TSC_API const char* TSC_CALLTYPE
 	tscGetLastError( void );
 
