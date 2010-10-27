@@ -573,6 +573,7 @@ install : force
 	$(INSTALL_DATA) $(topsrcdir)\enchant.h $(prefix)\include\enchant.h
 #	-mkdir $(exec_prefix)
 	-mkdir $(prefix)\bin
+	-mkdir $(prefix)\bin\enchant
 	-mkdir $(prefix)\pdb
 	$(INSTALL_DATA) $(outdir)\enchant.exe $(prefix)\bin\enchant.exe
 	$(INSTALL_DATA) $(outdir)\enchant-lsmod.exe $(prefix)\bin\enchant-lsmod.exe
@@ -587,15 +588,15 @@ install : force
 #!endif
 !if $(DLL)
     $(INSTALL_DATA) $(outdir)\libenchant.dll $(prefix)\bin\libenchant.dll
-    $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll $(prefix)\bin\libenchant_ispell.dll
-    $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll $(prefix)\bin\libenchant_myspell.dll
+    $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll $(prefix)\bin\enchant\libenchant_ispell.dll
+    $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll $(prefix)\bin\enchant\libenchant_myspell.dll
     $(INSTALL_DATA) $(outdir)\pdb\libenchant.pdb $(prefix)\pdb\libenchant.pdb
     $(INSTALL_DATA) $(outdir)\pdb\libenchant_ispell.pdb $(prefix)\pdb\libenchant_ispell.pdb
     $(INSTALL_DATA) $(outdir)\pdb\libenchant_myspell.pdb $(prefix)\pdb\libenchant_myspell.pdb
 #!if $(MANIFEST)
 #        $(INSTALL_DATA) $(outdir)\libenchant.dll.manifest $(prefix)\bin\libenchant.dll.manifest
-#        $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll.manifest $(prefix)\bin\libenchant_ispell.dll.manifest
-#        $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll.manifest $(prefix)\bin\libenchant_myspell.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant_ispell.dll.manifest $(prefix)\bin\enchant\libenchant_ispell.dll.manifest
+#        $(INSTALL_DATA) $(outdir)\libenchant_myspell.dll.manifest $(prefix)\bin\enchant\libenchant_myspell.dll.manifest
 #!endif
 !endif
 	-mkdir $(prefix)\lib
