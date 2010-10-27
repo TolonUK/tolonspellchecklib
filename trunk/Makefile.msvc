@@ -311,7 +311,8 @@ TEST_TOLONSPELLCHECK_DEFINES = \
     -D_CONSOLE
     
 TEST_TOLONSPELLCHECK_LIBS = \
-    $(libdir)\libtolonspellcheck.lib
+    $(libdir)\libtolonspellcheck.lib \
+    comctl32.lib
 
 TEST_TOLONSPELLCHECK_OBJECTS = \
     $(objdir)\tscTest.obj
