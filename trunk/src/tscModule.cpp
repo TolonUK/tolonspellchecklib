@@ -27,6 +27,8 @@ CModule* CModule::sm_pThis;
 
 CModule* CModule::GetInstance()
 {
+    //TODO: Do we need concurrency protection here?
+
 	if (sm_pThis)
 		return sm_pThis;
 
@@ -36,6 +38,8 @@ CModule* CModule::GetInstance()
 		//couldn't allocate new module
 		//TODO: add logging
 	}
+
+    return sm_pThis;
 }
 
 CModule::CModule() :

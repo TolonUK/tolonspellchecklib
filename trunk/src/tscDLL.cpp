@@ -1,6 +1,8 @@
 #include "TolonSpellCheck.h"
 #include "tscModule.h"
 #include "tscSession.h"
+#include <windows.h>
+#include <commctrl.h>
 
 using namespace TolonSpellCheck;
 
@@ -183,5 +185,6 @@ BOOL WINAPI DllMain( HINSTANCE hinstDLL,  // handle to the DLL module
                      LPVOID lpvReserved ) // reserved
 {
     g_hInstDll = hinstDLL;
+    ::InitCommonControls();
     return TRUE;
 }
