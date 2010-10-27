@@ -3,6 +3,16 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <windows.h>
+#include <commctrl.h>
+
+#pragma comment(linker, \
+    "\"/manifestdependency:type='Win32' "\
+    "name='Microsoft.Windows.Common-Controls' "\
+    "version='6.0.0.0' "\
+    "processorArchitecture='*' "\
+    "publicKeyToken='6595b64144ccf1df' "\
+    "language='*'\"")
 
 using namespace std;
 
@@ -33,8 +43,10 @@ static int g_nTestStartCount, g_nTestEndCount, g_nSuccessCount, g_nFailCount;
 static const char* g_szLine = "--------------------------------------------------------------------------------";
 
 int main()
-{
+{	
     g_nTestStartCount = g_nTestEndCount = g_nSuccessCount = g_nFailCount = 0;
+
+    ::InitCommonControls();
     
     cout << "Tolon Spell Check Test Program. Copyright (c) 2009 Alex Paterson." << endl;
     cout << g_szLine << endl;
