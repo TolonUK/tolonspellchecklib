@@ -18,20 +18,35 @@ set debug=0
 set glib_debug=0
 set usrdir=%topdir%\usr-release
 set mflags=-MD
-GOTO DECOMPRESS
+GOTO OPTIONS_CLEAN
 
 :OPT_DEBUG
 set debug=1
 set glib_debug=1
 set usrdir=%topdir%\usr-debug
 set mflags=-MDd
+GOTO OPTIONS_CLEAN
+
+:OPT_CLEAN
+cd %topdir%
+del /s /q .\contrib\libiconv-%libiconv-version%\*.*
+rmdir .\contrib\libiconv-%libiconv-version%
+del /s /q .\contrib\gettext-%gettext-version%\*.*
+rmdir .\contrib\gettext-%gettext-version%
+del /s /q .\contrib\glib\*.*
+rmdir .\contrib\glib
+del /s /q .\contrib\enchant-%enchant-version%\*.*
+rmdir .\contrib\enchant-%enchant-version%
 GOTO DECOMPRESS
+
+:OPTIONS_CLEAN
+IF /I "%2"=="clean" GOTO OPT_CLEAN
 
 :DECOMPRESS
 echo Decompressing libraries...
 cd .\contrib
 echo    decompressing gettext...
-gzip -d -c %gettext-srcball% | tar x
+gzip -d -c %gettext-srcball% | tar -x --unlink-first --dereference
 echo    decompressing libiconv...
 gzip -d -c %libiconv-srcball% | tar x
 echo    decompressing glib...
