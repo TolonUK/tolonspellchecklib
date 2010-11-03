@@ -1,3 +1,18 @@
+// Test info for DLL functions
+//
+//               tscInit: test_abnormal_init_uninit, test_normal_init_uninit
+//             tscUninit: test_abnormal_init_uninit, test_no_init, test_normal_init_uninit
+//         tscGetVersion: test_getversion
+//       tscGetLastError: 
+//      tscCreateSession: test_createsession
+//     tscDestroySession: test_destroysession
+//  tscGetSessionOptions  |
+//  tscSetSessionOptions  |
+//  tscShowOptionsWindow  |
+//      tscCheckSpelling  |
+//          tscCheckWord  |
+
+
 #include "TolonSpellCheck.h"
 #include <iomanip>
 #include <iostream>
@@ -26,6 +41,9 @@ void check_test(bool bResult);
 void print_stats();
 // The tests
 bool test_abnormal_init_uninit();
+bool test_createsession();
+bool test_destroysession();
+bool test_getsessionoptions();
 bool test_getversion();
 bool test_no_init();
 bool test_normal_init_uninit();
@@ -51,10 +69,20 @@ int main()
     cout << "Tolon Spell Check Test Program. Copyright (c) 2009 Alex Paterson." << endl;
     cout << g_szLine << endl;
     
+    // Init/Uninit
     check_test(test_abnormal_init_uninit());
     check_test(test_normal_init_uninit());
     check_test(test_no_init());
+
+    // Create/Destroy Session
+    check_test(test_createsession());
+    check_test(test_destroysession());
+
+    // Misc
+    check_test(test_getsessionoptions());
     check_test(test_getversion());
+
+    // Spell Checking
     check_test(test_word());
     check_test(test_show_options());
     
@@ -190,6 +218,134 @@ bool test_abnormal_init_uninit()
     util_is_success("double tscUninit, first call", r, bTestResult);
     r = ::tscUninit();
     util_is_failure("double tscUninit, second call", r, bTestResult);
+    
+    util_end_test(bTestResult);
+    
+    return bTestResult;
+}
+
+bool test_createsession()
+{
+    bool bTestResult = true;
+    tsc_result r;
+
+    util_begin_test("test_createsession()\r\nTesting normal and abnormal tscCreateSession calls...");
+
+    // Prologue
+    subtest_tscInit(bTestResult);
+
+    tsc_cookie c = TSC_NULL_COOKIE;
+    TSC_CREATESESSION_DATA cs;
+    memset(&cs, 0x00, sizeof(TSC_CREATESESSION_DATA));
+
+    // Test null parameters
+    {
+        r = ::tscCreateSession(NULL, &cs);
+        util_is_failure("tscCreateSession, null cookie ptr", r, bTestResult);
+
+        r = ::tscCreateSession(&c, NULL);
+        util_is_failure("tscCreateSession, null data ptr", r, bTestResult);
+    }
+
+    // Test uninitialized cbSize
+    {
+        r = ::tscCreateSession(&c, &cs);
+        util_is_failure("tscCreateSession, null cookie ptr", r, bTestResult);
+    }
+
+    // Test normal
+    {
+        cs.cbSize = sizeof(TSC_CREATESESSION_DATA);
+
+        r = ::tscCreateSession(&c, &cs);
+        util_is_success("tscCreateSession", r, bTestResult);
+    }
+
+    // Epilogue
+    subtest_tscDestroySession(c, bTestResult);
+    subtest_tscUninit(bTestResult);
+
+    util_end_test(bTestResult);
+
+    return bTestResult;
+}
+
+bool test_destroysession()
+{
+    bool bTestResult = true;
+    tsc_result r;
+
+    util_begin_test("test_destroysession()\r\nTesting normal and abnormal tscDestroySession calls...");
+
+    // Prologue
+    subtest_tscInit(bTestResult);
+
+    // Test invalid parameters
+    {
+        r = ::tscDestroySession(0);
+        util_is_failure("tscDestroySession, invalid zero cookie", r, bTestResult);
+
+        r = ::tscDestroySession(1);
+        util_is_failure("tscDestroySession, invalid non-zero cookie", r, bTestResult);
+    }
+
+    // Test normal + double destroy
+    {
+        tsc_cookie c = TSC_NULL_COOKIE;
+        TSC_CREATESESSION_DATA cs;
+        memset(&cs, 0x00, sizeof(TSC_CREATESESSION_DATA));
+        cs.cbSize = sizeof(TSC_CREATESESSION_DATA);
+
+        r = ::tscCreateSession(&c, &cs);
+        util_is_success("tscCreateSession", r, bTestResult);
+
+        r = ::tscDestroySession(c);
+        util_is_success("tscDestroySession, normal", r, bTestResult);
+
+        r = ::tscDestroySession(c);
+        util_is_failure("tscDestroySession, second-destroy", r, bTestResult);
+    }
+
+    // Epilogue
+    subtest_tscUninit(bTestResult);
+
+    util_end_test(bTestResult);
+
+    return bTestResult;
+}
+
+bool test_getsessionoptions()
+{
+    bool bTestResult = true;
+    tsc_result r;
+    tsc_cookie c = TSC_NULL_COOKIE;
+    
+    util_begin_test("test_getsessionoptions()\r\nTesting tscGetSessionOptions...");
+    
+    // Prologue
+    subtest_tscInit(bTestResult);
+    subtest_tscCreateSession(c, bTestResult);
+    
+    // tscGetSessionOptions
+    TSC_SESSIONOPTIONS_DATA sod;
+    memset(&sod, 0xff, sizeof(TSC_SESSIONOPTIONS_DATA));
+
+    // null data ptr
+    r = ::tscGetSessionOptions(c, NULL);
+    util_is_failure("tscGetSessionOptions, null data ptr", r, bTestResult);
+
+    // invalid size structure
+    sod.cbSize = 0;
+    r = ::tscGetSessionOptions(c, &sod);
+    util_is_failure("tscGetSessionOptions, zero cbSize", r, bTestResult);
+
+    sod.cbSize = sizeof(TSC_SESSIONOPTIONS_DATA);
+    r = ::tscGetSessionOptions(c, &sod);
+    util_is_success("tscGetSessionOptions, normal", r, bTestResult);    
+
+    // Epilogue
+    subtest_tscDestroySession(c, bTestResult);
+    subtest_tscUninit(bTestResult);
     
     util_end_test(bTestResult);
     
