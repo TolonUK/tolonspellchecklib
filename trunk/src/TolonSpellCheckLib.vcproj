@@ -244,6 +244,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\include\TolonSpellCheck.h"
+				>
+			</File>
+			<File
 				RelativePath="TolonSpellCheckInternals.h"
 				>
 			</File>
