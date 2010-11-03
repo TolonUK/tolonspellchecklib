@@ -1,5 +1,8 @@
 #include "tscModule.h"
 #include "tscSession.h"
+#include <windows.h>
+#include "isoLang.h"
+#include <sstream>
 
 using namespace TolonSpellCheck;
 using namespace std;
@@ -20,6 +23,8 @@ static const char* const s_szErrStructSizeInvalid =
 	"M0006 - Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szErrSessionCreationFailed =
     "M0008 - Error, session creation failed.";
+static const char* const s_szErrFailedToInitEnchant =
+    "M0009 - Error, failed to initialise the spell checking engine.";
 static const char* const s_szErrErr =
 	"M9999 - Internal error, error text not set!";
 
@@ -45,7 +50,8 @@ CModule* CModule::GetInstance()
 CModule::CModule() :
 	m_bInitialised(false),
 	m_szLastError(s_szErrErr),
-	m_nLastSessionCookie(TSC_NULL_COOKIE)
+	m_nLastSessionCookie(TSC_NULL_COOKIE),
+    m_pEnchantBroker(NULL)
 {
 }
 
@@ -66,8 +72,12 @@ tsc_result CModule::Init(TSC_INIT_DATA* pData)
 	
 	m_sHostName = pData->szAppName;
 
-	SetInitialised(true);
-	return Success();
+    // Initialise the enchant library
+    m_pEnchantBroker = enchant_broker_init();
+
+	SetInitialised(m_pEnchantBroker != NULL);
+
+    return m_pEnchantBroker ? Success() : Error_FailedToInitEnchant();
 }
 
 tsc_result CModule::Uninit()
@@ -76,6 +86,13 @@ tsc_result CModule::Uninit()
 		return Error_ModuleNotInitialised();
 
 	SetInitialised(false);
+
+    if (m_pEnchantBroker)
+    {
+        enchant_broker_free(m_pEnchantBroker);
+        m_pEnchantBroker = NULL;
+    }
+
 	m_sHostName.swap(string());
 	return Success();
 }
@@ -282,7 +299,156 @@ tsc_cookie CModule::GetNextSessionCookie()
 	return ++m_nLastSessionCookie;
 }
 
+EnchantDict* CModule::GetDictionary(const char* szCulture)
+{
+    EnchantDict* pDict = NULL;
+
+    if (m_pEnchantBroker)
+    {
+        pDict = enchant_broker_request_dict(m_pEnchantBroker, szCulture);
+    }
+
+    return pDict;
+}
+
+void CModule::FreeDictionary(EnchantDict* pDict)
+{
+    if (m_pEnchantBroker)
+    {
+        enchant_broker_free_dict(m_pEnchantBroker, pDict);
+    }
+}
+
+// Language Enumeration
+tsc_result CModule::EnumLanguages(LanguageEnumFn pfn, void* pUserData)
+{
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+
+    if (!pfn)
+        return Error_ParamWasNull();
+    
+    EnumLanguagesPayload elp = {0};
+    elp.pfn = pfn;
+    elp.pUserData = pUserData;
+    elp.pThis = this;
+    enchant_broker_list_dicts (m_pEnchantBroker, CModule::cbEnchantDictDescribe, &elp);
+    
+    return Success();
+}
+
+void CModule::cbEnchantDictDescribe( const char * const lang_tag,
+                                     const char * const provider_name,
+                                     const char * const provider_desc,
+                                     const char * const provider_file,
+                                     void * user_data )
+{
+    EnumLanguagesPayload* pelp = reinterpret_cast<EnumLanguagesPayload*>(user_data);
+    
+    if (!pelp)
+        return;
+
+    wchar_t wszLangTag[64];
+    
+    wszLangTag[0] = 0;
+    
+    ::MultiByteToWideChar(CP_UTF8, 0, lang_tag, -1, wszLangTag, 64);
+    
+    LANGUAGE_DESC_WIDEDATA ldwd = {0};
+    ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
+
+    pelp->pThis->DescribeLanguage(wszLangTag, &ldwd);
+    
+    wcscpy(ldwd.wszCodeName, wszLangTag);
+    pelp->pfn(&ldwd, pelp->pUserData);
+}
+
+tsc_result CModule::DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pWideData) 
+{
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+
+    if (!wszLang || !pWideData)
+        return Error_ParamWasNull();
+    
+    if (pWideData->cbSize != sizeof(LANGUAGE_DESC_WIDEDATA))
+        return Error_StructSizeInvalid();
+
+    tsc_result result = TSC_E_FAIL;
+    int n = 0;
+    tsc_size_t nwszLen = wcslen(wszLang);
+    
+    if (nwszLen > 12)
+        return TSC_E_INVALIDARG; // lang descriptor was too long
+    
+    char szLang[13];
+    memset(szLang, 0, sizeof(szLang));
+    n = ::WideCharToMultiByte(CP_UTF8, 0, wszLang, nwszLen, szLang, 13, NULL, NULL);
+    
+    if (n)
+    {
+        LANGUAGE_DESC_DATA data;
+        memset(&data, 0, sizeof(LANGUAGE_DESC_DATA));
+        data.cbSize = sizeof(LANGUAGE_DESC_DATA);
+        result = DescribeLanguage(szLang, &data);
+        
+        if (SUCCEEDED(result))
+        {
+            n = ::MultiByteToWideChar(CP_UTF8, 0, data.szDisplayName, -1, pWideData->wszDisplayName, 128);
+            if (!n)
+                result = TSC_E_FAIL;
+        }
+    }
+    
+    return result;
+}
+
+tsc_result CModule::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData) 
+{
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+
+    if (!szLang || !pData)
+        return Error_ParamWasNull();
+    
+    if (pData->cbSize != sizeof(LANGUAGE_DESC_DATA))
+        return Error_StructSizeInvalid();
+    
+    tsc_result result = TSC_E_FAIL;
+    
+    CIsoLang il;
+    std::string sLanguage;
+    std::string sRegion;
+    std::string sDesc;
+    std::stringstream ss;
+    
+    il.Parse(szLang, sLanguage, sRegion);
+    
+    if (sLanguage.empty() == false)
+    {
+        ss << sLanguage; 
+        
+        if (sRegion.empty() == false)
+        {
+            ss << ", " << sRegion;
+        }
+        
+        sDesc.swap(ss.str());
+        memcpy(pData->szDisplayName, sDesc.c_str(), min(sDesc.size(), 127));
+        pData->szDisplayName[127] = '\0';
+
+        result = TSC_S_OK;
+    }
+    
+    return result;
+}
+
 // Error handlers
+tsc_result CModule::Error_FailedToInitEnchant()
+{
+    m_szLastError = s_szErrFailedToInitEnchant;
+    return TSC_E_UNEXPECTED;
+}
 
 tsc_result CModule::Error_InvalidSessionCookie()
 {

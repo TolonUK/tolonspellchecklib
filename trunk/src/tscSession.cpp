@@ -1,11 +1,11 @@
 #include "tscSession.h"
 #include "enchant.h"
+#include "tscModule.h"
 #include "SpellingOptionsDlg.h"
 #include <windows.h>
 #include <commctrl.h>
 #include <sstream>
 #include "CheckSpellingDlg.h"
-#include "isoLang.h"
 
 using namespace std;
 using namespace TolonSpellCheck;
@@ -22,12 +22,13 @@ static const char* const s_szErrParamWasNull =
     "S0004 - Error, one or more parameters were null.";
 static const char* const s_szErrStructSizeInvalid =
     "S0005 - Error, cbSize member of structure was set to an unrecognized value.";
+static const char* const s_szErrIntNullModulePtr = 
+	"S0006 - Internal Error, a null module pointer was encountered. Please contact technical support.";
 static const char* const s_szErrErr =
     "S9999 - Internal error, error text not set!";
 
 CSession::CSession(TSC_CREATESESSION_DATA* pData) :
     m_bInitialised(false),
-    m_pEnchantBroker(NULL),
     m_pEnchantDict(NULL),
     m_szLastError(s_szErrErr)
 {
@@ -72,9 +73,6 @@ tsc_result CSession::Init()
             ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, m_options.szDictionaryCulture, sizeof(m_options.szDictionaryCulture), NULL, NULL);
         }
     }
-        
-    // Initialise the enchant library
-    m_pEnchantBroker = enchant_broker_init();
 
     SetLanguage(m_options.szDictionaryCulture);
     
@@ -90,16 +88,19 @@ tsc_result CSession::Uninit()
     
     tsc_result result = TSC_E_FAIL;
 
-    if (m_pEnchantBroker)
+    SetInitialised(false);
+
+    if (m_pEnchantDict)
     {
-        if (m_pEnchantDict)
+        CModule* pMod = CModule::GetInstance();
+
+        if (pMod)
         {
-            enchant_broker_free_dict (m_pEnchantBroker, m_pEnchantDict);
+            pMod->FreeDictionary(m_pEnchantDict);
             m_pEnchantDict = NULL;
         }
-        m_pEnchantBroker = NULL;
     }
-    SetInitialised(false);
+
     result = TSC_S_OK;
 
     return result;
@@ -241,38 +242,19 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
 {
     if (!IsInitialised())
         return Error_SessionNotInitialised();
+
+    // only allow a copy of the options to be changed before we know
+    // whether the dialog was dismissed by the ok button.
+    CSessionOptions options_copy(m_options);
     
-    CSpellingOptionsDlg dlg(this, pData->hWndParent);
+    CSpellingOptionsDlg dlg(options_copy, pData->hWndParent);
     
-    dlg.DoModal();
+    if (dlg.DoModal() == IDOK)
+    {
+        m_options = options_copy;
+    }
     
     return Success();
-}
-
-void CSession::cbEnchantDictDescribe( const char * const lang_tag,
-                                       const char * const provider_name,
-                                       const char * const provider_desc,
-                                       const char * const provider_file,
-                                       void * user_data )
-{
-    EnumLanguagesPayload* pelp = reinterpret_cast<EnumLanguagesPayload*>(user_data);
-    
-    if (!pelp)
-        return;
-
-    wchar_t wszLangTag[64];
-    
-    wszLangTag[0] = 0;
-    
-    ::MultiByteToWideChar(CP_UTF8, 0, lang_tag, -1, wszLangTag, 64);
-    
-    LANGUAGE_DESC_WIDEDATA ldwd = {0};
-    ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-
-    pelp->pThis->DescribeLanguage(wszLangTag, &ldwd);
-    
-    wcscpy(ldwd.wszCodeName, wszLangTag);
-    pelp->pfn(&ldwd, pelp->pUserData);
 }
 
 tsc_result CSession::GetCurrentLanguage(wchar_t* wszLang) 
@@ -314,118 +296,22 @@ tsc_result CSession::GetCurrentLanguage(char* szLang)
     return TSC_S_OK;
 }
 
-tsc_result CSession::DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pWideData) 
-{
-    if (!IsInitialised())
-        return Error_SessionNotInitialised();
-
-    if (!wszLang || !pWideData)
-        return Error_ParamWasNull();
-    
-    if (pWideData->cbSize != sizeof(LANGUAGE_DESC_WIDEDATA))
-        return Error_StructSizeInvalid();
-
-    tsc_result result = TSC_E_FAIL;
-    int n = 0;
-    tsc_size_t nwszLen = wcslen(wszLang);
-    
-    if (nwszLen > 12)
-        return TSC_E_INVALIDARG; // lang descriptor was too long
-    
-    char szLang[13];
-    memset(szLang, 0, sizeof(szLang));
-    n = ::WideCharToMultiByte(CP_UTF8, 0, wszLang, nwszLen, szLang, 13, NULL, NULL);
-    
-    if (n)
-    {
-        LANGUAGE_DESC_DATA data;
-        memset(&data, 0, sizeof(LANGUAGE_DESC_DATA));
-        data.cbSize = sizeof(LANGUAGE_DESC_DATA);
-        result = DescribeLanguage(szLang, &data);
-        
-        if (SUCCEEDED(result))
-        {
-            n = ::MultiByteToWideChar(CP_UTF8, 0, data.szDisplayName, -1, pWideData->wszDisplayName, 128);
-            if (!n)
-                result = TSC_E_FAIL;
-        }
-    }
-    
-    return result;
-}
-
-tsc_result CSession::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData) 
-{
-    if (!IsInitialised())
-        return Error_SessionNotInitialised();
-
-    if (!szLang || !pData)
-        return Error_ParamWasNull();
-    
-    if (pData->cbSize != sizeof(LANGUAGE_DESC_DATA))
-        return Error_StructSizeInvalid();
-    
-    tsc_result result = TSC_E_FAIL;
-    
-    CIsoLang il;
-    std::string sLanguage;
-    std::string sRegion;
-    std::string sDesc;
-    std::stringstream ss;
-    
-    il.Parse(szLang, sLanguage, sRegion);
-    
-    if (sLanguage.empty() == false)
-    {
-        ss << sLanguage; 
-        
-        if (sRegion.empty() == false)
-        {
-            ss << ", " << sRegion;
-        }
-        
-        sDesc.swap(ss.str());
-        memcpy(pData->szDisplayName, sDesc.c_str(), min(sDesc.size(), 127));
-        pData->szDisplayName[127] = '\0';
-
-        result = TSC_S_OK;
-    }
-    
-    return result;
-}
-
-tsc_result CSession::EnumLanguages(LanguageEnumFn pfn, void* pUserData)
-{
-    if (!IsInitialised())
-        return Error_SessionNotInitialised();
-
-    if (!pfn)
-        return Error_ParamWasNull();
-    
-    EnumLanguagesPayload elp = {0};
-    elp.pfn = pfn;
-    elp.pUserData = pUserData;
-    elp.pThis = this;
-    enchant_broker_list_dicts (m_pEnchantBroker, CSession::cbEnchantDictDescribe, &elp);
-    
-    return Success();
-}
-
 tsc_result CSession::SetLanguage(const char* szCulture)
 {
     tsc_result result = TSC_E_FAIL;
 
-    if (m_pEnchantBroker)
-    {
-        EnchantDict* pDict = NULL;
-        pDict = enchant_broker_request_dict(m_pEnchantBroker, szCulture);
+    CModule* pMod = CModule::GetInstance();
 
-        if (pDict)
-        {
-            m_pEnchantDict = pDict;
-            m_szCurrentCulture.assign(szCulture);
-            result = TSC_S_OK;
-        }
+    if (!pMod)
+        return Error_Internal_NullModulePtr();
+
+    EnchantDict* pDict = pMod->GetDictionary(szCulture);
+
+    if (pDict)
+    {
+        m_pEnchantDict = pDict;
+        m_szCurrentCulture.assign(szCulture);
+        result = TSC_S_OK;
     }
 
     return result;
@@ -435,6 +321,12 @@ tsc_result CSession::Error_NotImplemented()
 {
     m_szLastError = s_szErrNotImplemented;
     return TSC_E_NOTIMPL;
+}
+
+tsc_result CSession::Error_Internal_NullModulePtr()
+{
+	m_szLastError = s_szErrIntNullModulePtr;
+	return TSC_E_FAIL;
 }
 
 tsc_result CSession::Error_ParamWasNull()
@@ -465,4 +357,34 @@ tsc_result CSession::Success()
 {
     m_szLastError = s_szSuccess;
     return TSC_S_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// CSessionOptions
+////////////////////////////////////////////////////////////////////////////////
+
+static const wchar_t* s_szIgnoreUserDictionaries = L"IgnoreUserDictionaries";
+static const wchar_t* s_szIgnoreUppercaseWords = L"IgnoreUppercaseWords";
+static const wchar_t* s_szIgnoreWordsWithNumbers = L"IgnoreWordsWithNumbers";
+static const wchar_t* s_szIgnoreUris = L"IgnoreUris";
+static const wchar_t* s_szDictionaryCulture = L"DictionaryCulture";
+static const wchar_t* s_szPreferredProvider = L"PreferredProvider";
+
+CSessionOptions::CSessionOptions()
+{
+    memset(this, 0, sizeof(CSessionOptions));
+}
+
+void CSessionOptions::WriteOut()
+{
+    StoreOption(s_szIgnoreUserDictionaries, bIgnoreUserDictionaries);
+    StoreOption(s_szIgnoreUppercaseWords, bIgnoreUppercaseWords);
+    StoreOption(s_szIgnoreWordsWithNumbers, bIgnoreWordsWithNumbers);
+    StoreOption(s_szIgnoreUris, bIgnoreUris);
+    StoreOption(s_szDictionaryCulture, szDictionaryCulture, sizeof(szDictionaryCulture));
+    StoreOption(s_szPreferredProvider, szPreferredProvider, sizeof(szPreferredProvider));
+}
+
+void CSessionOptions::ReadIn()
+{
 }

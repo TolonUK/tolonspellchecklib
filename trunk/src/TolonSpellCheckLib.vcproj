@@ -263,6 +263,10 @@
 				RelativePath="utf8conv.h"
 				>
 			</File>
+			<File
+				RelativePath=".\WndUtils.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

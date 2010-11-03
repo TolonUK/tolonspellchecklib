@@ -62,8 +62,9 @@ bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserDa
     return bResult;
 }
 
-CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent /*=NULL*/) :
-    m_pSession(pSession),
+CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSessionOptions& options, HWND hwndParent /*=NULL*/) :
+    m_options(options),
+    //m_pSession(pSession), to be removed
     m_hwnd(NULL),
     m_hwndParent(hwndParent),
     m_hwndLangList(NULL)
@@ -90,7 +91,11 @@ BOOL CLanguageDlg::OnInitDialog()
     InitLangList();
     
     // Populate language list
-    m_pSession->EnumLanguages(static_cast<LanguageEnumFn>(&CLanguageDlg::LangEnumCallback), this);
+    CModule* pMod = CModule::GetInstance();
+    if (!pMod)
+        return FALSE;
+
+    pMod->EnumLanguages(static_cast<LanguageEnumFn>(&CLanguageDlg::LangEnumCallback), this);
     
     // Fix up language list now it's populated with data
     ListView_SetColumnWidth(GetLangListHwnd(), 0, LVSCW_AUTOSIZE);
@@ -229,9 +234,10 @@ void CLanguageDlg::GetChosenLanguage(string& sLang)
 
 void CLanguageDlg::UpdateLanguageDisplay()
 {
-    TolonSpellCheck::CSession* pSession = GetSession();
+    //TolonSpellCheck::CSession* pSession = GetSession();
+    CModule* pMod = CModule::GetInstance();
 
-    if (pSession)
+    if (pMod)
     {
         tsc_result result = TSC_S_OK;
 
@@ -240,12 +246,12 @@ void CLanguageDlg::UpdateLanguageDisplay()
         memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
         memset(wszLang, 0, sizeof(wszLang));
         
-        ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);    
+        ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
         result = pSession->GetCurrentLanguage(wszLang);
         
         if (TSC_SUCCEEDED(result))
         {
-            result = m_pSession->DescribeLanguage(wszLang, &ldwd);
+            result = pMod->DescribeLanguage(wszLang, &ldwd);
             
             if (TSC_SUCCEEDED(result))
             {
@@ -285,12 +291,6 @@ HWND CLanguageDlg::GetLangListHwnd() const
 { 
     assert(m_hwndLangList != NULL);
     return m_hwndLangList;
-}
-
-TolonSpellCheck::CSession* CLanguageDlg::GetSession() const
-{ 
-    assert(m_pSession != NULL);
-    return m_pSession;
 }
 
 //! @param lParam1 The list view index of the first item to compare.

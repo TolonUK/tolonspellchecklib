@@ -16,9 +16,13 @@
 #define IDC_CHECK1                      2009
 #define IDC_CANCEL_SPELLCHECK2          2009
 #define IDC_RESTART_SPELLCHECK          2009
+#define IDC_MAIN_DIC_ONLY               2009
 #define IDC_CHECK2                      2010
+#define IDC_IGNORE_UPPERCASE            2010
 #define IDC_CHECK3                      2011
+#define IDC_IGNORE_WORDS_WITH_NUMBERS   2011
 #define IDC_CHECK4                      2012
+#define IDC_IGNORE_URIS                 2012
 #define IDD_DIC_LANG                    2100
 #define IDC_DIC_LIST                    2101
 #define IDC_MAKEDEFAULT_BTN             2102

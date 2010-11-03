@@ -7,15 +7,22 @@ typedef int ssize_t;
 #include <string>
 
 namespace TolonSpellCheck {
+
+class CSessionOptions : public TSC_SESSIONOPTIONS_DATA
+{
+public:
+	CSessionOptions();
+	
+	// These functions should either stream in and out or they should be able to write to the registry.
+	void WriteOut();
+	void ReadIn();
+
+	// make this work with abstract data class?
+	// m_data.writevalue(x,y), etc.
+};
     
 class CSession
 {
-public:
-    static void cbEnchantDictDescribe( const char * const lang_tag,
-                                         const char * const provider_name,
-                                         const char * const provider_desc,
-                                         const char * const provider_file,
-                                         void * user_data );
 public:
     CSession(TSC_CREATESESSION_DATA* pData);
     ~CSession();
@@ -41,22 +48,13 @@ public:
 	tsc_result GetCurrentLanguage(wchar_t* ppwszLang);
 	tsc_result GetCurrentLanguage(char* ppszLang);
 		
-	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData);
-	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData);
 		
 	const char* const GetLastError() const
 		{ return m_szLastError; }
-		
-	tsc_result EnumLanguages(LanguageEnumFn pfn, void* pUserData);
-
-private:
-    struct EnumLanguagesPayload {
-        LanguageEnumFn pfn;
-        void* pUserData;
-        CSession* pThis; };
         
 private:
 	tsc_result Error_NotImplemented();
+    tsc_result Error_Internal_NullModulePtr();
 	tsc_result Error_ParamWasNull();
 	tsc_result Error_SessionAlreadyInitialised();
 	tsc_result Error_SessionNotInitialised();
@@ -65,9 +63,9 @@ private:
 
 private:
 	bool m_bInitialised;
-	EnchantBroker* m_pEnchantBroker;
 	EnchantDict* m_pEnchantDict;
-	TSC_SESSIONOPTIONS_DATA m_options;
+	//TSC_SESSIONOPTIONS_DATA m_options;
+    CSessionOptions m_options;
 	const char* m_szLastError;
     std::string m_szCurrentCulture;
 };

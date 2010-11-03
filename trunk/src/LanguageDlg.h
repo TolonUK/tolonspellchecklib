@@ -2,6 +2,7 @@
 
 #include "resource.h"
 #include "TolonSpellCheckInternals.h"
+#include "tscSession.h" //for CSessionOptions
 #include <windows.h>
 #include <commctrl.h>
 #include <string>
@@ -15,7 +16,7 @@ protected:
     static bool LangEnumCallback(TolonSpellCheck::LANGUAGE_DESC_WIDEDATA* pData, void* pUserData);
 
 public:
-    CLanguageDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent = NULL);   // standard constructor
+    CLanguageDlg(TolonSpellCheck::CSessionOptions& options, HWND hwndParent = NULL);   // standard constructor
     ~CLanguageDlg();
 
 // Dialog Data
@@ -39,9 +40,6 @@ private:
 
     void GetChosenLanguage(std::string& sLang);
 
-    //! Returns the TolonSpellCheck session object.
-    TolonSpellCheck::CSession* GetSession() const;
-
     // User Interface Updating
     //! Returns the window handle for the specified dialog component.
     HWND GetDlgItem(int nDlgItem) const;
@@ -63,7 +61,8 @@ private:
     static int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort); 
 
 private:
-    TolonSpellCheck::CSession* const m_pSession;
+    TolonSpellCheck::CSessionOptions& m_options;
+    //TolonSpellCheck::CSession* const m_pSession; // to be removed
     HWND m_hwnd;
     HWND m_hwndParent;
     HWND m_hwndLangList;

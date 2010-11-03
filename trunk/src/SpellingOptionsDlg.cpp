@@ -4,6 +4,7 @@
 #include "SpellingOptionsDlg.h"
 #include "LanguageDlg.h"
 #include <windows.h>
+#include "WndUtils.h"
 
 extern HINSTANCE g_hInstDll;
 
@@ -11,8 +12,9 @@ extern HINSTANCE g_hInstDll;
 
 static CSpellingOptionsDlg* s_pThis;
 
-CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSession* pSession, HWND hwndParent /*=NULL*/) :
-	m_pSession(pSession),
+CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSessionOptions& options, HWND hwndParent /*=NULL*/) :
+    m_options(options),
+	m_pSession(NULL), // to be removed
 	m_hwnd(NULL),
 	m_hwndParent(hwndParent)
 {
@@ -26,20 +28,32 @@ CSpellingOptionsDlg::~CSpellingOptionsDlg()
 int CSpellingOptionsDlg::DoModal()
 {
 	s_pThis = this;
-	DialogBox(g_hInstDll, MAKEINTRESOURCE(CSpellingOptionsDlg::IDD), m_hwndParent, CSpellingOptionsDlg::WndProc);
-	return 0;
+	return DialogBox(g_hInstDll, MAKEINTRESOURCE(CSpellingOptionsDlg::IDD), m_hwndParent, CSpellingOptionsDlg::WndProc);
 }
 
 // CSpellingOptionsDlg message handlers
 BOOL CSpellingOptionsDlg::OnInitDialog()
-{    
+{
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_MAIN_DIC_ONLY, m_options.bIgnoreUserDictionaries);
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_UPPERCASE, m_options.bIgnoreUppercaseWords);
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_WORDS_WITH_NUMBERS, m_options.bIgnoreWordsWithNumbers);
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_URIS, m_options.bIgnoreUris);
+
 	return TRUE;
 }
 
 void CSpellingOptionsDlg::OnDicLangClicked()
 {
-	CLanguageDlg dlg(m_pSession, m_hwnd);
+	CLanguageDlg dlg(m_options, m_hwnd);
 	dlg.DoModal();
+}
+
+void CSpellingOptionsDlg::OnOk()
+{
+    m_options.bIgnoreUserDictionaries = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_MAIN_DIC_ONLY);
+    m_options.bIgnoreUppercaseWords = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_UPPERCASE);
+    m_options.bIgnoreWordsWithNumbers = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_WORDS_WITH_NUMBERS);
+    m_options.bIgnoreUris = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_URIS);
 }
 
 int CALLBACK CSpellingOptionsDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
@@ -58,6 +72,7 @@ int CALLBACK CSpellingOptionsDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam
 	case WM_COMMAND:
 		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
 		{
+            s_pThis->OnOk();
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
 		}

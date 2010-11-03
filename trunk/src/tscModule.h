@@ -1,6 +1,9 @@
 #pragma once
 
 #include "TolonSpellCheck.h"
+#include "TolonSpellCheckInternals.h"
+typedef int ssize_t;
+#include "enchant.h"
 #include <map>
 #include <string>
 
@@ -20,7 +23,13 @@ class CModule
 {
 public:
     static CModule* GetInstance();
-    
+ 
+    static void cbEnchantDictDescribe( const char * const lang_tag,
+                                         const char * const provider_name,
+                                         const char * const provider_desc,
+                                         const char * const provider_file,
+                                         void * user_data );
+
 protected:
     CModule();
     ~CModule();
@@ -50,6 +59,12 @@ public:
 	tsc_result CheckWord( tsc_cookie SessionID,
 						  TSC_CHECKWORD_DATA* pData );
 
+    tsc_result EnumLanguages(LanguageEnumFn pfn, void* pUserData);
+
+    // Enchant Functions
+    EnchantDict* GetDictionary(const char* szCulture);
+    void FreeDictionary(EnchantDict* const pDict);
+
 protected:
 	void SetInitialised(bool b)
 		{ m_bInitialised = b; }
@@ -57,9 +72,13 @@ protected:
 	CSession* GetSession(tsc_cookie SessionID);
 		
 	tsc_cookie GetNextSessionCookie();
-		
+
+	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData);
+	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData);
+
 //Error methods
 protected:
+    tsc_result Error_FailedToInitEnchant();
 	tsc_result Error_InvalidSessionCookie();
 	tsc_result Error_ModuleAlreadyInitialised();
 	tsc_result Error_ModuleNotInitialised();
@@ -70,7 +89,13 @@ protected:
 	tsc_result Success();
 
 // Member variables
-protected:
+private:
+    struct EnumLanguagesPayload {
+        LanguageEnumFn pfn;
+        void* pUserData;
+        CModule* pThis; };
+
+private:
 	static CModule* sm_pThis;
 
 	std::string m_sHostName;
@@ -78,6 +103,7 @@ protected:
 	const char* m_szLastError;
 	std::map<tsc_cookie, CSession*> m_xSessions;
 	tsc_cookie m_nLastSessionCookie;
+    EnchantBroker* m_pEnchantBroker;
 };
 
 }; //namespace
