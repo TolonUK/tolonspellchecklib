@@ -19,6 +19,20 @@ public:
 
 	// make this work with abstract data class?
 	// m_data.writevalue(x,y), etc.
+
+    void SetLanguage(const char* szCulture);
+	
+	tsc_result GetCurrentLanguage(wchar_t* ppwszLang) const;
+	tsc_result GetCurrentLanguage(char* ppszLang) const;
+    const char* GetCurrentLanguage() const
+        { return m_sCurrentCulture.c_str(); }
+
+    void SetDefaultLanguage(const char* szLang);
+    const char* GetDefaultLanguage() const
+        { return &szDictionaryCulture[0]; }
+
+private:
+    std::string m_sCurrentCulture;
 };
     
 class CSession
@@ -44,10 +58,9 @@ public:
 		{ m_bInitialised = b; }
 
     tsc_result SetLanguage(const char* szCulture);
-	
-	tsc_result GetCurrentLanguage(wchar_t* ppwszLang);
-	tsc_result GetCurrentLanguage(char* ppszLang);
-		
+
+    const CSessionOptions* GetOptions() const
+        { return &m_options; }
 		
 	const char* const GetLastError() const
 		{ return m_szLastError; }

@@ -1,5 +1,6 @@
 #include "CheckSpellingDlg.h"
 #include "tscSession.h"
+#include "tscModule.h"
 #include <windows.h>
 #include <assert.h>
 #include <sstream>
@@ -65,26 +66,32 @@ BOOL CCheckSpellingDlg::OnInitDialog()
 
 void CCheckSpellingDlg::UpdateTitleBar()
 {
+    TolonSpellCheck::CModule* pModule = CModule::GetInstance();
     TolonSpellCheck::CSession* pSession = GetSession();
 
-    if (pSession)
+    if (pModule && pSession)
     {
-        tsc_result r = 0;
+        const TolonSpellCheck::CSessionOptions* pOptions = pSession->GetOptions();
 
-        // Set the title bar text to indicate the current language.
-        std::vector<wchar_t> sLangCode(13);
-        LANGUAGE_DESC_WIDEDATA LangDesc = {0};
-        LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-
-        r = pSession->GetCurrentLanguage(&(*sLangCode.begin()));
-        if (TSC_SUCCEEDED(r))
-            r = pSession->DescribeLanguage(&(*sLangCode.begin()), &LangDesc);
-
-        if (TSC_SUCCEEDED(r))
+        if (pOptions)
         {
-            std::wstringstream ss;
-            ss << L"Spelling: " << LangDesc.wszDisplayName;
-            ::SetWindowText(GetHwnd(), ss.str().c_str());
+            tsc_result r = 0;            
+
+            // Set the title bar text to indicate the current language.
+            std::vector<wchar_t> sLangCode(13);
+            LANGUAGE_DESC_WIDEDATA LangDesc = {0};
+            LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
+
+            r = pOptions->GetCurrentLanguage(&(*sLangCode.begin()));
+            if (TSC_SUCCEEDED(r))
+                r = pModule->DescribeLanguage(&(*sLangCode.begin()), &LangDesc);
+
+            if (TSC_SUCCEEDED(r))
+            {
+                std::wstringstream ss;
+                ss << L"Spelling: " << LangDesc.wszDisplayName;
+                ::SetWindowText(GetHwnd(), ss.str().c_str());
+            }
         }
     }
 }

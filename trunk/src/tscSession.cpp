@@ -6,6 +6,7 @@
 #include <commctrl.h>
 #include <sstream>
 #include "CheckSpellingDlg.h"
+#include <cassert>
 
 using namespace std;
 using namespace TolonSpellCheck;
@@ -58,23 +59,29 @@ tsc_result CSession::Init()
     tsc_result result = TSC_E_FAIL;
     
     // Provide a default culture if not has been offered.
-    if (strlen(m_options.szDictionaryCulture) == 0)
+    const char* szCulture = m_options.GetDefaultLanguage();
+    if (szCulture == NULL || (strlen(szCulture) == 0))
     {
         // win98 and later
         int n = 0;
         const int LOCALE_BUFLEN = 20;
-        wchar_t wszBuf[LOCALE_BUFLEN];
+        wchar_t wszBuf[LOCALE_BUFLEN] = {0};
+        char szBuf[LOCALE_BUFLEN] = {0};
         
         n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, wszBuf, 10);
         if (n != 0)
         {
             wcscat(wszBuf, L"-");
             n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, wszBuf + wcslen(wszBuf), 10);
-            ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, m_options.szDictionaryCulture, sizeof(m_options.szDictionaryCulture), NULL, NULL);
+            ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, szBuf, sizeof(szBuf), NULL, NULL);
+        }
+
+        if (strlen(szBuf) > 0)
+        {
+            m_options.SetLanguage(szBuf);
+            SetLanguage(szBuf);
         }
     }
-
-    SetLanguage(m_options.szDictionaryCulture);
     
     SetInitialised(m_pEnchantDict != NULL);
     
@@ -252,48 +259,12 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
     if (dlg.DoModal() == IDOK)
     {
         m_options = options_copy;
+
+        // SET THE NEW DICTIONARY HERE!!!
+        SetLanguage(m_options.GetCurrentLanguage());
     }
     
     return Success();
-}
-
-tsc_result CSession::GetCurrentLanguage(wchar_t* wszLang) 
-{
-    if (!IsInitialised())
-        return Error_SessionNotInitialised();
-
-    if (!wszLang)
-        return Error_ParamWasNull();
-    
-    tsc_result result = TSC_E_FAIL;
-    int n = 0;
-//	tsc_sizet nwszLen = _wcslen(wszLang);
-    
-//	if (nwszLen > 12)
-//		return TSC_E_INVALIDARG; // lang descriptor was too long
-    
-    char szLang[13];
-    result = GetCurrentLanguage(szLang);
-    if (SUCCEEDED(result))
-    {
-        n = ::MultiByteToWideChar(CP_UTF8, 0, szLang, -1, wszLang, 13);
-        if (!n)
-            result = TSC_E_FAIL;
-    }
-    
-    return result;
-}
-
-tsc_result CSession::GetCurrentLanguage(char* szLang) 
-{
-    if (!IsInitialised())
-        return TSC_E_UNEXPECTED;
-
-    if (!szLang)
-        return TSC_E_POINTER;
-    
-    strcpy(szLang, m_szCurrentCulture.c_str());
-    return TSC_S_OK;
 }
 
 tsc_result CSession::SetLanguage(const char* szCulture)
@@ -377,14 +348,70 @@ CSessionOptions::CSessionOptions()
 
 void CSessionOptions::WriteOut()
 {
-    StoreOption(s_szIgnoreUserDictionaries, bIgnoreUserDictionaries);
-    StoreOption(s_szIgnoreUppercaseWords, bIgnoreUppercaseWords);
-    StoreOption(s_szIgnoreWordsWithNumbers, bIgnoreWordsWithNumbers);
-    StoreOption(s_szIgnoreUris, bIgnoreUris);
-    StoreOption(s_szDictionaryCulture, szDictionaryCulture, sizeof(szDictionaryCulture));
-    StoreOption(s_szPreferredProvider, szPreferredProvider, sizeof(szPreferredProvider));
+    //StoreOption(s_szIgnoreUserDictionaries, bIgnoreUserDictionaries);
+    //StoreOption(s_szIgnoreUppercaseWords, bIgnoreUppercaseWords);
+    //StoreOption(s_szIgnoreWordsWithNumbers, bIgnoreWordsWithNumbers);
+    //StoreOption(s_szIgnoreUris, bIgnoreUris);
+    //StoreOption(s_szDictionaryCulture, szDictionaryCulture, sizeof(szDictionaryCulture));
+    //StoreOption(s_szPreferredProvider, szPreferredProvider, sizeof(szPreferredProvider));
 }
 
 void CSessionOptions::ReadIn()
 {
+}
+
+tsc_result CSessionOptions::GetCurrentLanguage(wchar_t* wszLang) const
+{
+    tsc_result result = TSC_E_FAIL;
+    int n = 0;
+//	tsc_sizet nwszLen = _wcslen(wszLang);
+    
+//	if (nwszLen > 12)
+//		return TSC_E_INVALIDARG; // lang descriptor was too long
+    
+    char szLang[13];
+    result = GetCurrentLanguage(szLang);
+    if (SUCCEEDED(result))
+    {
+        n = ::MultiByteToWideChar(CP_UTF8, 0, szLang, -1, wszLang, 13);
+        if (!n)
+            result = TSC_E_FAIL;
+    }
+    
+    return result;
+}
+
+tsc_result CSessionOptions::GetCurrentLanguage(char* szLang) const
+{
+    if (!szLang)
+        return TSC_E_POINTER;
+    
+    strcpy(szLang, m_sCurrentCulture.c_str());
+    return TSC_S_OK;
+}
+
+void CSessionOptions::SetLanguage(const char* szCulture)
+{
+    if (szCulture)
+    {
+        m_sCurrentCulture = szCulture;
+    }
+    else
+    {
+        m_sCurrentCulture.clear();
+    }
+}
+
+void CSessionOptions::SetDefaultLanguage(const char* szLang)
+{
+    assert(szLang);
+
+    if (strlen(szLang) < sizeof(szDictionaryCulture) - 1)
+    {
+        strcpy(szDictionaryCulture, szLang);
+    }
+    else
+    {
+        assert(false);
+    }
 }

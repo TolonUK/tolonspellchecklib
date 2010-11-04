@@ -65,6 +65,9 @@ public:
     EnchantDict* GetDictionary(const char* szCulture);
     void FreeDictionary(EnchantDict* const pDict);
 
+	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData);
+	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData);
+
 protected:
 	void SetInitialised(bool b)
 		{ m_bInitialised = b; }
@@ -72,9 +75,6 @@ protected:
 	CSession* GetSession(tsc_cookie SessionID);
 		
 	tsc_cookie GetNextSessionCookie();
-
-	tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData);
-	tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData);
 
 //Error methods
 protected:

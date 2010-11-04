@@ -3,6 +3,7 @@
 
 #include "SpellingOptionsDlg.h"
 #include "LanguageDlg.h"
+#include "tscSession.h"
 #include <windows.h>
 #include "WndUtils.h"
 
@@ -44,8 +45,13 @@ BOOL CSpellingOptionsDlg::OnInitDialog()
 
 void CSpellingOptionsDlg::OnDicLangClicked()
 {
-	CLanguageDlg dlg(m_options, m_hwnd);
-	dlg.DoModal();
+    TolonSpellCheck::CSessionOptions options_copy(m_options);
+
+	CLanguageDlg dlg(options_copy, m_hwnd);
+	if (dlg.DoModal() == IDOK)
+    {
+        m_options = options_copy;
+    }
 }
 
 void CSpellingOptionsDlg::OnOk()

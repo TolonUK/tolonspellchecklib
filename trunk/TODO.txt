@@ -4,3 +4,7 @@ DONE * Finish CompareProc function
 * The working directory must be set to the same as the exe, otherwise the code to load the dlls and dictionaries does not work!
 
 * The code for the CreateSession module function should check that the session has been initialised properly and return some kind of error if it hasn't.
+
+* There seem to be manifest problems loading the following libraries in notekeeper. They are picking up a version of msvcr80.dll from the sql server folder under program files.
+   - libenchant.dll
+   - libgmodule-2.0-0.dll

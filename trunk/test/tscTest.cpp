@@ -473,7 +473,10 @@ bool test_show_options()
     sow.cbSize = sizeof(TSC_SHOWOPTIONSWINDOW_DATA);
     sow.hWndParent = NULL;
     r = ::tscShowOptionsWindow(c, &sow);   
-    util_is_success("tscShowOptionsWindow", r, bTestResult);   
+    util_is_success("tscShowOptionsWindow", r, bTestResult);
+    // and again to show that the options were stored in memory
+    r = ::tscShowOptionsWindow(c, &sow);   
+    util_is_success("tscShowOptionsWindow", r, bTestResult);
     
     // Destroy session
     r = ::tscDestroySession(c);

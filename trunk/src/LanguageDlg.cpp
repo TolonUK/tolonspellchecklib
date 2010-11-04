@@ -4,6 +4,7 @@
 #include "LanguageDlg.h"
 #include "TolonSpellCheckInternals.h"
 #include "tscSession.h"
+#include "tscModule.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -165,35 +166,26 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 
 void CLanguageDlg::OnCmdOk()
 {
-    TolonSpellCheck::CSession* pSession = GetSession();
+    string sChosenLang;
 
-    if (!pSession)
+    // Get chosen language
+    GetChosenLanguage(sChosenLang);
+    
+    if (sChosenLang.empty())
     {
-        ::MessageBox(GetHwnd(), L"Internal Error. Could not set the chosen dictionary.", L"TolonSpellCheck", MB_OK | MB_ICONEXCLAMATION);
-        return;
+        ::MessageBox(GetHwnd(), L"No language chosen. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
     }
     else
     {
-        string sChosenLang;
+        // Set it on the session
+        //tsc_result r = TSC_E_FAIL;
+        //r = pSession->SetLanguage(sChosenLang.c_str());
+        m_options.SetLanguage(sChosenLang.c_str());
 
-        // Get chosen language
-        GetChosenLanguage(sChosenLang);
-        
-        if (sChosenLang.empty())
+        /*if (TSC_FAILED(r))
         {
-            ::MessageBox(GetHwnd(), L"No language chosen. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
-        }
-        else
-        {
-            // Set it on the session
-            tsc_result r = TSC_E_FAIL;
-            r = pSession->SetLanguage(sChosenLang.c_str());
-
-            if (TSC_FAILED(r))
-            {
-                ::MessageBox(GetHwnd(), L"Failed to set new language. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
-            }
-        }
+            ::MessageBox(GetHwnd(), L"Failed to set new language. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
+        }*/
     }
 }
 
@@ -203,6 +195,14 @@ void CLanguageDlg::OnCmdCancel()
 
 void CLanguageDlg::OnCmdMakeDefault()
 {
+    string sChosenLang;
+
+    // Get chosen language
+    GetChosenLanguage(sChosenLang);
+
+    m_options.SetDefaultLanguage(sChosenLang.c_str());
+
+    UpdateLanguageDisplay();
 }
 
 void CLanguageDlg::GetChosenLanguage(string& sLang)
@@ -247,7 +247,10 @@ void CLanguageDlg::UpdateLanguageDisplay()
         memset(wszLang, 0, sizeof(wszLang));
         
         ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-        result = pSession->GetCurrentLanguage(wszLang);
+        result = m_options.GetCurrentLanguage(wszLang);
+
+        //NEED TO GET THE DEFAULT LANGUAGE HERE
+        m_options.GetDefaultLanguage();
         
         if (TSC_SUCCEEDED(result))
         {
