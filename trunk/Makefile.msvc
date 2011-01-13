@@ -236,37 +236,41 @@ LIBTOLONSPELLCHECK_OBJECTS = \
     $(objdir)\SpellingOptionsDlg.obj \
     $(objdir)\RichEditSpellChecker.obj \
     $(objdir)\utf8conv.obj \
-    $(objdir)\isoLang.obj
+    $(objdir)\isoLang.obj \
+    $(objdir)\TolonSpellCheckInternals.obj
 
 $(objdir)\tscDLL.obj : $(srcdir)\tscDLL.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
 
 $(objdir)\tscModule.obj : $(srcdir)\tscModule.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
 
 $(objdir)\tscSession.obj : $(srcdir)\tscSession.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(objdir)\CheckSpellingDlg.obj : $(srcdir)\CheckSpellingDlg.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
 
 $(objdir)\LanguageDlg.obj : $(srcdir)\LanguageDlg.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(objdir)\SpellingOptionsDlg.obj : $(srcdir)\SpellingOptionsDlg.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
 
 $(objdir)\RichEditSpellChecker.obj : $(srcdir)\RichEditSpellChecker.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(objdir)\utf8conv.obj : $(srcdir)\utf8conv.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(objdir)\isoLang.obj : $(srcdir)\isoLang.cpp
-	$(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
+    
+$(objdir)\TolonSpellCheckInternals.obj : $(srcdir)\TolonSpellCheckInternals.cpp
+    $(CC_OBJ) $** $(LIBTOLONSPELLCHECK_DEFINES)
     
 $(LIBTOLONSPELLCHECK_RES) : $(LIBTOLONSPELLCHECK_RC)
-	rc -Fo $(LIBTOLONSPELLCHECK_RES) $(LIBTOLONSPELLCHECK_RC)
+    rc -Fo $(LIBTOLONSPELLCHECK_RES) $(LIBTOLONSPELLCHECK_RC)
     
 #$(LIBTOLONSPELLCHECK_RC) : $(LIBTOLONSPELLCHECK_RC).in
 #    sed \
@@ -284,12 +288,12 @@ libtolonspellcheck_clean: libtolonspellcheck_dll_clean
 !endif
 
 LIBTOLONSPELLCHECK_LIB : $(LIBTOLONSPELLCHECK_OBJECTS)
-	-$(RM) $(LIBTOLONSPELLCHECK_LIB)
-	$(AR) $(AR_FLAGS)$(LIBTOLONSPELLCHECK_LIB) $(LIBTOLONSPELLCHECK_OBJECTS)
+    -$(RM) $(LIBTOLONSPELLCHECK_LIB)
+    $(AR) $(AR_FLAGS)$(LIBTOLONSPELLCHECK_LIB) $(LIBTOLONSPELLCHECK_OBJECTS)
 
 # libtolonspellcheck.dll and libtolonspellcheck.lib are created together.
 LIBTOLONSPELLCHECK_DLL : $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_RES)
-	$(LINK_DLL) -DEF:$(LIBTOLONSPELLCHECK_DEF) $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_LIBS) $(LIBTOLONSPELLCHECK_RES) -OUT:$(LIBTOLONSPELLCHECK_DLL)
+    $(LINK_DLL) -DEF:$(LIBTOLONSPELLCHECK_DEF) $(LIBTOLONSPELLCHECK_OBJECTS) $(LIBTOLONSPELLCHECK_LIBS) $(LIBTOLONSPELLCHECK_RES) -OUT:$(LIBTOLONSPELLCHECK_DLL)
     $(EMBED_MANIFEST:exe_name=libtolonspellcheck.dll)
     $(CLEAN_MANIFEST:exe_name=libtolonspellcheck.dll)
 
@@ -318,7 +322,7 @@ TEST_TOLONSPELLCHECK_OBJECTS = \
     $(objdir)\tscTest.obj
 
 $(objdir)\tscTest.obj : $(testdir)\tscTest.cpp
-	$(CC_OBJ) $** $(TEST_TOLONSPELLCHECK_DEFINES)
+    $(CC_OBJ) $** $(TEST_TOLONSPELLCHECK_DEFINES)
 
 test-tolonspellcheck: $(TEST_TOLONSPELLCHECK_EXE) 
 
@@ -335,11 +339,11 @@ test-tolonspellcheck_clean:
 check : all
 
 install : force
-	-mkdir $(prefix)
-	-mkdir $(prefix)\include
-	$(INSTALL_DATA) $(includedir)\TolonSpellCheck.h $(prefix)\include\TolonSpellCheck.h
-	-mkdir $(prefix)\bin
-	$(INSTALL_DATA) $(outdir)\tsc-test.exe $(prefix)\bin\tsc-test.exe
+    -mkdir $(prefix)
+    -mkdir $(prefix)\include
+    $(INSTALL_DATA) $(includedir)\TolonSpellCheck.h $(prefix)\include\TolonSpellCheck.h
+    -mkdir $(prefix)\bin
+    $(INSTALL_DATA) $(outdir)\tsc-test.exe $(prefix)\bin\tsc-test.exe
 #!if $(MANIFEST)
 #        $(INSTALL_DATA) $(outdir)\tsc-test.exe.manifest $(prefix)\bin\tsc-test.exe.manifest
 #!endif
@@ -349,8 +353,8 @@ install : force
 #        $(INSTALL_DATA) $(outdir)\libtolonspellcheck.dll.manifest $(prefix)\bin\libtolonspellcheck.dll.manifest
 #!endif
 !endif
-	-mkdir $(prefix)\lib
-	$(INSTALL_DATA) $(outdir)\libtolonspellcheck.lib $(prefix)\lib\libtolonspellcheck.lib
+    -mkdir $(prefix)\lib
+    $(INSTALL_DATA) $(outdir)\libtolonspellcheck.lib $(prefix)\lib\libtolonspellcheck.lib
 
 mostlyclean : clean
 
