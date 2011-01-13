@@ -3,30 +3,31 @@
 #include <windows.h>
 #include "isoLang.h"
 #include <sstream>
+#include "utf8conv.h"
 
 using namespace TolonSpellCheck;
 using namespace std;
 
 static const char* const s_szSuccess =
-	"M0000 - Success.";
+    "M0000 - Success.";
 static const char* const s_szErrInvalidSessionCookie =
-	"M0001 - Error, invalid session cookie.";
+    "M0001 - Error, invalid session cookie.";
 static const char* const s_szErrModuleAlreadyInitialised = 
-	"M0002 - Error, module object has already been initialised.";
+    "M0002 - Error, module object has already been initialised.";
 static const char* const s_szErrModuleNotInitialised = 
-	"M0003 - Error, module object not initialised.";
+    "M0003 - Error, module object not initialised.";
 static const char* const s_szErrNotImplemented =
-	"M0004 - Error, method not fully implemented.";
+    "M0004 - Error, method not fully implemented.";
 static const char* const s_szErrParamWasNull =
-	"M0005 - Error, one or more parameters were null.";
+    "M0005 - Error, one or more parameters were null.";
 static const char* const s_szErrStructSizeInvalid =
-	"M0006 - Error, cbSize member of structure was set to an unrecognized value.";
+    "M0006 - Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szErrSessionCreationFailed =
     "M0008 - Error, session creation failed.";
 static const char* const s_szErrFailedToInitEnchant =
     "M0009 - Error, failed to initialise the spell checking engine.";
 static const char* const s_szErrErr =
-	"M9999 - Internal error, error text not set!";
+    "M9999 - Internal error, error text not set!";
 
 CModule* CModule::sm_pThis;
 
@@ -34,23 +35,23 @@ CModule* CModule::GetInstance()
 {
     //TODO: Do we need concurrency protection here?
 
-	if (sm_pThis)
-		return sm_pThis;
+    if (sm_pThis)
+        return sm_pThis;
 
-	try {
-		sm_pThis = new CModule;
-	} catch (bad_alloc& e) {
-		//couldn't allocate new module
-		//TODO: add logging
-	}
+    try {
+        sm_pThis = new CModule;
+    } catch (bad_alloc& e) {
+        //couldn't allocate new module
+        //TODO: add logging
+    }
 
     return sm_pThis;
 }
 
 CModule::CModule() :
-	m_bInitialised(false),
-	m_szLastError(s_szErrErr),
-	m_nLastSessionCookie(TSC_NULL_COOKIE),
+    m_bInitialised(false),
+    m_szLastError(s_szErrErr),
+    m_nLastSessionCookie(TSC_NULL_COOKIE),
     m_pEnchantBroker(NULL)
 {
 }
@@ -59,33 +60,27 @@ CModule::~CModule()
 {
 }
 
-tsc_result CModule::Init(TSC_INIT_DATA* pData)
+tsc_result CModule::Init(CInitData& data)
 {
-	if (IsInitialised())
-		return Error_ModuleAlreadyInitialised();
-
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_INIT_DATA))
-		return Error_StructSizeInvalid();
-	
-	m_sHostName = pData->szAppName;
+    if (IsInitialised())
+        return Error_ModuleAlreadyInitialised();
+        
+    m_sHostName = data.AppName();
 
     // Initialise the enchant library
     m_pEnchantBroker = enchant_broker_init();
 
-	SetInitialised(m_pEnchantBroker != NULL);
+    SetInitialised(m_pEnchantBroker != NULL);
 
     return m_pEnchantBroker ? Success() : Error_FailedToInitEnchant();
 }
 
 tsc_result CModule::Uninit()
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
 
-	SetInitialised(false);
+    SetInitialised(false);
 
     if (m_pEnchantBroker)
     {
@@ -93,55 +88,41 @@ tsc_result CModule::Uninit()
         m_pEnchantBroker = NULL;
     }
 
-	m_sHostName.swap(string());
-	return Success();
+    m_sHostName.swap(wstring());
+    return Success();
 }
 
-tsc_result CModule::GetVersion(TSC_VERSION_DATA* pData)
+tsc_result CModule::GetVersion(CVersionData& data)
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_VERSION_DATA))
-		return Error_StructSizeInvalid();
-	
-	pData->nMajor = TSC_VERSION_MAJOR;
-	pData->nMinor = TSC_VERSION_MINOR;
-	pData->nReserved1 = 0;
-	pData->nReserved2 = 0;
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
 
-	return Success();
+    // The default ctor of the CVersionData class sets the version
+    // number to the current version, so there's nothing to do.
+
+    return Success();
 }
 
-tsc_result CModule::CreateSession( tsc_cookie* pSessionID, TSC_CREATESESSION_DATA* pData )
+tsc_result CModule::CreateSession( tsc_cookie* pSessionID, CCreateSessionData& data )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pSessionID || !pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_CREATESESSION_DATA))
-		return Error_StructSizeInvalid();
-	
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
     bool bSessionOk = false;
     CSession* pS = NULL;
-    try { pS = new CSession(pData); } catch (bad_alloc& e) { }
+    try { pS = new CSession(data); } catch (bad_alloc& e) { }
 
     if (pS)
     {
-	    pS->Init();
+        pS->Init();
         bSessionOk = pS->IsInitialised();
     }
 
     if (bSessionOk)
     {
-	    *pSessionID = GetNextSessionCookie();
-	    m_xSessions.insert(std::make_pair(*pSessionID, pS));
-	    return Success();
+        *pSessionID = GetNextSessionCookie();
+        m_xSessions.insert(std::make_pair(*pSessionID, pS));
+        return Success();
     }
     else
     {
@@ -152,162 +133,166 @@ tsc_result CModule::CreateSession( tsc_cookie* pSessionID, TSC_CREATESESSION_DAT
 
 tsc_result CModule::DestroySession( tsc_cookie SessionID )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	CSession* pS = GetSession(SessionID);
-	
-	if (!pS)
-		return Error_InvalidSessionCookie();
-	
-	m_xSessions.erase(SessionID);
-	pS->Uninit();
-	delete pS;
-	
-	return Success();
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    m_xSessions.erase(SessionID);
+    pS->Uninit();
+    delete pS;
+    
+    return Success();
 }
 
-tsc_result CModule::GetSessionOptions( tsc_cookie SessionID,  TSC_SESSIONOPTIONS_DATA* pData )
+tsc_result CModule::GetSessionOptions( tsc_cookie SessionID, CSessionOptionsData& data )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_SESSIONOPTIONS_DATA))
-		return Error_StructSizeInvalid();
-	
-	CSession* pS = GetSession(SessionID);
-	
-	if (!pS)
-		return Error_InvalidSessionCookie();
-	
-	tsc_result r = TSC_E_FAIL;
-	r = pS->GetSessionOptions(pData);
-	m_szLastError = pS->GetLastError();
-	
-	return r;
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    tsc_result r = TSC_E_FAIL;
+    r = pS->GetSessionOptions(data);
+    m_szLastError = pS->GetLastError();
+    
+    return r;
 }
 
-tsc_result CModule::SetSessionOptions( tsc_cookie SessionID, TSC_SESSIONOPTIONS_DATA* pData )
+tsc_result CModule::SetSessionOptions( tsc_cookie SessionID, CSessionOptionsData& data )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_SESSIONOPTIONS_DATA))
-		return Error_StructSizeInvalid();
-	
-	CSession* pS = GetSession(SessionID);
-	
-	if (!pS)
-		return Error_InvalidSessionCookie();
-	
-	tsc_result r = TSC_E_FAIL;
-	r = pS->SetSessionOptions(pData);
-	m_szLastError = pS->GetLastError();
-	
-	return r;
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    tsc_result r = TSC_E_FAIL;
+    r = pS->SetSessionOptions(data);
+    m_szLastError = pS->GetLastError();
+    
+    return r;
 }
 
 tsc_result CModule::ShowOptionsWindow( tsc_cookie SessionID, TSC_SHOWOPTIONSWINDOW_DATA* pData )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_SHOWOPTIONSWINDOW_DATA))
-		return Error_StructSizeInvalid();
-	
-	CSession* pS = GetSession(SessionID);
-	
-	if (!pS)
-		return Error_InvalidSessionCookie();
-	
-	tsc_result r = TSC_E_FAIL;
-	r = pS->ShowOptionsWindow(pData);
-	m_szLastError = pS->GetLastError();
-	
-	return r;
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    if (!pData)
+        return Error_ParamWasNull();
+    
+    if (pData->cbSize != sizeof(TSC_SHOWOPTIONSWINDOW_DATA))
+        return Error_StructSizeInvalid();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    tsc_result r = TSC_E_FAIL;
+    r = pS->ShowOptionsWindow(pData);
+    m_szLastError = pS->GetLastError();
+    
+    return r;
 }
 
 tsc_result CModule::CheckSpelling( tsc_cookie SessionID, TSC_CHECKSPELLING_DATA* pData )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_CHECKSPELLING_DATA))
-		return Error_StructSizeInvalid();
-	
-	CSession* pS = GetSession(SessionID);
-	
-	if (!pS)
-		return Error_InvalidSessionCookie();
-	
-	tsc_result r = TSC_E_FAIL;
-	r = pS->CheckSpelling(pData);
-	m_szLastError = pS->GetLastError();
-	
-	return r;
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    if (!pData)
+        return Error_ParamWasNull();
+    
+    if (pData->cbSize != sizeof(TSC_CHECKSPELLING_DATA))
+        return Error_StructSizeInvalid();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    tsc_result r = TSC_E_FAIL;
+    r = pS->CheckSpelling(pData);
+    m_szLastError = pS->GetLastError();
+    
+    return r;
 }
 
 tsc_result CModule::CheckWord( tsc_cookie SessionID, TSC_CHECKWORD_DATA* pData )
 {
-	if (!IsInitialised())
-		return Error_ModuleNotInitialised();
-	
-	if (!pData)
-		return Error_ParamWasNull();
-	
-	if (pData->cbSize != sizeof(TSC_CHECKWORD_DATA))
-		return Error_StructSizeInvalid();
-	
-	CSession* pS = GetSession(SessionID);
-	
-	if (!pS)
-		return Error_InvalidSessionCookie();
-	
-	tsc_result r = TSC_E_FAIL;
-	r = pS->CheckWord(pData);
-	m_szLastError = pS->GetLastError();
-	
-	return r;
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    if (!pData)
+        return Error_ParamWasNull();
+    
+    if (pData->cbSize != sizeof(TSC_CHECKWORD_DATA))
+        return Error_StructSizeInvalid();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    tsc_result r = TSC_E_FAIL;
+    r = pS->CheckWord(pData);
+    m_szLastError = pS->GetLastError();
+    
+    return r;
 }
 
 CSession* CModule::GetSession( tsc_cookie SessionID )
 {
-	CSession* pS = NULL;
-	std::map<tsc_cookie, CSession*>::iterator it;
-	
-	it = m_xSessions.find(SessionID);
-	if (it != m_xSessions.end())
-		pS = (*it).second;
-	
-	return pS;
+    CSession* pS = NULL;
+    std::map<tsc_cookie, CSession*>::iterator it;
+    
+    it = m_xSessions.find(SessionID);
+    if (it != m_xSessions.end())
+        pS = (*it).second;
+    
+    return pS;
 }
 
 tsc_cookie CModule::GetNextSessionCookie()
 {
-	return ++m_nLastSessionCookie;
+    return ++m_nLastSessionCookie;
 }
 
 EnchantDict* CModule::GetDictionary(const char* szCulture)
 {
     EnchantDict* pDict = NULL;
 
-    if (m_pEnchantBroker)
+    if (szCulture && m_pEnchantBroker)
     {
         pDict = enchant_broker_request_dict(m_pEnchantBroker, szCulture);
     }
 
+    return pDict;
+}
+
+EnchantDict* CModule::GetDictionary(const wchar_t* szCulture)
+{
+    CUTF8Conv conv;
+    std::string sUtf8;
+    
+    conv.utf8FromUnicode(szCulture, sUtf8);
+    
+    EnchantDict* pDict = NULL;
+    if (!sUtf8.empty())
+    {
+        pDict = GetDictionary(sUtf8.c_str());
+    }
+    
     return pDict;
 }
 
@@ -452,32 +437,32 @@ tsc_result CModule::Error_FailedToInitEnchant()
 
 tsc_result CModule::Error_InvalidSessionCookie()
 {
-	m_szLastError = s_szErrInvalidSessionCookie;
-	return TSC_E_INVALIDARG;
+    m_szLastError = s_szErrInvalidSessionCookie;
+    return TSC_E_INVALIDARG;
 }
 
 tsc_result CModule::Error_ModuleAlreadyInitialised()
 {
-	m_szLastError = s_szErrModuleAlreadyInitialised;
-	return TSC_E_UNEXPECTED;
+    m_szLastError = s_szErrModuleAlreadyInitialised;
+    return TSC_E_UNEXPECTED;
 }
 
 tsc_result CModule::Error_ModuleNotInitialised()
 {
-	m_szLastError = s_szErrModuleNotInitialised;
-	return TSC_E_UNEXPECTED;
+    m_szLastError = s_szErrModuleNotInitialised;
+    return TSC_E_UNEXPECTED;
 }
 
 tsc_result CModule::Error_NotImplemented()
 {
-	m_szLastError = s_szErrNotImplemented;
-	return TSC_E_NOTIMPL;
+    m_szLastError = s_szErrNotImplemented;
+    return TSC_E_NOTIMPL;
 }
 
 tsc_result CModule::Error_ParamWasNull()
 {
-	m_szLastError = s_szErrParamWasNull;
-	return TSC_E_POINTER;
+    m_szLastError = s_szErrParamWasNull;
+    return TSC_E_POINTER;
 }
 
 tsc_result CModule::Error_SessionCreationFailed()
@@ -488,12 +473,12 @@ tsc_result CModule::Error_SessionCreationFailed()
 
 tsc_result CModule::Error_StructSizeInvalid()
 {
-	m_szLastError = s_szErrStructSizeInvalid;
-	return TSC_E_INVALIDARG;
+    m_szLastError = s_szErrStructSizeInvalid;
+    return TSC_E_INVALIDARG;
 }
 
 tsc_result CModule::Success()
 {
-	m_szLastError = s_szSuccess;
-	return TSC_S_OK;
+    m_szLastError = s_szSuccess;
+    return TSC_S_OK;
 }

@@ -172,7 +172,7 @@ BEGIN
     CONTROL         "Ignore URIs (Internet addresses, etc.)",IDC_IGNORE_URIS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,40,141,10
     LTEXT           "Static",IDC_STATIC,7,55,258,1,SS_SUNKEN
-    PUSHBUTTON      "Dictionary Language...",IDC_BUTTON1,7,61,92,14
+    PUSHBUTTON      "Dictionary Language...",IDC_DICLANG_BTN,7,61,92,14
 END
 
 

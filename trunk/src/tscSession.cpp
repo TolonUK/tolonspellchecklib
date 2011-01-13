@@ -24,17 +24,15 @@ static const char* const s_szErrParamWasNull =
 static const char* const s_szErrStructSizeInvalid =
     "S0005 - Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szErrIntNullModulePtr = 
-	"S0006 - Internal Error, a null module pointer was encountered. Please contact technical support.";
+    "S0006 - Internal Error, a null module pointer was encountered. Please contact technical support.";
 static const char* const s_szErrErr =
     "S9999 - Internal error, error text not set!";
 
-CSession::CSession(TSC_CREATESESSION_DATA* pData) :
+CSession::CSession(CCreateSessionData& data) :
     m_bInitialised(false),
     m_pEnchantDict(NULL),
     m_szLastError(s_szErrErr)
-{
-    memset(&m_options, 0, sizeof(TSC_SESSIONOPTIONS_DATA));
-    
+{   
     // InitCommonControlsEx() is required on Windows XP if an application
     // manifest specifies use of ComCtl32.dll version 6 or later to enable
     // visual styles.  Otherwise, any window creation will fail.
@@ -57,30 +55,17 @@ tsc_result CSession::Init()
         return Error_SessionAlreadyInitialised();
     
     tsc_result result = TSC_E_FAIL;
-    
-    // Provide a default culture if not has been offered.
-    const char* szCulture = m_options.GetDefaultLanguage();
-    if (szCulture == NULL || (strlen(szCulture) == 0))
-    {
-        // win98 and later
-        int n = 0;
-        const int LOCALE_BUFLEN = 20;
-        wchar_t wszBuf[LOCALE_BUFLEN] = {0};
-        char szBuf[LOCALE_BUFLEN] = {0};
-        
-        n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, wszBuf, 10);
-        if (n != 0)
-        {
-            wcscat(wszBuf, L"-");
-            n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, wszBuf + wcslen(wszBuf), 10);
-            ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, szBuf, sizeof(szBuf), NULL, NULL);
-        }
 
-        if (strlen(szBuf) > 0)
-        {
-            m_options.SetLanguage(szBuf);
-            SetLanguage(szBuf);
-        }
+    // Provide a default culture if none has been offered.
+    if (!m_options.HasDefaultLanguage())
+    {
+        m_options.SetDefaultLanguageFromOS();
+    }
+    
+    const wchar_t* szCulture = m_options.DefaultLanguage();
+    if (wcslen(szCulture) > 0)
+    {
+        SetLanguage(szCulture);
     }
     
     SetInitialised(m_pEnchantDict != NULL);
@@ -215,34 +200,24 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
     return Success();
 }
 
-tsc_result CSession::GetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData)
+tsc_result CSession::GetSessionOptions(CSessionOptionsData& data)
 {
     if (!IsInitialised())
         return Error_SessionNotInitialised();
 
-    if (!pData)
-        return Error_ParamWasNull();
-    
-    if (pData->cbSize != sizeof(TSC_SESSIONOPTIONS_DATA))
-        return Error_StructSizeInvalid();
-    
-    memcpy(pData, &m_options, sizeof(TSC_SESSIONOPTIONS_DATA));
+    data = m_options;
     
     return Success();
 }
 
-tsc_result CSession::SetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData)
+tsc_result CSession::SetSessionOptions(CSessionOptionsData& data)
 {
     if (!IsInitialised())
         return Error_SessionNotInitialised();
+    
+    m_options = data;
 
-    if (!pData)
-        return Error_ParamWasNull();
-    
-    if (pData->cbSize != sizeof(TSC_SESSIONOPTIONS_DATA))
-        return Error_StructSizeInvalid();
-    
-    return Error_NotImplemented();
+    return Success();
 }
 
 tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
@@ -252,7 +227,7 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
 
     // only allow a copy of the options to be changed before we know
     // whether the dialog was dismissed by the ok button.
-    CSessionOptions options_copy(m_options);
+    CSessionOptionsData options_copy(m_options);
     
     CSpellingOptionsDlg dlg(options_copy, pData->hWndParent);
     
@@ -261,13 +236,13 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
         m_options = options_copy;
 
         // SET THE NEW DICTIONARY HERE!!!
-        SetLanguage(m_options.GetCurrentLanguage());
+        SetLanguage(m_options.CurrentLanguage());
     }
     
     return Success();
 }
 
-tsc_result CSession::SetLanguage(const char* szCulture)
+tsc_result CSession::SetLanguage(const wchar_t* szCulture)
 {
     tsc_result result = TSC_E_FAIL;
 
@@ -288,6 +263,16 @@ tsc_result CSession::SetLanguage(const char* szCulture)
     return result;
 }
 
+const wchar_t* CSession::GetLanguage() const
+{
+    const wchar_t* pResult = NULL;
+    if (!m_szCurrentCulture.empty())
+    {
+        pResult = m_szCurrentCulture.c_str();
+    }
+    return pResult;
+}
+
 tsc_result CSession::Error_NotImplemented()
 {
     m_szLastError = s_szErrNotImplemented;
@@ -296,8 +281,8 @@ tsc_result CSession::Error_NotImplemented()
 
 tsc_result CSession::Error_Internal_NullModulePtr()
 {
-	m_szLastError = s_szErrIntNullModulePtr;
-	return TSC_E_FAIL;
+    m_szLastError = s_szErrIntNullModulePtr;
+    return TSC_E_FAIL;
 }
 
 tsc_result CSession::Error_ParamWasNull()
@@ -333,7 +318,7 @@ tsc_result CSession::Success()
 ////////////////////////////////////////////////////////////////////////////////
 // CSessionOptions
 ////////////////////////////////////////////////////////////////////////////////
-
+/*
 static const wchar_t* s_szIgnoreUserDictionaries = L"IgnoreUserDictionaries";
 static const wchar_t* s_szIgnoreUppercaseWords = L"IgnoreUppercaseWords";
 static const wchar_t* s_szIgnoreWordsWithNumbers = L"IgnoreWordsWithNumbers";
@@ -414,4 +399,4 @@ void CSessionOptions::SetDefaultLanguage(const char* szLang)
     {
         assert(false);
     }
-}
+}*/

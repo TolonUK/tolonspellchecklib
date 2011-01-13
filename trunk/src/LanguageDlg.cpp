@@ -63,9 +63,9 @@ bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserDa
     return bResult;
 }
 
-CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSessionOptions& options, HWND hwndParent /*=NULL*/) :
+CLanguageDlg::CLanguageDlg(TolonSpellCheck::CSessionOptionsData& options, HWND hwndParent /*=NULL*/) :
+    //m_pSession(pSession),
     m_options(options),
-    //m_pSession(pSession), to be removed
     m_hwnd(NULL),
     m_hwndParent(hwndParent),
     m_hwndLangList(NULL)
@@ -166,7 +166,7 @@ int CALLBACK CLanguageDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARA
 
 void CLanguageDlg::OnCmdOk()
 {
-    string sChosenLang;
+    wstring sChosenLang;
 
     // Get chosen language
     GetChosenLanguage(sChosenLang);
@@ -177,10 +177,10 @@ void CLanguageDlg::OnCmdOk()
     }
     else
     {
+        m_options.CurrentLanguage(sChosenLang.c_str());
         // Set it on the session
         //tsc_result r = TSC_E_FAIL;
         //r = pSession->SetLanguage(sChosenLang.c_str());
-        m_options.SetLanguage(sChosenLang.c_str());
 
         /*if (TSC_FAILED(r))
         {
@@ -195,17 +195,17 @@ void CLanguageDlg::OnCmdCancel()
 
 void CLanguageDlg::OnCmdMakeDefault()
 {
-    string sChosenLang;
+    wstring sChosenLang;
 
     // Get chosen language
     GetChosenLanguage(sChosenLang);
 
-    m_options.SetDefaultLanguage(sChosenLang.c_str());
+    m_options.DefaultLanguage(sChosenLang.c_str());
 
     UpdateLanguageDisplay();
 }
 
-void CLanguageDlg::GetChosenLanguage(string& sLang)
+void CLanguageDlg::GetChosenLanguage(wstring& sLang)
 {
     int nItem = LB_ERR;
     nItem = ListView_GetNextItem(GetLangListHwnd(), -1, LVNI_SELECTED);
@@ -225,10 +225,7 @@ void CLanguageDlg::GetChosenLanguage(string& sLang)
                               &wszBuf[0],
                               nBufLen );
 
-        char szBuffer[nBufLen] = "\0";
-        ::WideCharToMultiByte(CP_UTF8, 0, wszBuf, -1, szBuffer, nBufLen, NULL, NULL);
-
-        sLang.assign(szBuffer);
+        sLang.assign(wszBuf);
     }
 }
 
@@ -239,22 +236,15 @@ void CLanguageDlg::UpdateLanguageDisplay()
 
     if (pMod)
     {
-        tsc_result result = TSC_S_OK;
-
-        LANGUAGE_DESC_WIDEDATA ldwd;
-        wchar_t wszLang[13];
-        memset(&ldwd, 0, sizeof(LANGUAGE_DESC_WIDEDATA));
-        memset(wszLang, 0, sizeof(wszLang));
-        
-        ldwd.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-        result = m_options.GetCurrentLanguage(wszLang);
-
         //NEED TO GET THE DEFAULT LANGUAGE HERE
-        m_options.GetDefaultLanguage();
+        const wchar_t* sDefault = m_options.DefaultLanguage();
         
-        if (TSC_SUCCEEDED(result))
+        if (sDefault)
         {
-            result = pMod->DescribeLanguage(wszLang, &ldwd);
+            tsc_result result = TSC_S_OK;
+            LANGUAGE_DESC_WIDEDATA ldwd = {0};
+
+            result = pMod->DescribeLanguage(sDefault, &ldwd);
             
             if (TSC_SUCCEEDED(result))
             {

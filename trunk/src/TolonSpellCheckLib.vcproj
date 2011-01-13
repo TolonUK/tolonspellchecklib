@@ -194,6 +194,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\TolonSpellCheckInternals.cpp"
+				>
+			</File>
+			<File
 				RelativePath="tscDLL.cpp"
 				>
 			</File>

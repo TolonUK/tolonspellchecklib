@@ -16,7 +16,7 @@ protected:
     static bool LangEnumCallback(TolonSpellCheck::LANGUAGE_DESC_WIDEDATA* pData, void* pUserData);
 
 public:
-    CLanguageDlg(TolonSpellCheck::CSessionOptions& options, HWND hwndParent = NULL);   // standard constructor
+    CLanguageDlg(TolonSpellCheck::CSessionOptionsData& options, HWND hwndParent = NULL);   // standard constructor
     ~CLanguageDlg();
 
 // Dialog Data
@@ -38,7 +38,7 @@ private:
 
     void InitLangList();
 
-    void GetChosenLanguage(std::string& sLang);
+    void GetChosenLanguage(std::wstring& sLang);
 
     // User Interface Updating
     //! Returns the window handle for the specified dialog component.
@@ -61,8 +61,8 @@ private:
     static int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort); 
 
 private:
-    TolonSpellCheck::CSessionOptions& m_options;
-    //TolonSpellCheck::CSession* const m_pSession; // to be removed
+    TolonSpellCheck::CSessionOptionsData& m_options;
+    //TolonSpellCheck::CSession* const m_pSession;
     HWND m_hwnd;
     HWND m_hwndParent;
     HWND m_hwndLangList;

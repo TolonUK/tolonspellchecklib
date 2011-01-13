@@ -19,7 +19,7 @@ const UINT_PTR CCheckSpellingDlg::m_nCheckerPollEvent = 1;
 static const UINT s_nCheckerPollFrequency = 100; // milliseconds
 
 CCheckSpellingDlg::CCheckSpellingDlg(TolonSpellCheck::CSession* pSession, TSC_CHECKSPELLING_DATA* pData) :
-	m_pSession(pSession),
+    m_pSession(pSession),
     m_pData(pData),
     m_hwnd(NULL),
     m_hwndParent(NULL),
@@ -41,9 +41,9 @@ CCheckSpellingDlg::~CCheckSpellingDlg()
 
 int CCheckSpellingDlg::DoModal()
 {
-	s_pThis = this;
-	DialogBox(g_hInstDll, MAKEINTRESOURCE(CCheckSpellingDlg::IDD), m_hwndParent, &CCheckSpellingDlg::WndProc);
-	return 0;
+    s_pThis = this;
+    DialogBox(g_hInstDll, MAKEINTRESOURCE(CCheckSpellingDlg::IDD), m_hwndParent, &CCheckSpellingDlg::WndProc);
+    return 0;
 }
 
 BOOL CCheckSpellingDlg::OnInitDialog()
@@ -61,7 +61,7 @@ BOOL CCheckSpellingDlg::OnInitDialog()
     // Begin the spell check!
     m_checker.StartSpellCheck(GetRichEditHwnd());
 
-	return TRUE;
+    return TRUE;
 }
 
 void CCheckSpellingDlg::UpdateTitleBar()
@@ -71,28 +71,36 @@ void CCheckSpellingDlg::UpdateTitleBar()
 
     if (pModule && pSession)
     {
-        const TolonSpellCheck::CSessionOptions* pOptions = pSession->GetOptions();
+        tsc_result r = TSC_E_FAIL;            
 
-        if (pOptions)
+        // Set the title bar text to indicate the current language.
+        std::wstring sLangCode;
+
         {
-            tsc_result r = 0;            
-
-            // Set the title bar text to indicate the current language.
-            std::vector<wchar_t> sLangCode(13);
-            LANGUAGE_DESC_WIDEDATA LangDesc = {0};
-            LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-
-            r = pOptions->GetCurrentLanguage(&(*sLangCode.begin()));
-            if (TSC_SUCCEEDED(r))
-                r = pModule->DescribeLanguage(&(*sLangCode.begin()), &LangDesc);
-
-            if (TSC_SUCCEEDED(r))
+            const wchar_t* p = pSession->GetLanguage();
+            if (p)
             {
-                std::wstringstream ss;
-                ss << L"Spelling: " << LangDesc.wszDisplayName;
-                ::SetWindowText(GetHwnd(), ss.str().c_str());
+                sLangCode = p;
             }
         }
+        
+        std::wstring sTitle(L"Spelling: ");
+        if (!sLangCode.empty())
+        {
+            LANGUAGE_DESC_WIDEDATA LangDesc = {0};
+            LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
+            r = pModule->DescribeLanguage(sLangCode.c_str(), &LangDesc);
+            if (TSC_SUCCEEDED(r) && (LangDesc.wszDisplayName != NULL))
+            {
+                sTitle.append(LangDesc.wszDisplayName);
+            }
+        }
+        else
+        {
+            sTitle.append(L"?");
+        }
+
+        ::SetWindowText(GetHwnd(), sTitle.c_str());
     }
 }
 
@@ -100,18 +108,18 @@ int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, 
 {
     BOOL bHandled = FALSE;
 
-	if (!s_pThis)
-		return 0;
-	
-	if (!s_pThis->m_hwnd)
-		s_pThis->m_hwnd = hDlg;
-	
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return s_pThis->OnInitDialog();
+    if (!s_pThis)
+        return 0;
+    
+    if (!s_pThis->m_hwnd)
+        s_pThis->m_hwnd = hDlg;
+    
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return s_pThis->OnInitDialog();
 
-	case WM_COMMAND:
+    case WM_COMMAND:
         const WORD nCmd = LOWORD(wParam);
         const WORD nCtlMsg = HIWORD(wParam);
 
@@ -119,14 +127,14 @@ int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, 
         {
         case 0:
             {
-		        if (nCmd == IDOK || nCmd == IDCANCEL)
-		        { EndDialog(hDlg, nCmd); }
+                if (nCmd == IDOK || nCmd == IDCANCEL)
+                    { EndDialog(hDlg, nCmd); }
                 else if (nCmd == IDC_OPTIONS)
                     { s_pThis->OnCmdOptions(); }
                 else if (nCmd == IDC_CANCEL_SPELLCHECK)
                     { s_pThis->OnCmdCancelSpellCheck(); }
-		        else if (nCmd == IDC_RESTART_SPELLCHECK)
-			        { s_pThis->OnCmdRestartSpellCheck(); }
+                else if (nCmd == IDC_RESTART_SPELLCHECK)
+                    { s_pThis->OnCmdRestartSpellCheck(); }
                 else if (nCmd == IDC_IGNORE_ONCE)
                     { s_pThis->OnCmdIgnoreOnce(); }
                 else if (nCmd == IDC_IGNORE_ALL)
@@ -147,11 +155,11 @@ int CALLBACK CCheckSpellingDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, 
 
                 break;
             }
-		    break;
+            break;
         }
-	}
+    }
 
-	return static_cast<INT_PTR>(bHandled);
+    return static_cast<INT_PTR>(bHandled);
 }
 
 void CCheckSpellingDlg::OnCmdOptions()
@@ -291,11 +299,12 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
             HWND hWndEditChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
             if (hWndEditWord && hWndEditChangeTo)
             {
-                const int nStrLen = strlen(pCwd->uTestWord.szWord8);
-                std::vector<wchar_t> wsz(nStrLen + 1);
-                ::MultiByteToWideChar(CP_UTF8, 0, pCwd->uTestWord.szWord8, -1, &(*wsz.begin()), wsz.size());
-                ::SetWindowText(hWndEditWord, &(*wsz.begin()));
-                ::SetWindowText(hWndEditChangeTo, &(*wsz.begin()));
+                std::wstring s;
+                if (string_from_utf8(s, pCwd->uTestWord.szWord8, static_cast<size_t>(-1)))
+                {
+                    ::SetWindowText(hWndEditWord, s.c_str());
+                    ::SetWindowText(hWndEditChangeTo, s.c_str());
+                }
             }
 
             HWND hWndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
@@ -311,10 +320,11 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
                             break;
                         else
                         {
-                            const int nStrLen = strlen(s.c_str());
-                            std::vector<wchar_t> wsz(nStrLen + 1);
-                            ::MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, &(*wsz.begin()), wsz.size());
-                            ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(&(*wsz.begin())));
+                            std::wstring ws;
+                            if (string_from_utf8(ws, s.c_str(), s.c_str().size()))
+                            {
+                                ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(ws.c_str()));
+                            }
                             s.clear();
                         }
                     }
@@ -422,20 +432,7 @@ bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
 
 void CCheckSpellingDlg::GetChangeToText(std::wstring& sWord)
 {
-    HWND hwndChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
-    if (hwndChangeTo)
-    {
-        int nTextLen = ::GetWindowTextLength(hwndChangeTo);
-
-        sWord.clear();
-        if (nTextLen > 0)
-        {
-            nTextLen = nTextLen + 1;
-            std::vector<wchar_t> vWord(nTextLen, L'\0');
-            ::GetWindowText(hwndChangeTo, &(*vWord.begin()), vWord.size());
-            sWord.assign(&(*vWord.begin()));
-        }
-    }
+    CWndUtils::GetDlgItemText(GetHwnd(), IDC_EDIT_CHANGETO, sWord);
 }
 
 void CCheckSpellingDlg::SetChangeToText(const wchar_t* sWord)

@@ -3,25 +3,19 @@
 // Used by libtolonspellcheck.rc
 //
 #define IDD_CHECK_SPELLING              2000
-#define IDC_BUTTON1                     2001
+#define IDC_DICLANG_BTN                     2001
 #define IDD_SPELLING_OPTIONS            2002
 #define IDC_IGNORE_ALL                  2002
 #define IDC_ADD_TO_DICTIONARY           2003
 #define IDC_CHANGE                      2004
-#define IDC_BUTTON6                     2005
 #define IDC_CHANGE_ALL                  2005
 #define IDC_SUGGESTION_LIST             2006
 #define IDC_OPTIONS                     2007
 #define IDC_CANCEL_SPELLCHECK           2008
-#define IDC_CHECK1                      2009
-#define IDC_CANCEL_SPELLCHECK2          2009
 #define IDC_RESTART_SPELLCHECK          2009
 #define IDC_MAIN_DIC_ONLY               2009
-#define IDC_CHECK2                      2010
 #define IDC_IGNORE_UPPERCASE            2010
-#define IDC_CHECK3                      2011
 #define IDC_IGNORE_WORDS_WITH_NUMBERS   2011
-#define IDC_CHECK4                      2012
 #define IDC_IGNORE_URIS                 2012
 #define IDD_DIC_LANG                    2100
 #define IDC_DIC_LIST                    2101

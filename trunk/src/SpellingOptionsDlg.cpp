@@ -13,11 +13,10 @@ extern HINSTANCE g_hInstDll;
 
 static CSpellingOptionsDlg* s_pThis;
 
-CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSessionOptions& options, HWND hwndParent /*=NULL*/) :
+CSpellingOptionsDlg::CSpellingOptionsDlg(TolonSpellCheck::CSessionOptionsData& options, HWND hwndParent /*=NULL*/) :
     m_options(options),
-	m_pSession(NULL), // to be removed
-	m_hwnd(NULL),
-	m_hwndParent(hwndParent)
+    m_hwnd(NULL),
+    m_hwndParent(hwndParent)
 {
 
 }
@@ -28,27 +27,27 @@ CSpellingOptionsDlg::~CSpellingOptionsDlg()
 
 int CSpellingOptionsDlg::DoModal()
 {
-	s_pThis = this;
-	return DialogBox(g_hInstDll, MAKEINTRESOURCE(CSpellingOptionsDlg::IDD), m_hwndParent, CSpellingOptionsDlg::WndProc);
+    s_pThis = this;
+    return DialogBox(g_hInstDll, MAKEINTRESOURCE(CSpellingOptionsDlg::IDD), m_hwndParent, CSpellingOptionsDlg::WndProc);
 }
 
 // CSpellingOptionsDlg message handlers
 BOOL CSpellingOptionsDlg::OnInitDialog()
 {
-    CWndUtils::CheckDlgButton(GetHwnd(), IDC_MAIN_DIC_ONLY, m_options.bIgnoreUserDictionaries);
-    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_UPPERCASE, m_options.bIgnoreUppercaseWords);
-    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_WORDS_WITH_NUMBERS, m_options.bIgnoreWordsWithNumbers);
-    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_URIS, m_options.bIgnoreUris);
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_MAIN_DIC_ONLY, m_options.IgnoreUserDictionaries());
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_UPPERCASE, m_options.IgnoreUppercaseWords());
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_WORDS_WITH_NUMBERS, m_options.IgnoreWordsWithNumbers());
+    CWndUtils::CheckDlgButton(GetHwnd(), IDC_IGNORE_URIS, m_options.IgnoreUris());
 
-	return TRUE;
+    return TRUE;
 }
 
 void CSpellingOptionsDlg::OnDicLangClicked()
 {
-    TolonSpellCheck::CSessionOptions options_copy(m_options);
+    TolonSpellCheck::CSessionOptionsData options_copy(m_options);
 
-	CLanguageDlg dlg(options_copy, m_hwnd);
-	if (dlg.DoModal() == IDOK)
+    CLanguageDlg dlg(options_copy, m_hwnd);
+    if (dlg.DoModal() == IDOK)
     {
         m_options = options_copy;
     }
@@ -56,37 +55,37 @@ void CSpellingOptionsDlg::OnDicLangClicked()
 
 void CSpellingOptionsDlg::OnOk()
 {
-    m_options.bIgnoreUserDictionaries = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_MAIN_DIC_ONLY);
-    m_options.bIgnoreUppercaseWords = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_UPPERCASE);
-    m_options.bIgnoreWordsWithNumbers = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_WORDS_WITH_NUMBERS);
-    m_options.bIgnoreUris = CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_URIS);
+    m_options.IgnoreUserDictionaries(CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_MAIN_DIC_ONLY));
+    m_options.IgnoreUppercaseWords(CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_UPPERCASE));
+    m_options.IgnoreWordsWithNumbers(CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_WORDS_WITH_NUMBERS));
+    m_options.IgnoreUris(CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_URIS));
 }
 
 int CALLBACK CSpellingOptionsDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (!s_pThis)
-		return 0;
-	
-	if (!s_pThis->m_hwnd)
-		s_pThis->m_hwnd = hDlg;
-	
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return s_pThis->OnInitDialog();
+    if (!s_pThis)
+        return 0;
+    
+    if (!s_pThis->m_hwnd)
+        s_pThis->m_hwnd = hDlg;
+    
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return s_pThis->OnInitDialog();
 
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
+    case WM_COMMAND:
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+        {
             s_pThis->OnOk();
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		else if (LOWORD(wParam) == IDC_BUTTON1)
-		{
-			s_pThis->OnDicLangClicked();
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        }
+        else if (LOWORD(wParam) == IDC_DICLANG_BTN)
+        {
+            s_pThis->OnDicLangClicked();
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
 }

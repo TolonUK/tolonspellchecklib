@@ -10,19 +10,19 @@ class CCheckSpellingDlg
 {
 public:
     CCheckSpellingDlg(TolonSpellCheck::CSession* pSession, TSC_CHECKSPELLING_DATA* pData);
-	~CCheckSpellingDlg();
+    ~CCheckSpellingDlg();
 
 // Dialog Data
-	enum { IDD = IDD_CHECK_SPELLING };
-	
-	int DoModal();
+    enum { IDD = IDD_CHECK_SPELLING };
+    
+    int DoModal();
 
 private:
-	static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
+    static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
     static void CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime);
 
     // Message handlers
-	BOOL OnInitDialog();
+    BOOL OnInitDialog();
     void OnCmdOptions();
     void OnCmdCancelSpellCheck();
     void OnCmdIgnoreOnce();
@@ -58,8 +58,8 @@ private:
 private:
     TolonSpellCheck::CSession* m_pSession;
     TSC_CHECKSPELLING_DATA* m_pData;
-	HWND m_hwnd;
-	HWND m_hwndParent;
+    HWND m_hwnd;
+    HWND m_hwndParent;
     TolonSpellCheck::CRichEditSpellChecker m_checker;
     static const UINT_PTR m_nCheckerPollEvent;
 

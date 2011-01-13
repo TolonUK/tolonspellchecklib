@@ -8,22 +8,22 @@ typedef int ssize_t;
 
 namespace TolonSpellCheck {
 
-class CSessionOptions : public TSC_SESSIONOPTIONS_DATA
+/*class CSessionOptions : public TSC_SESSIONOPTIONS_DATA
 {
 public:
-	CSessionOptions();
-	
-	// These functions should either stream in and out or they should be able to write to the registry.
-	void WriteOut();
-	void ReadIn();
+    CSessionOptions();
+    
+    // These functions should either stream in and out or they should be able to write to the registry.
+    void WriteOut();
+    void ReadIn();
 
-	// make this work with abstract data class?
-	// m_data.writevalue(x,y), etc.
+    // make this work with abstract data class?
+    // m_data.writevalue(x,y), etc.
 
     void SetLanguage(const char* szCulture);
-	
-	tsc_result GetCurrentLanguage(wchar_t* ppwszLang) const;
-	tsc_result GetCurrentLanguage(char* ppszLang) const;
+    
+    tsc_result GetCurrentLanguage(wchar_t* ppwszLang) const;
+    tsc_result GetCurrentLanguage(char* ppszLang) const;
     const char* GetCurrentLanguage() const
         { return m_sCurrentCulture.c_str(); }
 
@@ -33,54 +33,53 @@ public:
 
 private:
     std::string m_sCurrentCulture;
-};
+};*/
     
 class CSession
 {
 public:
-    CSession(TSC_CREATESESSION_DATA* pData);
+    CSession(CCreateSessionData& data);
     ~CSession();
 
-	tsc_result Init();
-	tsc_result Uninit();
+    tsc_result Init();
+    tsc_result Uninit();
 
-	// API Support
-	tsc_result CheckWord(TSC_CHECKWORD_DATA* pData);
-	tsc_result ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData);
-	tsc_result CheckSpelling(TSC_CHECKSPELLING_DATA* pData);
-	tsc_result GetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData);
-	tsc_result SetSessionOptions(TSC_SESSIONOPTIONS_DATA* pData);
+    // API Support
+    tsc_result CheckWord(TSC_CHECKWORD_DATA* pData);
+    tsc_result ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData);
+    tsc_result CheckSpelling(TSC_CHECKSPELLING_DATA* pData);
+    tsc_result GetSessionOptions(CSessionOptionsData& data);
+    tsc_result SetSessionOptions(CSessionOptionsData& data);
 
-	bool IsInitialised() const
-		{ return m_bInitialised; }
+    bool IsInitialised() const
+        { return m_bInitialised; }
 
-	void SetInitialised(bool b)
-		{ m_bInitialised = b; }
+    void SetInitialised(bool b)
+        { m_bInitialised = b; }
 
-    tsc_result SetLanguage(const char* szCulture);
-
-    const CSessionOptions* GetOptions() const
-        { return &m_options; }
-		
-	const char* const GetLastError() const
-		{ return m_szLastError; }
+    tsc_result SetLanguage(const wchar_t* szCulture);
+    
+    const wchar_t* GetLanguage() const;
+    
+    const char* const GetLastError() const
+        { return m_szLastError; }
         
 private:
-	tsc_result Error_NotImplemented();
+    tsc_result Error_NotImplemented();
     tsc_result Error_Internal_NullModulePtr();
-	tsc_result Error_ParamWasNull();
-	tsc_result Error_SessionAlreadyInitialised();
-	tsc_result Error_SessionNotInitialised();
-	tsc_result Error_StructSizeInvalid();
-	tsc_result Success();
+    tsc_result Error_ParamWasNull();
+    tsc_result Error_SessionAlreadyInitialised();
+    tsc_result Error_SessionNotInitialised();
+    tsc_result Error_StructSizeInvalid();
+    tsc_result Success();
 
 private:
-	bool m_bInitialised;
-	EnchantDict* m_pEnchantDict;
-	//TSC_SESSIONOPTIONS_DATA m_options;
-    CSessionOptions m_options;
-	const char* m_szLastError;
-    std::string m_szCurrentCulture;
+    bool m_bInitialised;
+    EnchantDict* m_pEnchantDict;
+    //TSC_SESSIONOPTIONS_DATA m_options;
+    CSessionOptionsData m_options;
+    const char* m_szLastError;
+    std::wstring m_szCurrentCulture;
 };
 
 } //namespace
