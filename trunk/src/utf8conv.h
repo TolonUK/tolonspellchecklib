@@ -4,6 +4,10 @@
 #include <string>
 #include <vector>
 
+// reads a UTF8 storage string into a runtime wchar_t string.
+bool string_from_utf8(std::wstring& dest, const char* src, size_t srclen);
+bool utf8_from_string(char* dest, const size_t destlen, const std::wstring& src);
+
 class CUTF8Conv
 {
 public:

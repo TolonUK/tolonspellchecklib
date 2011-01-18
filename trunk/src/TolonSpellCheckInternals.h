@@ -175,7 +175,7 @@ namespace TolonSpellCheck {
         // Other methods
 
         bool HasDefaultLanguage() const
-        { return m_szDefaultLanguage.empty(); }
+        { return !m_szDefaultLanguage.empty(); }
 
         void SetDefaultLanguageFromOS();
     

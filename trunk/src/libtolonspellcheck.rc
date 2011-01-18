@@ -46,11 +46,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "Tolon Data Solutions"
-            VALUE "FileDescription", "Tolon SpellCheckLib DLL>"
+            VALUE "CompanyName", "n/a"
+            VALUE "FileDescription", "Tolon SpellCheckLib DLL"
             VALUE "FileVersion", "1.0.0.0"
             VALUE "InternalName", "tolonspellchecklib.dll"
-            VALUE "LegalCopyright", "Copyright (c) 2009 Tolon Data Solutions.  All rights reserved."
+            VALUE "LegalCopyright", "Copyright (c) 2009-2011 Alex Paterson."
             VALUE "OriginalFilename", "tolonspellchecklib.dll"
             VALUE "ProductName", "Tolon SpellCheckLib"
             VALUE "ProductVersion", "1.0.0.0"

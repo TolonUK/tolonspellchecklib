@@ -43,6 +43,8 @@ public:
         
     const char* const GetLastError() const
         { return m_szLastError; }
+
+    void ClearLastError();
         
     tsc_result GetVersion( CVersionData& data );
     tsc_result CreateSession( tsc_cookie* pSessionID,

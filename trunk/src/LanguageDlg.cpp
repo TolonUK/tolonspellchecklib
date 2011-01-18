@@ -5,6 +5,7 @@
 #include "TolonSpellCheckInternals.h"
 #include "tscSession.h"
 #include "tscModule.h"
+#include "WndUtils.h"
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -178,14 +179,6 @@ void CLanguageDlg::OnCmdOk()
     else
     {
         m_options.CurrentLanguage(sChosenLang.c_str());
-        // Set it on the session
-        //tsc_result r = TSC_E_FAIL;
-        //r = pSession->SetLanguage(sChosenLang.c_str());
-
-        /*if (TSC_FAILED(r))
-        {
-            ::MessageBox(GetHwnd(), L"Failed to set new language. :(", L"TolonSpellCheckLib", MB_OK | MB_ICONEXCLAMATION);
-        }*/
     }
 }
 
@@ -216,16 +209,10 @@ void CLanguageDlg::GetChosenLanguage(wstring& sLang)
     }
     else
     {
-        const int nBufLen = 13;
-        wchar_t wszBuf[nBufLen] = L"\0";
-
-        ListView_GetItemText( GetLangListHwnd(),
-                              nItem,
-                              COL_CODE,
-                              &wszBuf[0],
-                              nBufLen );
-
-        sLang.assign(wszBuf);
+        CWndUtils::GetListViewItemText( GetLangListHwnd(),
+                                        nItem,
+                                        COL_CODE,
+                                        sLang );
     }
 }
 
@@ -248,13 +235,10 @@ void CLanguageDlg::UpdateLanguageDisplay()
             
             if (TSC_SUCCEEDED(result))
             {
-                HWND hwnd = GetDlgItem(IDC_DEFAULTLANG_STATIC);
-                if (hwnd)
-                {
-                    wstring ws(L"Default: ");
-                    ws.append(ldwd.wszDisplayName);
-                    SetWindowText(hwnd, ws.c_str());
-                }
+                CWndUtils::SetDlgItemText( GetHwnd(),
+                                           IDC_DEFAULTLANG_STATIC,
+                                           ldwd.wszDisplayName,
+                                           L"Default: " );
             }
         }
     }

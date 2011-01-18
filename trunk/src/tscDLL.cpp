@@ -14,12 +14,15 @@ HINSTANCE g_hInstDll;
 static const char* s_szLastError;
 
 // Error strings (to be localised)
+static const char* const s_szErrNoErr = "";
 static const char* const s_szErrIntNullModulePtr = 
     "D0001 - Internal Error, a null module pointer was encountered. Please contact technical support.";
 static const char* const s_szErrParamWasNull =
     "D0002 - Error, one or more parameters were null.";
 static const char* const s_szErrStructSizeInvalid =
     "D0003 - Error, cbSize member of structure was set to an unrecognized value.";
+static const char* const s_szErrErr =
+    "D9999 - Internal error, error text not set!";
     
 static tsc_result Error_Internal_NullModulePtr()
 {
@@ -39,11 +42,24 @@ static tsc_result Error_StructSizeInvalid()
     return TSC_E_FAIL;
 }
 
+// Private functions
+
+void tsc_func_init()
+{
+    s_szLastError = s_szErrNoErr;
+
+    CModule* pM = CModule::GetInstance();
+    if (pM)
+        pM->ClearLastError();
+}
+
 // The exported DLL functions
 
 tsc_result TSC_CALLTYPE
     tscInit( TSC_INIT_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -63,6 +79,8 @@ tsc_result TSC_CALLTYPE
 tsc_result TSC_CALLTYPE
     tscUninit( void )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -76,6 +94,8 @@ tsc_result TSC_CALLTYPE
 tsc_result TSC_CALLTYPE
     tscGetVersion( TSC_VERSION_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -89,7 +109,10 @@ tsc_result TSC_CALLTYPE
     tsc_result r = TSC_E_FAIL;
     r = pM->GetVersion(d);
 
-    *pData << d;
+    if (TSC_SUCCEEDED(r))
+    {
+        *pData << d;
+    }
 
     return r;
 }
@@ -97,11 +120,16 @@ tsc_result TSC_CALLTYPE
 const char* TSC_CALLTYPE
     tscGetLastError()
 {
-    CModule* pM = CModule::GetInstance();
-    if (!pM)
+    if (s_szLastError != s_szErrNoErr)
         return s_szLastError;
     else
-        return pM->GetLastError();
+    {
+        CModule* pM = CModule::GetInstance();
+        if (pM)
+            return pM->GetLastError();
+        else
+            return s_szErrErr; // catch-all error text
+    }
 }
 
 
@@ -109,6 +137,8 @@ tsc_result TSC_CALLTYPE
     tscCreateSession( tsc_cookie* pSessionID,
                       TSC_CREATESESSION_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -129,6 +159,8 @@ tsc_result TSC_CALLTYPE
 tsc_result TSC_CALLTYPE 
     tscDestroySession( tsc_cookie SessionID )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -143,6 +175,8 @@ tsc_result TSC_CALLTYPE
     tscGetSessionOptions( tsc_cookie SessionID, 
                           TSC_SESSIONOPTIONS_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -163,6 +197,8 @@ tsc_result TSC_CALLTYPE
     tscSetSessionOptions( tsc_cookie SessionID,
                           TSC_SESSIONOPTIONS_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
@@ -181,10 +217,14 @@ tsc_result TSC_CALLTYPE
 tsc_result TSC_CALLTYPE 
     tscShowOptionsWindow( tsc_cookie SessionID,
                           TSC_SHOWOPTIONSWINDOW_DATA* pData )
-{    
+{
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
+    if (!pData)
+        return Error_ParamWasNull();
 
     tsc_result r = TSC_E_FAIL;
     r = pM->ShowOptionsWindow(SessionID, pData);
@@ -196,9 +236,13 @@ tsc_result TSC_CALLTYPE
     tscCheckSpelling( tsc_cookie SessionID,
                       TSC_CHECKSPELLING_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
+    if (!pData)
+        return Error_ParamWasNull();
 
     tsc_result r = TSC_E_FAIL;
     r = pM->CheckSpelling(SessionID, pData);
@@ -210,9 +254,13 @@ tsc_result TSC_CALLTYPE
     tscCheckWord( tsc_cookie SessionID,
                   TSC_CHECKWORD_DATA* pData )
 {
+    tsc_func_init();
+
     CModule* pM = CModule::GetInstance();
     if (!pM)
         return Error_Internal_NullModulePtr();
+    if (!pData)
+        return Error_ParamWasNull();
 
     tsc_result r = TSC_E_FAIL;
     r = pM->CheckWord(SessionID, pData);

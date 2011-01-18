@@ -2,7 +2,7 @@
 
 #include "resource.h"
 #include "TolonSpellCheckInternals.h"
-#include "tscSession.h" //for CSessionOptions
+#include "tscSession.h"
 #include <windows.h>
 #include <commctrl.h>
 #include <string>
@@ -62,7 +62,7 @@ private:
 
 private:
     TolonSpellCheck::CSessionOptionsData& m_options;
-    //TolonSpellCheck::CSession* const m_pSession;
+
     HWND m_hwnd;
     HWND m_hwndParent;
     HWND m_hwndLangList;

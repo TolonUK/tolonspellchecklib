@@ -47,6 +47,7 @@ bool test_getsessionoptions();
 bool test_getversion();
 bool test_no_init();
 bool test_normal_init_uninit();
+bool test_null_params();
 bool test_show_options();
 bool test_word();
 // Subtests
@@ -81,6 +82,7 @@ int main()
     // Misc
     check_test(test_getsessionoptions());
     check_test(test_getversion());
+    check_test(test_null_params());
 
     // Spell Checking
     check_test(test_word());
@@ -250,7 +252,7 @@ bool test_createsession()
     // Test uninitialized cbSize
     {
         r = ::tscCreateSession(&c, &cs);
-        util_is_failure("tscCreateSession, null cookie ptr", r, bTestResult);
+        util_is_failure("tscCreateSession, null uninitialized cbSize", r, bTestResult);
     }
 
     // Test normal
@@ -392,30 +394,59 @@ bool test_no_init()
     r = ::tscUninit();
     util_is_expected("tscUninit", rExpected, r, bTestResult);
     
-    r = ::tscGetVersion(NULL);
-    util_is_expected("tscGetVersion", rExpected, r, bTestResult);
+    {
+        TSC_VERSION_DATA vd = {0};
+        vd.cbSize = sizeof(TSC_VERSION_DATA);
+        r = ::tscGetVersion(&vd);
+        util_is_expected("tscGetVersion", rExpected, r, bTestResult);
+    }
     
-    r = ::tscCreateSession(NULL, NULL);
-    util_is_expected("tscCreateSession", rExpected, r, bTestResult);
+    {
+        tsc_cookie tc = 0;
+        TSC_CREATESESSION_DATA csd = {0};
+        csd.cbSize = sizeof(TSC_CREATESESSION_DATA);
+        r = ::tscCreateSession(&tc, &csd);
+        util_is_expected("tscCreateSession", rExpected, r, bTestResult);
+    }
     
     r = ::tscDestroySession(TSC_NULL_COOKIE);
     util_is_expected("tscDestroySession", rExpected, r, bTestResult);
     
-    r = ::tscGetSessionOptions(TSC_NULL_COOKIE, NULL);
-    util_is_expected("tscGetSessionOptions", rExpected, r, bTestResult);
+    {
+        TSC_SESSIONOPTIONS_DATA sod = {0};
+        sod.cbSize = sizeof(TSC_SESSIONOPTIONS_DATA);
+        r = ::tscGetSessionOptions(TSC_NULL_COOKIE, &sod);
+        util_is_expected("tscGetSessionOptions", rExpected, r, bTestResult);
+    }
     
-    r = ::tscSetSessionOptions(TSC_NULL_COOKIE, NULL);
-    util_is_expected("tscSetSessionOptions", rExpected, r, bTestResult);
+    {
+        TSC_SESSIONOPTIONS_DATA sod = {0};
+        sod.cbSize = sizeof(TSC_SESSIONOPTIONS_DATA);
+        r = ::tscSetSessionOptions(TSC_NULL_COOKIE, &sod);
+        util_is_expected("tscSetSessionOptions", rExpected, r, bTestResult);
+    }
     
-    r = ::tscShowOptionsWindow(TSC_NULL_COOKIE, NULL);
-    util_is_expected("tscShowOptionsWindow", rExpected, r, bTestResult);
-    
-    r = ::tscCheckSpelling(TSC_NULL_COOKIE, NULL);
-    util_is_expected("tscCheckSpelling", rExpected, r, bTestResult);
-    
-    r = ::tscCheckWord(TSC_NULL_COOKIE, NULL);
-    util_is_expected("tscCheckWord", rExpected, r, bTestResult);
-    
+    {
+        TSC_SHOWOPTIONSWINDOW_DATA sowd = {0};
+        sowd.cbSize = sizeof(TSC_SHOWOPTIONSWINDOW_DATA);
+        r = ::tscShowOptionsWindow(TSC_NULL_COOKIE, &sowd);
+        util_is_expected("tscShowOptionsWindow", rExpected, r, bTestResult);
+    }
+
+    {
+        TSC_CHECKSPELLING_DATA csd = {0};
+        csd.cbSize = sizeof(TSC_CHECKSPELLING_DATA);
+        r = ::tscCheckSpelling(TSC_NULL_COOKIE, &csd);
+        util_is_expected("tscCheckSpelling", rExpected, r, bTestResult);
+    }
+
+    {
+        TSC_CHECKWORD_DATA cwd = {0};
+        cwd.cbSize = sizeof(TSC_CHECKWORD_DATA);
+        r = ::tscCheckWord(TSC_NULL_COOKIE, &cwd);
+        util_is_expected("tscCheckWord", rExpected, r, bTestResult);
+    }
+
     util_end_test(bTestResult);
     
     return bTestResult;
@@ -438,6 +469,41 @@ bool test_normal_init_uninit()
     
     r = ::tscUninit();
     util_is_success("tscUninit", r, bTestResult);
+    
+    util_end_test(bTestResult);
+    
+    return bTestResult;
+}
+
+bool test_null_params()
+{
+    bool bTestResult = true;
+    const tsc_result rExpected = TSC_E_FAIL;
+    tsc_result r = 0;
+    
+    util_begin_test("test_null_params()\r\nTesting API use with null parameters...");
+    
+    // Because the parameters are null, a dll error should be returned.
+    r = ::tscGetVersion(NULL);
+    util_is_expected("tscGetVersion", rExpected, r, bTestResult);
+    
+    r = ::tscCreateSession(NULL, NULL);
+    util_is_expected("tscCreateSession", rExpected, r, bTestResult);
+    
+    r = ::tscGetSessionOptions(TSC_NULL_COOKIE, NULL);
+    util_is_expected("tscGetSessionOptions", rExpected, r, bTestResult);
+    
+    r = ::tscSetSessionOptions(TSC_NULL_COOKIE, NULL);
+    util_is_expected("tscSetSessionOptions", rExpected, r, bTestResult);
+    
+    r = ::tscShowOptionsWindow(TSC_NULL_COOKIE, NULL);
+    util_is_expected("tscShowOptionsWindow", rExpected, r, bTestResult);
+    
+    r = ::tscCheckSpelling(TSC_NULL_COOKIE, NULL);
+    util_is_expected("tscCheckSpelling", rExpected, r, bTestResult);
+    
+    r = ::tscCheckWord(TSC_NULL_COOKIE, NULL);
+    util_is_expected("tscCheckWord", rExpected, r, bTestResult);
     
     util_end_test(bTestResult);
     

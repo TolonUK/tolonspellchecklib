@@ -1,6 +1,7 @@
 #include "CheckSpellingDlg.h"
 #include "tscSession.h"
 #include "tscModule.h"
+#include "WndUtils.h"
 #include <windows.h>
 #include <assert.h>
 #include <sstream>
@@ -321,7 +322,7 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
                         else
                         {
                             std::wstring ws;
-                            if (string_from_utf8(ws, s.c_str(), s.c_str().size()))
+                            if (string_from_utf8(ws, s.c_str(), s.size()))
                             {
                                 ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(ws.c_str()));
                             }
@@ -408,7 +409,14 @@ bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
 
     if (hwndListBox == hwndSuggestions)
     {
-        int nSel = ::SendMessage(hwndSuggestions, LB_GETCURSEL, 0, 0);
+        std::wstring sText;
+        CWndUtils::GetListBoxCurSelText(hwndSuggestions, sText);
+        if (!sText.empty())
+        {
+            SetChangeToText(sText.c_str());
+        }
+
+        /*int nSel = ::SendMessage(hwndSuggestions, LB_GETCURSEL, 0, 0);
         if (nSel != LB_ERR)
         {
             int nTextLen = ::SendMessage(hwndSuggestions, LB_GETTEXTLEN, nSel, 0);
@@ -422,7 +430,7 @@ bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
                     SetChangeToText(&(*vString.begin()));
                 }
             }
-        }
+        }*/
 
         bHandled = true;
     }

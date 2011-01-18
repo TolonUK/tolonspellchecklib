@@ -92,6 +92,11 @@ tsc_result CModule::Uninit()
     return Success();
 }
 
+void CModule::ClearLastError()
+{
+    m_szLastError = s_szErrErr;
+}
+
 tsc_result CModule::GetVersion(CVersionData& data)
 {
     if (!IsInitialised())
