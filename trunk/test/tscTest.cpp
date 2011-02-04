@@ -17,6 +17,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <windows.h>
 #include <commctrl.h>
@@ -56,9 +57,10 @@ void subtest_tscCreateSession(tsc_cookie& c, bool& bTestResult);
 void subtest_tscDestroySession(tsc_cookie c, bool& bTestResult);
 void subtest_tscUninit(bool& bTestResult);
 
-//static char s_szTextResult[64];
 static string s_sTextResult;
 static int g_nTestStartCount, g_nTestEndCount, g_nSuccessCount, g_nFailCount;
+static const size_t g_nTimingLimit = 10;
+static std::stack<DWORD> g_Timings;
 static const char* g_szLine = "--------------------------------------------------------------------------------";
 
 int main()
@@ -67,7 +69,7 @@ int main()
 
     ::InitCommonControls();
     
-    cout << "Tolon Spell Check Test Program. Copyright (c) 2009 Alex Paterson." << endl;
+    cout << "Tolon Spell Check Test Program. Copyright (c) 2009-2011 Alex Paterson." << endl;
     cout << g_szLine << endl;
     
     // Init/Uninit
@@ -113,18 +115,27 @@ void print_stats()
 
 void util_begin_test(char* szPreamble)
 {
+    g_Timings.push(GetTickCount());
+
     ++g_nTestStartCount;
     cout << szPreamble << endl;
 }
 
 void util_end_test(bool bResult)
 {
+    DWORD dwTicks = 0;
+    if (!g_Timings.empty())
+    {
+        dwTicks = GetTickCount() - g_Timings.top();
+        g_Timings.pop();
+    }
+
     ++g_nTestEndCount;
     if (bResult)
-        cout << "Test ok" << endl;
+        cout << "Test ok";
     else
-        cout << "TEST FAILED" << endl;
-    cout << g_szLine << endl;
+        cout << "TEST FAILED";
+    cout << ", took " << dwTicks << "ms" << endl << g_szLine << endl;
 }
 
 void util_is_expected(char* szTestPartName, const tsc_result rExpected, const tsc_result rActual, bool& bSetFalseIfFailed)
