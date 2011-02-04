@@ -2,6 +2,7 @@
 //
 
 #include "LanguageDlg.h"
+#include "isoLang.h"
 #include "TolonSpellCheckInternals.h"
 #include "tscSession.h"
 #include "tscModule.h"
@@ -15,6 +16,7 @@
 extern HINSTANCE g_hInstDll;
 
 using namespace TolonSpellCheck;
+using namespace TolonUI::Windows;
 using namespace std;
 
 static enum COLUMNS {
@@ -82,8 +84,7 @@ CLanguageDlg::~CLanguageDlg()
 int CLanguageDlg::DoModal()
 {
     s_pThis = this;
-    DialogBox(g_hInstDll, MAKEINTRESOURCE(CLanguageDlg::IDD), m_hwndParent, CLanguageDlg::WndProc);
-    return 0;
+    return DialogBox(g_hInstDll, MAKEINTRESOURCE(CLanguageDlg::IDD), m_hwndParent, CLanguageDlg::WndProc);
 }
 
 // CLanguageDlg message handlers
@@ -100,10 +101,13 @@ BOOL CLanguageDlg::OnInitDialog()
     pMod->EnumLanguages(static_cast<LanguageEnumFn>(&CLanguageDlg::LangEnumCallback), this);
     
     // Fix up language list now it's populated with data
-    ListView_SetColumnWidth(GetLangListHwnd(), 0, LVSCW_AUTOSIZE);
+    CListViewUtils::AutoSizeAllColumns(GetLangListHwnd());
     ListView_SortItemsEx(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
     
-    // Get default language
+    // Update UI with current language
+    SelectCurrentLanguage();
+
+    // Update UI with default language
     UpdateLanguageDisplay();
     
     return TRUE;
@@ -209,38 +213,55 @@ void CLanguageDlg::GetChosenLanguage(wstring& sLang)
     }
     else
     {
-        CWndUtils::GetListViewItemText( GetLangListHwnd(),
-                                        nItem,
-                                        COL_CODE,
-                                        sLang );
+        CListViewUtils::GetListViewItemText( GetLangListHwnd(),
+                                             nItem,
+                                             COL_CODE,
+                                             sLang );
+    }
+}
+
+void CLanguageDlg::SelectCurrentLanguage()
+{
+    //NEED TO GET THE CURRENT LANGUAGE HERE
+    const wchar_t* sCurrent = m_options.CurrentLanguage();
+    HWND hCtrl = GetLangListHwnd();
+    assert(sCurrent && hCtrl);
+    if (sCurrent && hCtrl)
+    {
+        const int nItemCount = ListView_GetItemCount(hCtrl);
+        std::wstring sItemCode;
+
+        for (int i = 0; i < nItemCount; ++i)
+        {
+            CListViewUtils::GetListViewItemText(hCtrl, i, COL_CODE, sItemCode);
+            if (!sItemCode.empty())
+            {
+                if (CIsoLang::Compare(sCurrent, sItemCode.c_str()) == 0)
+                {
+                    CListViewUtils::SingleSelectListViewItem(hCtrl, i);
+                    CListViewUtils::EnsureVisiblePreferMiddle(hCtrl, i);
+                    break;
+                }
+            }
+        }
     }
 }
 
 void CLanguageDlg::UpdateLanguageDisplay()
 {
-    //TolonSpellCheck::CSession* pSession = GetSession();
-    CModule* pMod = CModule::GetInstance();
-
-    if (pMod)
+    //NEED TO GET THE DEFAULT LANGUAGE HERE
+    const wchar_t* sDefault = m_options.DefaultLanguage();
+    
+    assert(sDefault);
+    if (sDefault)
     {
-        //NEED TO GET THE DEFAULT LANGUAGE HERE
-        const wchar_t* sDefault = m_options.DefaultLanguage();
-        
-        if (sDefault)
-        {
-            tsc_result result = TSC_S_OK;
-            LANGUAGE_DESC_WIDEDATA ldwd = {0};
-
-            result = pMod->DescribeLanguage(sDefault, &ldwd);
+        std::wstring sDisplay(sDefault);
+        CIsoLang::GetDisplayName(sDefault, sDisplay);
             
-            if (TSC_SUCCEEDED(result))
-            {
-                CWndUtils::SetDlgItemText( GetHwnd(),
-                                           IDC_DEFAULTLANG_STATIC,
-                                           ldwd.wszDisplayName,
-                                           L"Default: " );
-            }
-        }
+        CWndUtils::SetDlgItemText( GetHwnd(),
+                                   IDC_DEFAULTLANG_STATIC,
+                                   sDisplay.c_str(),
+                                   L"Default: " );
     }
 }
 

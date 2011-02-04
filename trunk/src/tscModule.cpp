@@ -40,7 +40,7 @@ CModule* CModule::GetInstance()
 
     try {
         sm_pThis = new CModule;
-    } catch (bad_alloc& e) {
+    } catch (bad_alloc&) {
         //couldn't allocate new module
         //TODO: add logging
     }
@@ -115,7 +115,7 @@ tsc_result CModule::CreateSession( tsc_cookie* pSessionID, CCreateSessionData& d
     
     bool bSessionOk = false;
     CSession* pS = NULL;
-    try { pS = new CSession(data); } catch (bad_alloc& e) { }
+    try { pS = new CSession(data); } catch (bad_alloc&) { }
 
     if (pS)
     {
@@ -349,12 +349,20 @@ void CModule::cbEnchantDictDescribe( const char * const lang_tag,
 
     pelp->pThis->DescribeLanguage(wszLangTag, &ldwd);
     
-    wcscpy(ldwd.wszCodeName, wszLangTag);
+    wcscpy_s(ldwd.wszCodeName, sizeof(ldwd.wszCodeName) / sizeof(wchar_t), wszLangTag);
     pelp->pfn(&ldwd, pelp->pUserData);
 }
 
 tsc_result CModule::DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pWideData) 
 {
+#ifdef DEBUG
+    {
+        std::wstringstream ss;
+        ss << L"CModule::DescribeLanguage(" << wszLang << L", pWideData := 0x" << hex << pWideData << L") called...\r\n";
+        OutputDebugString(ss.str().c_str());
+    }
+#endif
+
     if (!IsInitialised())
         return Error_ModuleNotInitialised();
 
@@ -390,6 +398,14 @@ tsc_result CModule::DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDED
         }
     }
     
+#ifdef DEBUG
+    {
+        std::wstringstream ss;
+        ss << L"returning display name '" << pWideData->wszDisplayName << L"'\r\n";
+        OutputDebugString(ss.str().c_str());
+    }
+#endif
+
     return result;
 }
 
@@ -406,13 +422,12 @@ tsc_result CModule::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pDa
     
     tsc_result result = TSC_E_FAIL;
     
-    CIsoLang il;
     std::string sLanguage;
     std::string sRegion;
     std::string sDesc;
     std::stringstream ss;
     
-    il.Parse(szLang, sLanguage, sRegion);
+    CIsoLang::Parse(szLang, sLanguage, sRegion);
     
     if (sLanguage.empty() == false)
     {

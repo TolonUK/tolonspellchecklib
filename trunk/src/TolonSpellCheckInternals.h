@@ -149,16 +149,20 @@ namespace TolonSpellCheck {
 
         // Setter methods
         void DictionaryCulture(const wchar_t* s)
-        { if (s) m_szDictionaryCulture = s; }
+        { if (s) m_szDictionaryCulture = s;
+          else m_szDictionaryCulture.clear(); }
 
         void PreferredProvider(const wchar_t* s)
-        { if (s) m_szPreferredProvider = s; }
+        { if (s) m_szPreferredProvider = s;
+          else m_szPreferredProvider.clear(); }
 
         void DefaultLanguage(const wchar_t* s)
-        { if (s) m_szDefaultLanguage = s; }
+        { if (s) m_szDefaultLanguage = s;
+          else m_szDefaultLanguage.clear(); }
 
         void CurrentLanguage(const wchar_t* s)
-        { if (s) m_szDictionaryCulture = s; }
+        { if (s) m_szDictionaryCulture = s;
+          else m_szDictionaryCulture.clear(); }
         
         void IgnoreUserDictionaries(bool b)
         { m_bIgnoreUserDictionaries = b; }
@@ -193,6 +197,7 @@ namespace TolonSpellCheck {
     // << operator definitions
     CSessionOptionsData& operator<<(CSessionOptionsData& dest, const TSC_SESSIONOPTIONS_DATA& src);
     TSC_SESSIONOPTIONS_DATA& operator<<(TSC_SESSIONOPTIONS_DATA& dest, const CSessionOptionsData& src);
+    std::wostream& operator<<(std::wostream& os, const CSessionOptionsData& src);
 
 };
 

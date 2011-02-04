@@ -6,8 +6,11 @@
 #include "tscSession.h"
 #include <windows.h>
 #include "WndUtils.h"
+#include <sstream>
 
 extern HINSTANCE g_hInstDll;
+
+using namespace TolonUI::Windows;
 
 // CSpellingOptionsDlg dialog
 
@@ -47,9 +50,26 @@ void CSpellingOptionsDlg::OnDicLangClicked()
     TolonSpellCheck::CSessionOptionsData options_copy(m_options);
 
     CLanguageDlg dlg(options_copy, m_hwnd);
-    if (dlg.DoModal() == IDOK)
+    const int nResult = dlg.DoModal();
+    if (nResult == IDOK)
     {
+#ifdef DEBUG
+        {
+            std::wstringstream ss;
+            ss << L"CSpellingOptionsDlg::OnDicLangClicked is saving new options." << std::endl;
+            ss << L"Old options: " << m_options << std::endl;
+            ss << L"New options: " << options_copy << std::endl;
+            OutputDebugString(ss.str().c_str());
+        }
+#endif
+
         m_options = options_copy;
+    }
+    else
+    {
+        std::wstringstream ss;
+        ss << L"CSpellingOptionsDlg::OnDicLangClicked, dlg.DoModal() returned " << nResult;
+        OutputDebugString(ss.str().c_str());
     }
 }
 

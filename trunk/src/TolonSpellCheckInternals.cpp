@@ -175,7 +175,8 @@ CSessionOptionsData::CSessionOptionsData(const CSessionOptionsData& src) :
     m_bIgnoreWordsWithNumbers(src.m_bIgnoreWordsWithNumbers),
     m_bIgnoreUris(src.m_bIgnoreUris),
     m_szDictionaryCulture(src.m_szDictionaryCulture),
-    m_szPreferredProvider(src.m_szPreferredProvider)
+    m_szPreferredProvider(src.m_szPreferredProvider),
+    m_szDefaultLanguage(src.m_szDefaultLanguage)
 {
 }
 
@@ -187,6 +188,7 @@ const CSessionOptionsData& CSessionOptionsData::operator=(const CSessionOptionsD
     m_bIgnoreUris = rhs.m_bIgnoreUris;
     m_szDictionaryCulture = rhs.m_szDictionaryCulture;
     m_szPreferredProvider = rhs.m_szPreferredProvider;
+    m_szDefaultLanguage = rhs.m_szDefaultLanguage;
 
     return *this;
 }
@@ -202,7 +204,8 @@ bool CSessionOptionsData::operator==(const CSessionOptionsData& rhs) const
         (m_bIgnoreWordsWithNumbers == rhs.m_bIgnoreWordsWithNumbers) &&
         (m_bIgnoreUris == rhs.m_bIgnoreUris) &&
         (m_szDictionaryCulture == rhs.m_szDictionaryCulture) &&
-        (m_szPreferredProvider == rhs.m_szPreferredProvider);
+        (m_szPreferredProvider == rhs.m_szPreferredProvider) &&
+        (m_szDefaultLanguage == rhs.m_szDefaultLanguage);
 }
 
 void CSessionOptionsData::ToStruct(TSC_SESSIONOPTIONS_DATA& dest) const
@@ -214,6 +217,7 @@ void CSessionOptionsData::ToStruct(TSC_SESSIONOPTIONS_DATA& dest) const
     dest.bIgnoreUris = m_bIgnoreUris;
     utf8_from_string(dest.szDictionaryCulture, sizeof(dest.szDictionaryCulture), m_szDictionaryCulture);
     utf8_from_string(dest.szPreferredProvider, sizeof(dest.szPreferredProvider), m_szPreferredProvider);
+    // Default language not stored here?
 }
 
 void CSessionOptionsData::FromStruct(const TSC_SESSIONOPTIONS_DATA& src)
@@ -225,6 +229,7 @@ void CSessionOptionsData::FromStruct(const TSC_SESSIONOPTIONS_DATA& src)
     m_bIgnoreUris = (src.bIgnoreUris != 0);
     string_from_utf8(m_szDictionaryCulture, src.szDictionaryCulture, sizeof(src.szDictionaryCulture));
     string_from_utf8(m_szPreferredProvider, src.szPreferredProvider, sizeof(src.szPreferredProvider));
+    m_szDefaultLanguage = m_szDictionaryCulture;
 }
 
 void CSessionOptionsData::SetDefaultLanguageFromOS()
@@ -240,11 +245,14 @@ void CSessionOptionsData::SetDefaultLanguageFromOS()
     n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, wszBuf, LOCALE_FIRSTPART);
     if (n != 0)
     {
-        wcscat(wszBuf, L"-");
+        wcscat_s(wszBuf, LOCALE_BUFLEN, L"-");
         n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, wszBuf + wcslen(wszBuf), LOCALE_SECONDPART);
     }
 
     m_szDefaultLanguage = wszBuf;
+
+    if (m_szDictionaryCulture.empty())
+        m_szDictionaryCulture = m_szDefaultLanguage;
 }
 
 CSessionOptionsData& TolonSpellCheck::operator<<(CSessionOptionsData& dest, const TSC_SESSIONOPTIONS_DATA& src)
@@ -257,4 +265,18 @@ TSC_SESSIONOPTIONS_DATA& TolonSpellCheck::operator<<(TSC_SESSIONOPTIONS_DATA& de
 {
     src.ToStruct(dest);
     return dest;
+}
+
+std::wostream& TolonSpellCheck::operator<<(std::wostream& os, const CSessionOptionsData& src)
+{
+    os << L"CSessionOptionsData("
+       << L" m_bIgnoreUserDictionaries := " << src.IgnoreUserDictionaries()
+       << L", m_bIgnoreUppercaseWords := " << src.IgnoreUppercaseWords()
+       << L", m_bIgnoreWordsWithNumbers := " << src.IgnoreWordsWithNumbers()
+       << L", m_bIgnoreUris := " << src.IgnoreUris()
+       << L", m_szDictionaryCulture := " << src.DictionaryCulture()
+       << L", m_szPreferredProvider := " << src.PreferredProvider()
+       << L", m_szDefaultLanguage := " << src.DefaultLanguage() << L")";
+
+    return os;
 }

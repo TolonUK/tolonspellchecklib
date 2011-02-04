@@ -50,7 +50,11 @@ private:
     //! Returns the window handle for the language list.
     HWND GetLangListHwnd() const;
 
-    //! Reads the language string from the current session and displays 
+    //! Reads the current language string from the current session and 
+    //! selects it in the list view control.
+    void SelectCurrentLanguage();
+
+    //! Reads the default language string from the current session and displays 
     //! it in the IDC_DEFAULTLANG_STATIC control.
     void UpdateLanguageDisplay();
 

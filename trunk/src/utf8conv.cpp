@@ -109,3 +109,36 @@ bool CUTF8Conv::utf8FromUnicode(const wchar_t* szUnicode, std::string& sOutput)
     
     return !sOutput.empty();
 }
+
+bool CUTF8Conv::unicodeFromUtf8(const char* szUtf8, std::wstring& sOutput)
+{
+    sOutput.clear();
+    
+    if (szUtf8)
+    {
+        const std::string sSrc(szUtf8);
+        size_t nResult = 0;
+        const size_t nMinCharBufSize = sSrc.size() + 1;
+        
+        if (m_vWideBuffer.size() < nMinCharBufSize)
+        {
+            m_vWideBuffer.resize(nMinCharBufSize);
+        }
+
+        nResult = ::MultiByteToWideChar(
+            CP_UTF8,
+            0,
+            sSrc.c_str(),
+            -1,
+            &(*m_vWideBuffer.begin()),
+            m_vWideBuffer.size() );
+
+        if ( (nResult != 0) && (nResult <= m_vWideBuffer.size()) )
+        {
+            std::vector<wchar_t>::iterator itEnd = std::find(m_vWideBuffer.begin(), m_vWideBuffer.end(), '\0');
+            std::copy(m_vWideBuffer.begin(), itEnd, std::back_inserter(sOutput));
+        }
+    }
+    
+    return !sOutput.empty();
+}

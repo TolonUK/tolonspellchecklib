@@ -14,9 +14,11 @@ public:
     CUTF8Conv();
 
     bool utf8FromUnicode(const wchar_t* szUnicode, std::string& sOutput);
+    bool unicodeFromUtf8(const char* szUtf8, std::wstring& sOutput);
 
 private:
     std::vector<char> m_vCharBuffer;
+    std::vector<wchar_t> m_vWideBuffer;
 };
 
 #endif

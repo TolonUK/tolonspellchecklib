@@ -103,10 +103,10 @@ MT = mt
 
 # Set to -W3 if you want to see maximum amount of warnings, including stupid
 # ones. Set to -W1 to avoid warnings about signed/unsigned combinations.
-WARN_CFLAGS = -W1
+WARN_CFLAGS = -W3
 
 !if $(DEBUG)
-OPTIMFLAGS = -Od -Zi
+OPTIMFLAGS = -Od -Zi -DDEBUG -D_DEBUG
 !else
 # Some people prefer -O2 -G6 instead of -O1, but -O2 is not reliable in MSVC5.
 OPTIMFLAGS = -DNDEBUG -D_NDEBUG -O1 -Zi

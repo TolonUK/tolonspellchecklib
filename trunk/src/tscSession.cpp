@@ -57,7 +57,8 @@ tsc_result CSession::Init()
     tsc_result result = TSC_E_FAIL;
 
     // Provide a default culture if none has been offered.
-    if (!m_options.HasDefaultLanguage())
+    const bool bGotDefault = (m_options.HasDefaultLanguage() && (wcslen(m_options.DefaultLanguage()) > 0));
+    if (!bGotDefault)
     {
         m_options.SetDefaultLanguageFromOS();
     }
@@ -233,6 +234,16 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
     
     if (dlg.DoModal() == IDOK)
     {
+#ifdef DEBUG
+        {
+            std::wstringstream ss;
+            ss << L"CSession::ShowOptionsWindow is saving new options." << std::endl;
+            ss << L"Old options: " << m_options << std::endl;
+            ss << L"New options: " << options_copy << std::endl;
+            OutputDebugString(ss.str().c_str());
+        }
+#endif
+
         m_options = options_copy;
 
         // SET THE NEW DICTIONARY HERE!!!

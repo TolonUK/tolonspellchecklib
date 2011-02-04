@@ -1,4 +1,5 @@
 #include "isoLang.h"
+#include "utf8conv.h"
 #include <algorithm>
 #include <functional>
 #include <locale>
@@ -244,10 +245,13 @@ void CIsoLang::Parse(const char* szCode, std::string& sLanguage, std::string& sR
 
 void CIsoLang::Parse_SplitCode(const char* szCode, std::string& sLangCode, std::string& sRegionCode)
 {
-    std::string sCode(szCode);
-    
     sLangCode.clear();
     sRegionCode.clear();
+
+    if (!szCode)
+        return;
+
+    std::string sCode(szCode);
     
     std::string::iterator it = sCode.begin();
     // Get chars for lang code
@@ -276,19 +280,15 @@ void CIsoLang::Parse_SplitCode(const char* szCode, std::string& sLangCode, std::
 
 void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::string& sLanguage)
 {
-    std::locale locDefault;
+    sLanguage.clear();
+
+    if (!szLangCode)
+        return;
+
     std::string sCode(szLangCode);
     const int nCodeSize = sCode.size();
     
-    sLanguage.clear();
-    
-    //std::transform(sCode.begin(), sCode.end(), sCode.begin(), std::bind2nd(std::ptr_fun(std::tolower<char>), locDefault));
-    for ( std::string::iterator it = sCode.begin();
-          it != sCode.end();
-          ++it )
-    {
-        *it = std::tolower(*it, locDefault);
-    }
+    make_lower(sCode);
     
     const char* psz = sCode.c_str();
     
@@ -328,19 +328,15 @@ void CIsoLang::Parse_GetLanguage(const char* szLangCode, std::string& sLanguage)
 
 void CIsoLang::Parse_GetRegion(const char* szRegionCode, std::string& sRegion)
 {
-    std::locale locDefault;
+    sRegion.clear();
+
+    if (!szRegionCode)
+        return;
+
     std::string sCode(szRegionCode);
     const int nCodeSize = sCode.size();
     
-    sRegion.clear();
-    
-    //std::transform(sCode.begin(), sCode.end(), sCode.begin(), std::bind2nd(std::tolower<char>, locDefault));
-    for ( std::string::iterator it = sCode.begin();
-          it != sCode.end();
-          ++it )
-    {
-        *it = std::tolower(*it, locDefault);
-    }
+    make_lower(sCode);
     
     const char* psz = sCode.c_str();
     
@@ -355,4 +351,105 @@ void CIsoLang::Parse_GetRegion(const char* szRegionCode, std::string& sRegion)
             }
         }
     }
+}
+
+int CIsoLang::Compare(const char* szLhs, const char* szRhs)
+{
+    if (szLhs == szRhs)
+        return 0;
+
+    if (szRhs == 0)
+        return 1;
+
+    if (szLhs == 0)
+        return -1;
+
+    const size_t szLhsLen = strlen(szLhs);
+    const size_t szRhsLen = strlen(szRhs);
+
+    if ((szLhsLen == 0) && (szRhsLen == 0))
+        return 0;
+
+    if (szRhsLen == 0)
+        return 1;
+
+    if (szLhsLen == 0)
+        return -1;
+
+    std::string sLhsCode(szLhs);
+    std::string sLhsLangCode;
+    std::string sLhsRegionCode;
+    std::string sRhsCode(szRhs);
+    std::string sRhsLangCode;
+    std::string sRhsRegionCode;
+
+    make_lower(sLhsCode);
+    make_lower(sRhsCode);
+
+    Parse_SplitCode(sLhsCode.c_str(), sLhsLangCode, sLhsRegionCode);
+    Parse_SplitCode(sRhsCode.c_str(), sRhsLangCode, sRhsRegionCode);
+
+    int nCompare = sLhsLangCode.compare(sRhsLangCode);
+    if (nCompare == 0)
+        nCompare = sLhsRegionCode.compare(sRhsRegionCode);
+
+    return nCompare;
+}
+
+int CIsoLang::Compare(const wchar_t* szLhs, const wchar_t* szRhs)
+{
+    CUTF8Conv u;
+    std::string sLhs;
+    std::string sRhs;
+    u.utf8FromUnicode(szLhs, sLhs);
+    u.utf8FromUnicode(szRhs, sRhs);
+    return Compare(sLhs.c_str(), sRhs.c_str());
+}
+
+void CIsoLang::make_lower(std::string& s)
+{
+    static std::locale locDefault;
+    for ( std::string::iterator it = s.begin();
+          it != s.end();
+          ++it )
+    {
+        *it = std::tolower(*it, locDefault);
+    }
+}
+
+void CIsoLang::GetDisplayName(const char* szCode, std::string& sDisplay)
+{
+    std::string sLanguage;
+    std::string sRegion;
+
+    Parse(szCode, sLanguage, sRegion);
+
+    sDisplay.clear();
+    
+    if (sLanguage.empty() == false)
+    {
+        sDisplay = sLanguage; 
+        
+        if (sRegion.empty() == false)
+        {
+            sDisplay.append(", ");
+            sDisplay.append(sRegion);
+        }
+    }
+}
+
+void CIsoLang::GetDisplayName(const wchar_t* szCode, std::wstring& sDisplay)
+{
+    CUTF8Conv u;
+    std::string s8Code;
+    std::string s8Display;
+
+    // Encode parameters
+    u.utf8FromUnicode(szCode, s8Code);
+
+    // Make call
+    GetDisplayName(s8Code.c_str(), s8Display);
+
+    // Decode results
+    u.unicodeFromUtf8(s8Display.c_str(), sDisplay);
 }

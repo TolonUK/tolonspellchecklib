@@ -1,4 +1,5 @@
 #include "CheckSpellingDlg.h"
+#include "isoLang.h"
 #include "tscSession.h"
 #include "tscModule.h"
 #include "WndUtils.h"
@@ -11,6 +12,8 @@
 // CCheckSpellingDlg dialog
 
 extern HINSTANCE g_hInstDll;
+
+using namespace TolonUI::Windows;
 
 using namespace TolonSpellCheck;
 
@@ -88,13 +91,9 @@ void CCheckSpellingDlg::UpdateTitleBar()
         std::wstring sTitle(L"Spelling: ");
         if (!sLangCode.empty())
         {
-            LANGUAGE_DESC_WIDEDATA LangDesc = {0};
-            LangDesc.cbSize = sizeof(LANGUAGE_DESC_WIDEDATA);
-            r = pModule->DescribeLanguage(sLangCode.c_str(), &LangDesc);
-            if (TSC_SUCCEEDED(r) && (LangDesc.wszDisplayName != NULL))
-            {
-                sTitle.append(LangDesc.wszDisplayName);
-            }
+            std::wstring sDisplayName;
+            CIsoLang::GetDisplayName(sLangCode.c_str(), sDisplayName);
+            sTitle.append(sDisplayName);
         }
         else
         {
@@ -415,22 +414,6 @@ bool CCheckSpellingDlg::OnListBoxSelChange(HWND hwndListBox)
         {
             SetChangeToText(sText.c_str());
         }
-
-        /*int nSel = ::SendMessage(hwndSuggestions, LB_GETCURSEL, 0, 0);
-        if (nSel != LB_ERR)
-        {
-            int nTextLen = ::SendMessage(hwndSuggestions, LB_GETTEXTLEN, nSel, 0);
-            if (nTextLen > 0)
-            {
-                nTextLen = nTextLen + 1;
-                std::vector<wchar_t> vString(nTextLen);
-                nTextLen = ::SendMessage(hwndSuggestions, LB_GETTEXT, nSel, reinterpret_cast<LPARAM>(&(*vString.begin())));
-                if (nTextLen > 0)
-                {
-                    SetChangeToText(&(*vString.begin()));
-                }
-            }
-        }*/
 
         bHandled = true;
     }
