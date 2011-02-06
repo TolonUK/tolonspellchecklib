@@ -230,7 +230,7 @@ tsc_result CSession::ShowOptionsWindow(TSC_SHOWOPTIONSWINDOW_DATA* pData)
     // whether the dialog was dismissed by the ok button.
     CSessionOptionsData options_copy(m_options);
     
-    CSpellingOptionsDlg dlg(options_copy, pData->hWndParent);
+    CSpellingOptionsDlg dlg(options_copy, pData->hwndParent);
     
     if (dlg.DoModal() == IDOK)
     {

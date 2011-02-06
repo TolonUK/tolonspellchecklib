@@ -46,8 +46,7 @@ CCheckSpellingDlg::~CCheckSpellingDlg()
 int CCheckSpellingDlg::DoModal()
 {
     s_pThis = this;
-    DialogBox(g_hInstDll, MAKEINTRESOURCE(CCheckSpellingDlg::IDD), m_hwndParent, &CCheckSpellingDlg::WndProc);
-    return 0;
+    return DialogBox(g_hInstDll, MAKEINTRESOURCE(CCheckSpellingDlg::IDD), m_hwndParent, &CCheckSpellingDlg::WndProc);
 }
 
 BOOL CCheckSpellingDlg::OnInitDialog()
@@ -75,32 +74,18 @@ void CCheckSpellingDlg::UpdateTitleBar()
 
     if (pModule && pSession)
     {
-        tsc_result r = TSC_E_FAIL;            
-
-        // Set the title bar text to indicate the current language.
-        std::wstring sLangCode;
-
-        {
-            const wchar_t* p = pSession->GetLanguage();
-            if (p)
-            {
-                sLangCode = p;
-            }
-        }
+        CSessionOptionsData options;
+        pSession->GetSessionOptions(options);
+        const wchar_t* sLang = options.CurrentLanguage();
         
-        std::wstring sTitle(L"Spelling: ");
-        if (!sLangCode.empty())
+        assert(sLang);
+        if (sLang)
         {
-            std::wstring sDisplayName;
-            CIsoLang::GetDisplayName(sLangCode.c_str(), sDisplayName);
-            sTitle.append(sDisplayName);
-        }
-        else
-        {
-            sTitle.append(L"?");
-        }
+            std::wstring sDisplay(sLang);
+            CIsoLang::GetDisplayName(sLang, sDisplay);
 
-        ::SetWindowText(GetHwnd(), sTitle.c_str());
+            CWndUtils::SetWindowText( GetHwnd(), sDisplay.c_str(), L"Spelling: " );
+        }
     }
 }
 
@@ -170,11 +155,10 @@ void CCheckSpellingDlg::OnCmdOptions()
     {
         tsc_result r = 0;
 
-        TSC_SHOWOPTIONSWINDOW_DATA data = {0};
-        data.cbSize = sizeof(TSC_SHOWOPTIONSWINDOW_DATA);
-        data.hWndParent = GetHwnd();
+        CShowOptionsWindowData sowd;
+        sowd.ParentWindow(GetHwnd());
 
-        r = pSession->ShowOptionsWindow(&data);
+        r = pSession->ShowOptionsWindow(sowd);
         if (FAILED(r))
         {
             ::MessageBox(GetHwnd(), L"Failed to display options window.", L"TolonSpellCheck", MB_OK | MB_ICONEXCLAMATION);
@@ -289,54 +273,66 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
     if (    ( m_bWaitingForInput == false ) 
          && ( nState == CRichEditSpellChecker::SpellCheckState_WAITING ) )
     {
-        TSC_CHECKWORD_DATA* pCwd = m_checker.GetCheckWordData();
+        //TSC_CHECKWORD_DATA* pCwd = m_checker.GetCheckWordData();
+        CCheckWordData& cwd = m_checker.GetCheckWordData();
 
-        if (pCwd)
+        m_checker.SelectCurrentWord();
+
+        HWND hWndEditWord = ::GetDlgItem(GetHwnd(), IDC_EDIT_WORD);
+        HWND hWndEditChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
+        if (hWndEditWord && hWndEditChangeTo)
         {
-            m_checker.SelectCurrentWord();
+            std::wstring s = cwd.TestWord();
 
-            HWND hWndEditWord = ::GetDlgItem(GetHwnd(), IDC_EDIT_WORD);
-            HWND hWndEditChangeTo = ::GetDlgItem(GetHwnd(), IDC_EDIT_CHANGETO);
-            if (hWndEditWord && hWndEditChangeTo)
+            if (!s.empty())
             {
-                std::wstring s;
-                if (string_from_utf8(s, pCwd->uTestWord.szWord8, static_cast<size_t>(-1)))
-                {
-                    ::SetWindowText(hWndEditWord, s.c_str());
-                    ::SetWindowText(hWndEditChangeTo, s.c_str());
-                }
-            }
-
-            HWND hWndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
-            if (hWndList)
-            {
-                std::string s;
-                ::SendMessage(hWndList, LB_RESETCONTENT, 0, 0);
-                for (size_t i = 0; i < pCwd->nResultStringSize; ++i)
-                {
-                    if (pCwd->uResultString.szResults8[i] == 0)
-                    {
-                        if (s.empty())
-                            break;
-                        else
-                        {
-                            std::wstring ws;
-                            if (string_from_utf8(ws, s.c_str(), s.size()))
-                            {
-                                ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(ws.c_str()));
-                            }
-                            s.clear();
-                        }
-                    }
-                    else
-                    {
-                        s.push_back(pCwd->uResultString.szResults8[i]);
-                    }
-                }
+                ::SetWindowText(hWndEditWord, s.c_str());
+                ::SetWindowText(hWndEditChangeTo, s.c_str());
             }
         }
 
+        HWND hwndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
+        if (hwndList)
+        {
+            std::string s;
+            ::SendMessage(hwndList, LB_RESETCONTENT, 0, 0);
+
+            // Call this->AddResultString(s) for each result string
+            cwd.ApplyResults(std::bind1st(std::mem_fun(&CCheckSpellingDlg::AddResultString), this));
+
+            /*for (size_t i = 0; i < pCwd->nResultStringSize; ++i)
+            {
+                if (pCwd->uResultString.szResults8[i] == 0)
+                {
+                    if (s.empty())
+                        break;
+                    else
+                    {
+                        std::wstring ws;
+                        if (string_from_utf8(ws, s.c_str(), s.size()))
+                        {
+                            ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(ws.c_str()));
+                        }
+                        s.clear();
+                    }
+                }
+                else
+                {
+                    s.push_back(pCwd->uResultString.szResults8[i]);
+                }
+            }*/
+        }
+
         m_bWaitingForInput = true;
+    }
+}
+
+void CCheckSpellingDlg::AddResultString(std::wstring s)
+{
+    if (!s.empty())
+    {
+        HWND hwndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
+        ::SendMessage(hwndList, LB_ADDSTRING, 0, reinterpret_cast<long>(s.c_str()));
     }
 }
 

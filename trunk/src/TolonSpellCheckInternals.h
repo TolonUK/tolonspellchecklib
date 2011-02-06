@@ -2,13 +2,12 @@
 #define _TOLON_SPELLCHECK_INTERNALS_H__
 
 #include "TolonSpellCheck.h"
+#include <algorithm>
 #include <string>
+#include <vector>
 
 // Wraps needed for following structures:
-// TSC_SESSIONOPTIONS_DATA
-// TSC_SHOWOPTIONSWINDOW_DATA
 // TSC_CHECKSPELLING_DATA
-// TSC_CHECKWORD_DATA
 // LANGUAGE_DESC_DATA
 // LANGUAGE_DESC_WIDEDATA
 
@@ -30,7 +29,53 @@ namespace TolonSpellCheck {
     
     typedef bool (*LanguageEnumFn) (LANGUAGE_DESC_WIDEDATA* pData,
                                       void * user_data);
-    
+
+///////////////////////////////////////////////////////////////////////////////
+// CCheckWordData
+///////////////////////////////////////////////////////////////////////////////
+    class CCheckWordData
+    {
+    public:
+        CCheckWordData();
+        CCheckWordData(const CCheckWordData& src);
+        CCheckWordData(const TSC_CHECKWORD_DATA& src) { FromStruct(src); }
+        const CCheckWordData& operator=(const CCheckWordData& rhs);
+        bool operator==(const CCheckWordData& rhs) const;
+
+        void ToStruct(TSC_CHECKWORD_DATA& dest) const;
+        void FromStruct(const TSC_CHECKWORD_DATA& src);
+
+        void TestWord(const wchar_t* s)
+        { if (s) m_sTestWord = s; 
+          else m_sTestWord.clear(); }
+        const wchar_t* TestWord() const
+        { return m_sTestWord.c_str(); }
+
+        template <typename Fn>
+        Fn Call(Fn fn)
+        {
+            ToStruct(m_xHelper);
+            fn(&m_xHelper);
+            FromStruct(m_xHelper);
+            return fn;
+        }
+
+        template <typename Fn>
+        Fn ApplyResults(Fn fn)
+        {
+            return std::for_each(m_vResults.begin(), m_vResults.end(), fn);
+        }
+
+    private:
+        std::wstring m_sTestWord;
+        std::vector<std::wstring> m_vResults;
+
+        TSC_CHECKWORD_DATA m_xHelper;
+    };
+
+    CCheckWordData& operator<<(CCheckWordData& dest, const TSC_CHECKWORD_DATA& src);
+    TSC_CHECKWORD_DATA& operator<<(TSC_CHECKWORD_DATA& dest, const CCheckWordData& src);
+
 ///////////////////////////////////////////////////////////////////////////////
 // CInitData
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,8 +84,7 @@ namespace TolonSpellCheck {
     public:
         CInitData();
         CInitData(const CInitData& src);
-        CInitData(const TSC_INIT_DATA& src)
-        { FromStruct(src); }
+        CInitData(const TSC_INIT_DATA& src) { FromStruct(src); }
         const CInitData& operator=(const CInitData& rhs);
         bool operator==(const CInitData& rhs) const;
 
@@ -59,31 +103,6 @@ namespace TolonSpellCheck {
     TSC_INIT_DATA& operator<<(TSC_INIT_DATA& dest, const CInitData& src);
 
 ///////////////////////////////////////////////////////////////////////////////
-// CVersionData
-///////////////////////////////////////////////////////////////////////////////
-    class CVersionData
-    {
-    public:
-        CVersionData();
-        CVersionData(const CVersionData& src);
-        CVersionData(const TSC_VERSION_DATA& src)
-        { FromStruct(src); }
-        const CVersionData& operator=(const CVersionData& rhs);
-        bool operator==(const CVersionData& rhs) const;
-
-        void ToStruct(TSC_VERSION_DATA& dest) const;
-        void FromStruct(const TSC_VERSION_DATA& src);
-
-    private:
-        unsigned char m_nMajor;
-        unsigned char m_nMinor;
-    };
-
-    // << operator definitions
-    CVersionData& operator<<(CVersionData& dest, const TSC_VERSION_DATA& src);
-    TSC_VERSION_DATA& operator<<(TSC_VERSION_DATA& dest, const CVersionData& src);
-
-///////////////////////////////////////////////////////////////////////////////
 // CCreateSessionData
 ///////////////////////////////////////////////////////////////////////////////
     class CCreateSessionData
@@ -91,8 +110,7 @@ namespace TolonSpellCheck {
     public:
         CCreateSessionData();
         CCreateSessionData(const CCreateSessionData& src);
-        CCreateSessionData(const TSC_CREATESESSION_DATA& src)
-        { FromStruct(src); }
+        CCreateSessionData(const TSC_CREATESESSION_DATA& src) { FromStruct(src); }
         const CCreateSessionData& operator=(const CCreateSessionData& rhs);
         bool operator==(const CCreateSessionData& rhs) const;
 
@@ -114,8 +132,7 @@ namespace TolonSpellCheck {
     public:
         CSessionOptionsData();
         CSessionOptionsData(const CSessionOptionsData& src);
-        CSessionOptionsData(const TSC_SESSIONOPTIONS_DATA& src)
-        { FromStruct(src); }
+        CSessionOptionsData(const TSC_SESSIONOPTIONS_DATA& src) { FromStruct(src); }
         const CSessionOptionsData& operator=(const CSessionOptionsData& rhs);
         bool operator==(const CSessionOptionsData& rhs) const;
 
@@ -199,6 +216,71 @@ namespace TolonSpellCheck {
     TSC_SESSIONOPTIONS_DATA& operator<<(TSC_SESSIONOPTIONS_DATA& dest, const CSessionOptionsData& src);
     std::wostream& operator<<(std::wostream& os, const CSessionOptionsData& src);
 
+///////////////////////////////////////////////////////////////////////////////
+// CShowOptionsWindowData
+///////////////////////////////////////////////////////////////////////////////
+    class CShowOptionsWindowData
+    {
+    public:
+        CShowOptionsWindowData();
+        CShowOptionsWindowData(const CShowOptionsWindowData& src);
+        CShowOptionsWindowData(const TSC_SHOWOPTIONSWINDOW_DATA& src) { FromStruct(src); }
+        const CShowOptionsWindowData& operator=(const CShowOptionsWindowData& rhs);
+        bool operator==(const CShowOptionsWindowData& rhs) const;
+
+        void ToStruct(TSC_SHOWOPTIONSWINDOW_DATA& dest) const;
+        void FromStruct(const TSC_SHOWOPTIONSWINDOW_DATA& src);
+
+        // Implicit conversion
+        operator TSC_SHOWOPTIONSWINDOW_DATA* ();
+
+        // Getter methods
+        HWND ParentWindow() const
+        { return m_hParent; }
+
+        // Setter methods
+        void ParentWindow(HWND h)
+        { m_hParent = h; }
+    
+    private:
+        // Struct members
+        HWND m_hParent;
+
+        // Helper struct for implicit conversion
+        TSC_SHOWOPTIONSWINDOW_DATA m_xHelper;
+    };
+
+    // << operator definitions
+    CShowOptionsWindowData& operator<<(CShowOptionsWindowData& dest, const TSC_SHOWOPTIONSWINDOW_DATA& src);
+    TSC_SHOWOPTIONSWINDOW_DATA& operator<<(TSC_SHOWOPTIONSWINDOW_DATA& dest, const CShowOptionsWindowData& src);
+    std::wostream& operator<<(std::wostream& os, const CShowOptionsWindowData& src);
+
+///////////////////////////////////////////////////////////////////////////////
+// CVersionData
+///////////////////////////////////////////////////////////////////////////////
+    class CVersionData
+    {
+    public:
+        CVersionData();
+        CVersionData(const CVersionData& src);
+        CVersionData(const TSC_VERSION_DATA& src) { FromStruct(src); }
+        const CVersionData& operator=(const CVersionData& rhs);
+        bool operator==(const CVersionData& rhs) const;
+
+        void ToStruct(TSC_VERSION_DATA& dest) const;
+        void FromStruct(const TSC_VERSION_DATA& src);
+
+    private:
+        unsigned char m_nMajor;
+        unsigned char m_nMinor;
+    };
+
+    // << operator definitions
+    CVersionData& operator<<(CVersionData& dest, const TSC_VERSION_DATA& src);
+    TSC_VERSION_DATA& operator<<(TSC_VERSION_DATA& dest, const CVersionData& src);
+
+
 };
+
 
 #endif //_TOLON_SPELLCHECK_INTERNALS_H__

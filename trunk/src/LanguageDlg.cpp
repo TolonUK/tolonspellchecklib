@@ -52,8 +52,7 @@ bool CLanguageDlg::LangEnumCallback(LANGUAGE_DESC_WIDEDATA* pData, void* pUserDa
         LVITEM lvi = {0};
         
         lvi.mask = LVIF_TEXT;
-        lvi.iItem = 0;
-        
+        lvi.iItem = 0;        
         lvi.iSubItem = COL_CODE;
         lvi.pszText = pData->wszCodeName;
         ListView_InsertItem(pThis->GetLangListHwnd(), &lvi);
@@ -249,7 +248,6 @@ void CLanguageDlg::SelectCurrentLanguage()
 
 void CLanguageDlg::UpdateLanguageDisplay()
 {
-    //NEED TO GET THE DEFAULT LANGUAGE HERE
     const wchar_t* sDefault = m_options.DefaultLanguage();
     
     assert(sDefault);

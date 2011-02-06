@@ -17,6 +17,8 @@ public:
     
     int DoModal();
 
+    void AddResultString(std::wstring s);
+
 private:
     static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
     static void CALLBACK TimerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime);

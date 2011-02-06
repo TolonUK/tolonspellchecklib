@@ -6,6 +6,59 @@
 using namespace TolonSpellCheck;
 
 ///////////////////////////////////////////////////////////////////////////////
+// CCheckWordData
+///////////////////////////////////////////////////////////////////////////////
+CCheckWordData::CCheckWordData()
+{
+}
+
+CCheckWordData::CCheckWordData(const CCheckWordData& src) :
+    m_sTestWord(src.m_sTestWord),
+    m_vResults(src.m_vResults)
+{
+}
+
+const CCheckWordData& CCheckWordData::operator=(const CCheckWordData& rhs)
+{
+    m_sTestWord = rhs.m_sTestWord;
+    m_vResults = rhs.m_vResults;
+
+    return *this;
+}
+
+bool CCheckWordData::operator==(const CCheckWordData& rhs) const
+{
+    return (m_sTestWord == rhs.m_sTestWord) &&
+           (m_vResults == rhs.m_vResults);
+}
+
+void CCheckWordData::ToStruct(TSC_CHECKWORD_DATA& dest) const
+{
+    dest.cbSize = sizeof(TSC_CHECKWORD_DATA);
+    //utf8_from_string(dest.szAppName, sizeof(dest.szAppName), m_szAppName);
+    //TODO: Coding to struct
+}
+
+void CCheckWordData::FromStruct(const TSC_CHECKWORD_DATA& src)
+{
+    assert(src.cbSize == sizeof(TSC_CHECKWORD_DATA));
+    //string_from_utf8(m_szAppName, src.szAppName, sizeof(src.szAppName));
+    //TODO: Coding from struct
+}
+
+CCheckWordData& TolonSpellCheck::operator<<(CCheckWordData& dest, const TSC_CHECKWORD_DATA& src)
+{
+    dest.FromStruct(src);
+    return dest;
+}
+
+TSC_CHECKWORD_DATA& TolonSpellCheck::operator<<(TSC_CHECKWORD_DATA& dest, const CCheckWordData& src)
+{
+    src.ToStruct(dest);
+    return dest;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // CInitData
 ///////////////////////////////////////////////////////////////////////////////
 CInitData::CInitData()
@@ -51,65 +104,6 @@ CInitData& TolonSpellCheck::operator<<(CInitData& dest, const TSC_INIT_DATA& src
 }
 
 TSC_INIT_DATA& TolonSpellCheck::operator<<(TSC_INIT_DATA& dest, const CInitData& src)
-{
-    src.ToStruct(dest);
-    return dest;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// CVersionData
-///////////////////////////////////////////////////////////////////////////////
-CVersionData::CVersionData() :
-    m_nMajor(TSC_VERSION_MAJOR),
-    m_nMinor(TSC_VERSION_MINOR)
-{
-}
-
-CVersionData::CVersionData(const CVersionData& src) :
-    m_nMajor(src.m_nMajor),
-    m_nMinor(src.m_nMinor)
-{
-}
-
-const CVersionData& CVersionData::operator=(const CVersionData& rhs)
-{
-    m_nMajor = rhs.m_nMajor;
-    m_nMinor = rhs.m_nMinor;
-
-    return *this;
-}
-
-bool CVersionData::operator==(const CVersionData& rhs) const
-{
-    if (this == &rhs)
-        return true;
-
-    return (m_nMajor == rhs.m_nMajor) && (m_nMinor == rhs.m_nMinor);
-}
-
-void CVersionData::ToStruct(TSC_VERSION_DATA& dest) const
-{
-    dest.cbSize = sizeof(TSC_VERSION_DATA);
-    dest.nMajor = m_nMajor;
-    dest.nMinor = m_nMinor;
-    dest.nReserved1 = 0;
-    dest.nReserved2 = 0;
-}
-
-void CVersionData::FromStruct(const TSC_VERSION_DATA& src)
-{
-    assert(src.cbSize == sizeof(TSC_VERSION_DATA));
-    m_nMajor = src.nMajor;
-    m_nMinor = src.nMinor;
-}
-
-CVersionData& TolonSpellCheck::operator<<(CVersionData& dest, const TSC_VERSION_DATA& src)
-{
-    dest.FromStruct(src);
-    return dest;
-}
-
-TSC_VERSION_DATA& TolonSpellCheck::operator<<(TSC_VERSION_DATA& dest, const CVersionData& src)
 {
     src.ToStruct(dest);
     return dest;
@@ -279,4 +273,130 @@ std::wostream& TolonSpellCheck::operator<<(std::wostream& os, const CSessionOpti
        << L", m_szDefaultLanguage := " << src.DefaultLanguage() << L")";
 
     return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CShowOptionsWindowData
+///////////////////////////////////////////////////////////////////////////////
+CShowOptionsWindowData::CShowOptionsWindowData() :
+    m_hParent(NULL)
+{
+}
+
+CShowOptionsWindowData::CShowOptionsWindowData(const CShowOptionsWindowData& src) :
+    m_hParent(src.m_hParent)
+{
+}
+
+const CShowOptionsWindowData& CShowOptionsWindowData::operator=(const CShowOptionsWindowData& rhs)
+{
+    m_hParent = rhs.m_hParent;
+
+    return *this;
+}
+
+bool CShowOptionsWindowData::operator==(const CShowOptionsWindowData& rhs) const
+{
+    if (this == &rhs)
+        return true;
+
+    return 
+        (m_hParent == rhs.m_hParent);
+}
+
+void CShowOptionsWindowData::ToStruct(TSC_SHOWOPTIONSWINDOW_DATA& dest) const
+{
+    dest.cbSize = sizeof(TSC_SESSIONOPTIONS_DATA);
+    dest.hwndParent = m_hParent;
+}
+
+void CShowOptionsWindowData::FromStruct(const TSC_SHOWOPTIONSWINDOW_DATA& src)
+{
+    assert(src.cbSize == sizeof(TSC_SHOWOPTIONSWINDOW_DATA));
+    m_hParent = src.hwndParent;
+}
+
+CShowOptionsWindowData::operator TSC_SHOWOPTIONSWINDOW_DATA* ()
+{
+    ToStruct(m_xHelper);
+    return &m_xHelper;
+}
+
+CShowOptionsWindowData& TolonSpellCheck::operator<<(CShowOptionsWindowData& dest, const TSC_SHOWOPTIONSWINDOW_DATA& src)
+{
+    dest.FromStruct(src);
+    return dest;
+}
+
+TSC_SHOWOPTIONSWINDOW_DATA& TolonSpellCheck::operator<<(TSC_SHOWOPTIONSWINDOW_DATA& dest, const CShowOptionsWindowData& src)
+{
+    src.ToStruct(dest);
+    return dest;
+}
+
+std::wostream& TolonSpellCheck::operator<<(std::wostream& os, const CShowOptionsWindowData& src)
+{
+    os << L"CShowOptionsWindowData("
+       << L" m_hParent := 0x" << std::hex << src.ParentWindow() << L")";
+
+    return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// CVersionData
+///////////////////////////////////////////////////////////////////////////////
+CVersionData::CVersionData() :
+    m_nMajor(TSC_VERSION_MAJOR),
+    m_nMinor(TSC_VERSION_MINOR)
+{
+}
+
+CVersionData::CVersionData(const CVersionData& src) :
+    m_nMajor(src.m_nMajor),
+    m_nMinor(src.m_nMinor)
+{
+}
+
+const CVersionData& CVersionData::operator=(const CVersionData& rhs)
+{
+    m_nMajor = rhs.m_nMajor;
+    m_nMinor = rhs.m_nMinor;
+
+    return *this;
+}
+
+bool CVersionData::operator==(const CVersionData& rhs) const
+{
+    if (this == &rhs)
+        return true;
+
+    return (m_nMajor == rhs.m_nMajor) && (m_nMinor == rhs.m_nMinor);
+}
+
+void CVersionData::ToStruct(TSC_VERSION_DATA& dest) const
+{
+    dest.cbSize = sizeof(TSC_VERSION_DATA);
+    dest.nMajor = m_nMajor;
+    dest.nMinor = m_nMinor;
+    dest.nReserved1 = 0;
+    dest.nReserved2 = 0;
+}
+
+void CVersionData::FromStruct(const TSC_VERSION_DATA& src)
+{
+    assert(src.cbSize == sizeof(TSC_VERSION_DATA));
+    m_nMajor = src.nMajor;
+    m_nMinor = src.nMinor;
+}
+
+CVersionData& TolonSpellCheck::operator<<(CVersionData& dest, const TSC_VERSION_DATA& src)
+{
+    dest.FromStruct(src);
+    return dest;
+}
+
+TSC_VERSION_DATA& TolonSpellCheck::operator<<(TSC_VERSION_DATA& dest, const CVersionData& src)
+{
+    src.ToStruct(dest);
+    return dest;
 }

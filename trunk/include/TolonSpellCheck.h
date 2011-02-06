@@ -80,7 +80,7 @@ typedef struct tagTSC_SESSIONOPTIONS {
 
 typedef struct tagTSC_SHOWOPTIONSWINDOW {
 	tsc_size_t cbSize;
-	HWND hWndParent;
+	HWND hwndParent;
 } TSC_SHOWOPTIONSWINDOW_DATA;
 
 typedef tsc_result (CALLBACK *CHECKSPELLING_CALLBACK)(tsc_cookie SessionID, tsc_byte* pBuffer, tsc_size_t BufferSize, tsc_size_t* pBytesInBuffer);

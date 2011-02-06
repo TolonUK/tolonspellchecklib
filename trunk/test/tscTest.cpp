@@ -12,6 +12,7 @@
 //      tscCheckSpelling  |
 //          tscCheckWord  |
 
+#define _CRT_SECURE_NO_WARNINGS 1
 
 #include "TolonSpellCheck.h"
 #include <iomanip>
@@ -548,7 +549,7 @@ bool test_show_options()
     TSC_SHOWOPTIONSWINDOW_DATA sow;
     memset(&sow, 0xff, sizeof(TSC_SHOWOPTIONSWINDOW_DATA));
     sow.cbSize = sizeof(TSC_SHOWOPTIONSWINDOW_DATA);
-    sow.hWndParent = NULL;
+    sow.hwndParent = NULL;
     r = ::tscShowOptionsWindow(c, &sow);   
     util_is_success("tscShowOptionsWindow", r, bTestResult);
     // and again to show that the options were stored in memory

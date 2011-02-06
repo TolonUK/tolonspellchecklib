@@ -71,6 +71,18 @@ public:
             }
         }
     }
+
+    static void SetWindowText( HWND hWnd, const wchar_t* sText, const wchar_t* sPrefix )
+    {
+        if (!hWnd)
+            return;
+
+        std::wstring ws;
+        if (sPrefix)
+            ws.assign(sPrefix);
+        ws.append(sText);
+        ::SetWindowText(hWnd, ws.c_str());
+    }
 };
 
 class CListViewUtils
