@@ -115,6 +115,18 @@ typedef struct tagTSC_CHECKSPELLING {
 typedef struct tagTSC_CHECKWORD {
 	tsc_size_t cbSize;
 	// In
+	const char* sTestWord; // UTF-8
+	tsc_size_t nWordSize; // in bytes
+	// In/Out
+	char* sResults; // UTF-8
+	tsc_size_t nResultStringSize; // IN: no. of bytes in result string, OUT: no. of bytes used
+	// Out
+	bool bOk;
+} TSC_CHECKWORD_DATA;
+
+/*typedef struct tagTSC_CHECKWORD {
+	tsc_size_t cbSize;
+	// In
 	union {
 		const char* szWord8; // UTF-8
 		const wchar_t* szWord16; // Unicode
@@ -128,7 +140,7 @@ typedef struct tagTSC_CHECKWORD {
 	tsc_size_t nResultStringSize; // IN: no. of bytes in result string, OUT: no. of bytes used
 	// Out
 	bool bOk;
-} TSC_CHECKWORD_DATA;
+} TSC_CHECKWORD_DATA;*/
 #pragma pack(pop)
 
 // Module-level functions
