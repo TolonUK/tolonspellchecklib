@@ -129,6 +129,7 @@ DEBUGFLAGS = -Zi
 EXCEPTIONFLAGS = -EHsc
 
 CFLAGS = \
+    /nologo \
     $(MFLAGS) \
     $(WARN_CFLAGS) \
     $(EXCEPTIONFLAGS) \
@@ -156,6 +157,7 @@ INCLUDES = $(INCLUDES) \
 !endif
 
 LINKFLAGS = \
+    -NOLOGO \
     -INCREMENTAL:NO \
     -MANIFEST \
     -MANIFESTUAC:"level='asInvoker' uiAccess='false'" \
