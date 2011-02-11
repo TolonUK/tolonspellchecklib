@@ -133,11 +133,12 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
     
     tsc_result tr = TSC_E_UNEXPECTED;
     
-    if ( enchant_dict_check(m_pEnchantDict, pData->uTestWord.szWord8, -1) == 0 )
+    if ( enchant_dict_check(m_pEnchantDict, pData->sTestWord, -1) == 0 )
     {
         // word found
         tr = TSC_S_OK;
         pData->bOk = true;
+        pData->nResultStringSize = 0;
     }
     else
     {
@@ -147,27 +148,27 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
 
         char **suggs = NULL;
         size_t n_suggs = 0;
+        size_t nOutDone = 0;
 
         suggs = enchant_dict_suggest( m_pEnchantDict,
-                                      pData->uTestWord.szWord8,
-                                      strlen(pData->uTestWord.szWord8),
+                                      pData->sTestWord,
+                                      strlen(pData->sTestWord),
                                       &n_suggs );
 
-        if ((pData->uResultString.szResults8) && (pData->nResultStringSize))
+        if ((pData->sResults) && (pData->nResultStringSize))
         {
-            pData->uResultString.szResults8[0] = 0;
-            pData->uResultString.szResults8[1] = 0;
+            pData->sResults[0] = 0;
+            pData->sResults[1] = 0;
         }
 
-    if (suggs && n_suggs)
+        if (suggs && n_suggs)
         {
             // provide list of words separated by null characters.
-            char* szOut = pData->uResultString.szResults8;
+            char* szOut = pData->sResults;
             
             if (szOut)
             {
                 char* szSug = NULL;
-                size_t nOutDone = 0;
                 size_t nSugLen = 0;
                 for ( size_t i = 0; i < n_suggs; ++i )
                 {
@@ -186,11 +187,13 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
                     }
                 }
 
-                szOut[nOutDone] = '\0'; // This gives a double null-terminator at the end.
+                szOut[nOutDone] = '\0'; // This gives a double null-terminator at the end
             }
 
             enchant_dict_free_string_list(m_pEnchantDict, suggs);
         }
+
+        pData->nResultStringSize = nOutDone;
     }
 
     if (FAILED(tr))

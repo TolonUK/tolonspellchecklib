@@ -42,7 +42,7 @@ namespace TolonSpellCheck {
         const CCheckWordData& operator=(const CCheckWordData& rhs);
         bool operator==(const CCheckWordData& rhs) const;
 
-        void ToStruct(TSC_CHECKWORD_DATA& dest) const;
+        void ToStruct(TSC_CHECKWORD_DATA& dest);
         void FromStruct(const TSC_CHECKWORD_DATA& src);
 
         void TestWord(const wchar_t* s)
@@ -66,9 +66,30 @@ namespace TolonSpellCheck {
             return std::for_each(m_vResults.begin(), m_vResults.end(), fn);
         }
 
+        /*template <typename It>
+        It IterateResults(It i)
+        {
+            return std::copy(m_vResults.begin(), m_vResults.end(), i);
+        }*/
+
+        bool WordWasOk() const
+        { return m_bWordOk; }
+
     private:
+        void ResultsToStruct(TSC_CHECKWORD_DATA& dest);
+        void ResultsFromStruct(const TSC_CHECKWORD_DATA& src);
+
+    private:
+        // Struct representation in unicode
         std::wstring m_sTestWord;
         std::vector<std::wstring> m_vResults;
+        bool m_bWordOk;
+
+        // Struct representation in utf-8
+        std::string m_sTestWordUtf8;
+        std::vector<char> m_vResultsUtf8;
+
+        bool m_bResultsUtf8Locked;
 
         TSC_CHECKWORD_DATA m_xHelper;
     };

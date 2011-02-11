@@ -2,19 +2,33 @@
 #include "utf8conv.h"
 #include <windows.h>
 #include <cassert>
+#include <iostream>
+#include <iterator>
+#include <sstream>
 
 using namespace TolonSpellCheck;
+
+static CUTF8Conv s_utf8;
+static size_t s_nResultBufLen = 1024 * 2;
 
 ///////////////////////////////////////////////////////////////////////////////
 // CCheckWordData
 ///////////////////////////////////////////////////////////////////////////////
-CCheckWordData::CCheckWordData()
+CCheckWordData::CCheckWordData() :
+    m_bWordOk(false),
+    m_vResultsUtf8(s_nResultBufLen + 1, '\0'),
+    m_bResultsUtf8Locked(false)
 {
 }
 
 CCheckWordData::CCheckWordData(const CCheckWordData& src) :
     m_sTestWord(src.m_sTestWord),
-    m_vResults(src.m_vResults)
+    m_vResults(src.m_vResults),
+    m_bWordOk(src.m_bWordOk),
+    m_sTestWordUtf8(src.m_sTestWordUtf8),
+    m_vResultsUtf8(src.m_vResultsUtf8),
+    m_bResultsUtf8Locked(src.m_bResultsUtf8Locked),
+    m_xHelper(src.m_xHelper)
 {
 }
 
@@ -22,31 +36,111 @@ const CCheckWordData& CCheckWordData::operator=(const CCheckWordData& rhs)
 {
     m_sTestWord = rhs.m_sTestWord;
     m_vResults = rhs.m_vResults;
+    m_bWordOk = rhs.m_bWordOk;
+    m_sTestWordUtf8 = rhs.m_sTestWordUtf8;
+    m_vResultsUtf8 = rhs.m_vResultsUtf8;
+    m_bResultsUtf8Locked = rhs.m_bResultsUtf8Locked;
+    m_xHelper = rhs.m_xHelper;
 
     return *this;
 }
 
 bool CCheckWordData::operator==(const CCheckWordData& rhs) const
 {
+    //TODO: Do we need to test any more members for equality?
     return (m_sTestWord == rhs.m_sTestWord) &&
            (m_vResults == rhs.m_vResults);
 }
 
-void CCheckWordData::ToStruct(TSC_CHECKWORD_DATA& dest) const
+void CCheckWordData::ToStruct(TSC_CHECKWORD_DATA& dest)
 {
     dest.cbSize = sizeof(TSC_CHECKWORD_DATA);
-    //utf8_from_string(dest.szAppName, sizeof(dest.szAppName), m_szAppName);
-    //TODO: Coding to struct
+
+    s_utf8.utf8FromUnicode(m_sTestWord.c_str(), m_sTestWordUtf8);
+    dest.sTestWord = m_sTestWordUtf8.c_str();
+    dest.nWordSize = m_sTestWordUtf8.size();
+
+    ResultsToStruct(dest);
+    dest.bOk = true;
+}
+
+void CCheckWordData::ResultsToStruct(TSC_CHECKWORD_DATA& dest)
+{
+    assert(!m_bResultsUtf8Locked);
+
+    if (!m_bResultsUtf8Locked)
+    {
+        dest.sResults = &(*m_vResultsUtf8.begin());
+        dest.nResultStringSize = m_vResultsUtf8.size();
+
+        m_bResultsUtf8Locked = true;
+    }
 }
 
 void CCheckWordData::FromStruct(const TSC_CHECKWORD_DATA& src)
 {
     assert(src.cbSize == sizeof(TSC_CHECKWORD_DATA));
-    //string_from_utf8(m_szAppName, src.szAppName, sizeof(src.szAppName));
-    //TODO: Coding from struct
+
+    if (src.cbSize == sizeof(TSC_CHECKWORD_DATA))
+    {
+        s_utf8.unicodeFromUtf8(src.sTestWord, m_sTestWord);
+
+        ResultsFromStruct(src);
+
+        m_bWordOk = src.bOk;
+    }
 }
 
-CCheckWordData& TolonSpellCheck::operator<<(CCheckWordData& dest, const TSC_CHECKWORD_DATA& src)
+void CCheckWordData::ResultsFromStruct(const TSC_CHECKWORD_DATA& src)
+{
+    assert(m_bResultsUtf8Locked);
+
+    if (m_bResultsUtf8Locked)
+    {
+        m_vResults.clear();
+        size_t nBytesToProcess = src.nResultStringSize;
+
+        if (!src.bOk && (nBytesToProcess > 0))
+        {
+            std::vector<char>::const_iterator it = m_vResultsUtf8.begin();
+            std::vector<char>::const_iterator itEnd = m_vResultsUtf8.end();
+
+            if (nBytesToProcess > m_vResultsUtf8.size())
+            {
+                nBytesToProcess = m_vResultsUtf8.size();
+            }
+            else if (nBytesToProcess < m_vResultsUtf8.size())
+            {
+                std::advance(itEnd, nBytesToProcess - m_vResultsUtf8.size());
+            }
+
+            std::vector<char>::const_iterator itNull;
+
+            while ((it != itEnd) && (*it != '\0'))
+            {
+                itNull = std::find(it, itEnd, '\0');
+                if (itNull != itEnd)
+                {
+                    std::string sWord(it, itNull);
+                    std::wstring wsWord;
+
+                    if (!sWord.empty())
+                    {
+                        s_utf8.unicodeFromUtf8(sWord.c_str(), wsWord);
+                        m_vResults.push_back(wsWord);
+                    }
+
+                    it = itNull;
+                    std::advance(it, 1);
+                }
+            }
+        }
+
+        m_bResultsUtf8Locked = false;
+    }
+}
+
+/*CCheckWordData& TolonSpellCheck::operator<<(CCheckWordData& dest, const TSC_CHECKWORD_DATA& src)
 {
     dest.FromStruct(src);
     return dest;
@@ -56,7 +150,7 @@ TSC_CHECKWORD_DATA& TolonSpellCheck::operator<<(TSC_CHECKWORD_DATA& dest, const 
 {
     src.ToStruct(dest);
     return dest;
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // CInitData

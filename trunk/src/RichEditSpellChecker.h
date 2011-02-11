@@ -46,7 +46,6 @@ class CRichEditSpellChecker
 
         void GetState(CRichEditSpellChecker::State& nState, DWORD& dwCharsDone, DWORD& dwCharsTotal);
 
-        //TSC_CHECKWORD_DATA* GetCheckWordData();
         CCheckWordData& GetCheckWordData();
         void ResumeSpellCheck();
 
@@ -59,7 +58,6 @@ class CRichEditSpellChecker
         void SelectCurrentWord();
    
     private:
-        //DWORD WT_DoCallbackWork(LPBYTE pbBuff, LONG cb, LONG *pcb);
         void WT_DoSpellCheckWork(const wchar_t* psData, size_t nChars);
         void WT_ProcessWord();
         void WT_PreSpellCheck();
@@ -111,7 +109,6 @@ class CRichEditSpellChecker
         DWORD m_dwCharsDone;
         DWORD m_dwCharsTotal;
         bool m_bStopFlag;
-        //TSC_CHECKWORD_DATA m_cwd;
         CCheckWordData m_cwd;
         HANDLE m_hResumeEvent;
         std::vector<std::wstring> m_vIgnoreList;

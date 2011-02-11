@@ -18,8 +18,6 @@
 using namespace std;
 using namespace TolonSpellCheck;
 
-static size_t s_nResultBufLen = 1024;
-
 CRichEditSpellChecker::CRichEditSpellChecker(CSession* pSession) : 
     m_hWndRichEdit(NULL),
 	m_pSession(pSession),
@@ -188,66 +186,16 @@ void CRichEditSpellChecker::WT_ProcessWord()
         {
             m_cwd.TestWord(sWord.c_str());
 
-		    tsc_result tr = TSC_E_UNEXPECTED;
-
             // Call m_pSession->CheckWord using m_cwd as the parameter.
             m_cwd.Call(std::bind1st(std::mem_fun(&CSession::CheckWord), m_pSession));
             
+            if (!m_cwd.WordWasOk())
+            {
+                SetState(SpellCheckState_WAITING);
+                ::WaitForSingleObject(m_hResumeEvent, INFINITE);
+            }
         }
-
-        /*string sUtf8Word;
-
-        m_oConv.utf8FromUnicode(sWord.c_str(), sUtf8Word);
-
-	    if (!sWord.empty())
-	    {
-		    tsc_result tr = TSC_E_UNEXPECTED;
-    		
-		    m_cwd.nWordSize = sUtf8Word.size();
-		    m_cwd.uTestWord.szWord8 = sUtf8Word.c_str();
-            m_cwd.nResultStringSize = s_nResultBufLen;
-    		
-		    tr = m_pSession->CheckWord(&m_cwd);
-    		
-		    if (TSC_FAILED(tr))
-            {
-                assert(false);
-            }
-            else if (!m_cwd.bOk)
-            {
-                SetState(SpellCheckState_WAITING);
-                ::WaitForSingleObject(m_hResumeEvent, INFINITE);
-            }
-	    }*/
     }
-
-    /*if (bDoProcessing)
-    {
-        string sUtf8Word;
-
-        m_oConv.utf8FromUnicode(sWord.c_str(), sUtf8Word);
-
-	    if (!sWord.empty())
-	    {
-		    tsc_result tr = TSC_E_UNEXPECTED;
-    		
-		    m_cwd.nWordSize = sUtf8Word.size();
-		    m_cwd.uTestWord.szWord8 = sUtf8Word.c_str();
-            m_cwd.nResultStringSize = s_nResultBufLen;
-    		
-		    tr = m_pSession->CheckWord(&m_cwd);
-    		
-		    if (TSC_FAILED(tr))
-            {
-                assert(false);
-            }
-            else if (!m_cwd.bOk)
-            {
-                SetState(SpellCheckState_WAITING);
-                ::WaitForSingleObject(m_hResumeEvent, INFINITE);
-            }
-	    }
-    }*/
 
     m_sWord.str(L"");
 }
@@ -354,16 +302,6 @@ CCheckWordData& CRichEditSpellChecker::GetCheckWordData()
 {
     return m_cwd;
 }
-
-/*TSC_CHECKWORD_DATA* CRichEditSpellChecker::GetCheckWordData()
-{
-    TSC_CHECKWORD_DATA* p = NULL;
-
-    if (InWaitingState())
-        p = &m_cwd;
-
-    return p;
-}*/
 
 void CRichEditSpellChecker::ResumeSpellCheck()
 {
