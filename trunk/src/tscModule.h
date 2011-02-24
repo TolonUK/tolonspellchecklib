@@ -22,7 +22,7 @@ class CSession;
 class CModule
 {
 public:
-    static CModule* GetInstance();
+    static CModule* GetInstance(HMODULE hModule = NULL);
  
     static void cbEnchantDictDescribe( const char * const lang_tag,
                                          const char * const provider_name,
@@ -31,7 +31,7 @@ public:
                                          void * user_data );
 
 protected:
-    CModule();
+    CModule(HMODULE hModule);
     ~CModule();
 
 public:
@@ -71,6 +71,8 @@ public:
     tsc_result DescribeLanguage(const wchar_t* wszLang, LANGUAGE_DESC_WIDEDATA* pData);
     tsc_result DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pData);
 
+    const wchar_t* GetModulePath();
+
 protected:
     void SetInitialised(bool b)
         { m_bInitialised = b; }
@@ -107,6 +109,8 @@ private:
     std::map<tsc_cookie, CSession*> m_xSessions;
     tsc_cookie m_nLastSessionCookie;
     EnchantBroker* m_pEnchantBroker;
+    HMODULE m_hModule;
+    std::wstring m_sModulePath;
 };
 
 }; //namespace

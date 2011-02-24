@@ -15,7 +15,7 @@
  
 +	{
 +		char * ps = g_new0(char, MAX_PATH); 
-+		if (GetModuleFileName(NULL, ps, MAX_PATH) != 0)
++		if (GetModuleFileNameA(NULL, ps, MAX_PATH) != 0)
 +		{
 +			gchar* pPath = g_path_get_dirname(ps);
 +			user_dirs = enchant_slist_append_unique_path(user_dirs, pPath);

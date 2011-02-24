@@ -4,6 +4,7 @@
 #include "isoLang.h"
 #include <sstream>
 #include "utf8conv.h"
+#include <boost/scoped_array.hpp>
 
 using namespace TolonSpellCheck;
 using namespace std;
@@ -31,7 +32,7 @@ static const char* const s_szErrErr =
 
 CModule* CModule::sm_pThis;
 
-CModule* CModule::GetInstance()
+CModule* CModule::GetInstance(HMODULE hModule)
 {
     //TODO: Do we need concurrency protection here?
 
@@ -39,7 +40,7 @@ CModule* CModule::GetInstance()
         return sm_pThis;
 
     try {
-        sm_pThis = new CModule;
+        sm_pThis = new CModule(hModule);
     } catch (bad_alloc&) {
         //couldn't allocate new module
         //TODO: add logging
@@ -48,11 +49,12 @@ CModule* CModule::GetInstance()
     return sm_pThis;
 }
 
-CModule::CModule() :
+CModule::CModule(HMODULE hModule) :
     m_bInitialised(false),
     m_szLastError(s_szErrErr),
     m_nLastSessionCookie(TSC_NULL_COOKIE),
-    m_pEnchantBroker(NULL)
+    m_pEnchantBroker(NULL),
+    m_hModule(hModule)
 {
 }
 
@@ -446,6 +448,27 @@ tsc_result CModule::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pDa
     }
     
     return result;
+}
+
+const wchar_t * CModule::GetModulePath()
+{
+    if (m_sModulePath.empty())
+    {
+        const DWORD dwSize = ::GetModuleFileName(m_hModule, NULL, 0);
+        if (dwSize)
+        {
+            // The +1 is added for the null terminator, which sometimes isn't included
+            // by the GetModuleFileName function depending on the version of Windows.
+            boost::scoped_array<wchar_t> pBuf(new wchar_t[dwSize + 1]);
+            memset(pBuf.get(), 0, sizeof(wchar_t) * (dwSize + 1));
+            if (::GetModuleFileName(m_hModule, pBuf.get(), dwSize) == dwSize)
+            {
+                m_sModulePath = pBuf.get();
+            }
+        }
+    }
+    
+    return m_sModulePath.c_str();
 }
 
 // Error handlers

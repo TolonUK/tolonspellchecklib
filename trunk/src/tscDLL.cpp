@@ -60,7 +60,7 @@ tsc_result TSC_CALLTYPE
 {
     tsc_func_init();
 
-    CModule* pM = CModule::GetInstance();
+    CModule* pM = CModule::GetInstance(g_hInstDll);
     if (!pM)
         return Error_Internal_NullModulePtr();
     if (!pData)

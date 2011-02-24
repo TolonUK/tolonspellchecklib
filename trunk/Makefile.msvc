@@ -357,6 +357,7 @@ install : force
 !endif
     -mkdir $(prefix)\lib
     $(INSTALL_DATA) $(outdir)\libtolonspellcheck.lib $(prefix)\lib\libtolonspellcheck.lib
+    $(INSTALL_DATA) $(outdir)\pdb\libtolonspellcheck.pdb $(prefix)\pdb\libtolonspellcheck.pdb
 
 mostlyclean : clean
 
