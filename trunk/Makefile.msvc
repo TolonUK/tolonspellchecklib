@@ -98,7 +98,7 @@ boostincludedir = $(BOOST_INCLUDE_PATH)
 # Programs used by "make":
 
 CC = cl
-LINK = link
+_LINK = link
 MT = mt
 
 # Set to -W3 if you want to see maximum amount of warnings, including stupid
@@ -186,7 +186,7 @@ SHELL = /bin/sh
 CC_OBJ = $(CC) $(INCLUDES) $(CFLAGS) -c 
 
 #CC_LINK = $(CC) $(CFLAGS) $(LINKFLAGS) 
-CC_LINK = $(LINK) $(LINKFLAGS) 
+CC_LINK = $(_LINK) $(LINKFLAGS) 
 LINK_EXE = $(CC_LINK) /SUBSYSTEM:CONSOLE
 LINK_DLL = $(CC_LINK) /DLL /SUBSYSTEM:WINDOWS
 
