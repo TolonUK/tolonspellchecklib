@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TolonSpellCheckLib", "TolonSpellCheckLib.vcproj", "{5199D5CF-DBC3-48EF-BE9D-377E2B143C89}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TSC_Test", "..\TSC_Test\TSC_Test.vcproj", "{E46E039F-8B93-4941-B7CA-98DD7D4926CE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5199D5CF-DBC3-48EF-BE9D-377E2B143C89} = {5199D5CF-DBC3-48EF-BE9D-377E2B143C89}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

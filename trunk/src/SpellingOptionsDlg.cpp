@@ -81,7 +81,7 @@ void CSpellingOptionsDlg::OnOk()
     m_options.IgnoreUris(CWndUtils::IsDlgButtonChecked(GetHwnd(), IDC_IGNORE_URIS));
 }
 
-int CALLBACK CSpellingOptionsDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+int CALLBACK CSpellingOptionsDlg::WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM /*lParam*/)
 {
     if (!s_pThis)
         return 0;

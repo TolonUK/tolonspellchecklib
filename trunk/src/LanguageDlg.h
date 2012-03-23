@@ -6,8 +6,9 @@
 #include <windows.h>
 #include <commctrl.h>
 #include <string>
+#include <boost/noncopyable.hpp>
 
-class CLanguageDlg
+class CLanguageDlg : public boost::noncopyable
 //! Provides the user interface to choose the current session language.
 {
 protected:

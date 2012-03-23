@@ -239,7 +239,7 @@ HWND CCheckSpellingDlg::GetRichEditHwnd() const
     return hwnd;
 }
 
-void CCheckSpellingDlg::TimerProc(HWND hwnd, UINT uMsg, UINT idEvent, DWORD dwTime)
+void CCheckSpellingDlg::TimerProc(HWND hwnd, UINT /*uMsg*/, UINT idEvent, DWORD /*dwTime*/)
 {
     if (!s_pThis)
         return;
@@ -294,33 +294,10 @@ void CCheckSpellingDlg::OnTimer_PollChecker()
         HWND hwndList = ::GetDlgItem(GetHwnd(), IDC_SUGGESTION_LIST);
         if (hwndList)
         {
-            std::string s;
             ::SendMessage(hwndList, LB_RESETCONTENT, 0, 0);
 
             // Call this->AddResultString(s) for each result string
             cwd.ApplyResults(std::bind1st(std::mem_fun(&CCheckSpellingDlg::AddResultString), this));
-
-            /*for (size_t i = 0; i < pCwd->nResultStringSize; ++i)
-            {
-                if (pCwd->uResultString.szResults8[i] == 0)
-                {
-                    if (s.empty())
-                        break;
-                    else
-                    {
-                        std::wstring ws;
-                        if (string_from_utf8(ws, s.c_str(), s.size()))
-                        {
-                            ::SendMessage(hWndList, LB_ADDSTRING, 0, reinterpret_cast<long>(ws.c_str()));
-                        }
-                        s.clear();
-                    }
-                }
-                else
-                {
-                    s.push_back(pCwd->uResultString.szResults8[i]);
-                }
-            }*/
         }
 
         m_bWaitingForInput = true;

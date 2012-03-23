@@ -1,6 +1,6 @@
 #include "tscModule.h"
 #include "tscSession.h"
-#include <windows.h>
+#include "Win32Includes.h"
 #include "isoLang.h"
 #include <sstream>
 #include "utf8conv.h"
@@ -90,7 +90,7 @@ tsc_result CModule::Uninit()
         m_pEnchantBroker = NULL;
     }
 
-    m_sHostName.swap(wstring());
+	wstring().swap(m_sHostName);
     return Success();
 }
 
@@ -105,7 +105,8 @@ tsc_result CModule::GetVersion(CVersionData& data)
         return Error_ModuleNotInitialised();
 
     // The default ctor of the CVersionData class sets the version
-    // number to the current version, so there's nothing to do.
+    // number to the current version.
+	data = CVersionData();
 
     return Success();
 }
@@ -330,9 +331,9 @@ tsc_result CModule::EnumLanguages(LanguageEnumFn pfn, void* pUserData)
 }
 
 void CModule::cbEnchantDictDescribe( const char * const lang_tag,
-                                     const char * const provider_name,
-                                     const char * const provider_desc,
-                                     const char * const provider_file,
+                                     const char * const /*provider_name*/,
+                                     const char * const /*provider_desc*/,
+                                     const char * const /*provider_file*/,
                                      void * user_data )
 {
     EnumLanguagesPayload* pelp = reinterpret_cast<EnumLanguagesPayload*>(user_data);
@@ -440,7 +441,7 @@ tsc_result CModule::DescribeLanguage(const char* szLang, LANGUAGE_DESC_DATA* pDa
             ss << ", " << sRegion;
         }
         
-        sDesc.swap(ss.str());
+		ss.str().swap(sDesc);
         memcpy(pData->szDisplayName, sDesc.c_str(), min(sDesc.size(), 127));
         pData->szDisplayName[127] = '\0';
 

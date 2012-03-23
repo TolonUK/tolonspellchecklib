@@ -53,8 +53,7 @@ void CRichEditSpellChecker::StartSpellCheck(HWND hwndEditCtrl)
 
     unsigned int hThread = 0;
     hThread = _beginthreadex(NULL, 0, &WT_CheckSpelling, static_cast<void*>(this), CREATE_SUSPENDED, NULL);
-    BOOL b = FALSE;
-    b = ::SetThreadPriority((HANDLE)hThread, THREAD_PRIORITY_LOWEST);
+    ::SetThreadPriority((HANDLE)hThread, THREAD_PRIORITY_LOWEST);
     ::ResumeThread((HANDLE)hThread);
     ::CloseHandle((HANDLE)hThread);
 }

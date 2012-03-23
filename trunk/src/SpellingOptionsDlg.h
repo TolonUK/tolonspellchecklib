@@ -4,10 +4,11 @@
 #include "resource.h"
 #include "TolonSpellCheckInternals.h"
 #include "tscSession.h" // for CSessionOptions
+#include <boost/noncopyable.hpp>
 
 // CSpellingOptionsDlg dialog
 
-class CSpellingOptionsDlg
+class CSpellingOptionsDlg : public boost::noncopyable
 {
 protected:
     static int CALLBACK WndProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);

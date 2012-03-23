@@ -1,8 +1,10 @@
 #ifndef _TOLON_SPELL_CHECK_H__
 #define _TOLON_SPELL_CHECK_H__
 
-#include <windef.h>
-#include <winerror.h>
+#pragma warning(push)
+#pragma warning(disable:4201) // warning C4201: nonstandard extension used : nameless struct/union
+#include <windows.h>
+#pragma warning(pop)
 
 #ifdef __cplusplus
 #define TSC_API extern "C"
@@ -20,7 +22,7 @@
 typedef unsigned char tsc_bool;
 typedef size_t tsc_size_t;
 typedef unsigned char tsc_byte;
-typedef unsigned long tsc_result;
+typedef long tsc_result;
 typedef unsigned long tsc_cookie;
 
 // Result Codes

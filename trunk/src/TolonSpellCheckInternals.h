@@ -39,7 +39,7 @@ namespace TolonSpellCheck {
         CCheckWordData();
         CCheckWordData(const CCheckWordData& src);
         CCheckWordData(const TSC_CHECKWORD_DATA& src) { FromStruct(src); }
-        const CCheckWordData& operator=(const CCheckWordData& rhs);
+        CCheckWordData& operator=(const CCheckWordData& rhs);
         bool operator==(const CCheckWordData& rhs) const;
 
         void ToStruct(TSC_CHECKWORD_DATA& dest);
@@ -106,7 +106,7 @@ namespace TolonSpellCheck {
         CInitData();
         CInitData(const CInitData& src);
         CInitData(const TSC_INIT_DATA& src) { FromStruct(src); }
-        const CInitData& operator=(const CInitData& rhs);
+        CInitData& operator=(const CInitData& rhs);
         bool operator==(const CInitData& rhs) const;
 
         void ToStruct(TSC_INIT_DATA& dest) const;
@@ -132,7 +132,7 @@ namespace TolonSpellCheck {
         CCreateSessionData();
         CCreateSessionData(const CCreateSessionData& src);
         CCreateSessionData(const TSC_CREATESESSION_DATA& src) { FromStruct(src); }
-        const CCreateSessionData& operator=(const CCreateSessionData& rhs);
+        CCreateSessionData& operator=(const CCreateSessionData& rhs);
         bool operator==(const CCreateSessionData& rhs) const;
 
         void ToStruct(TSC_CREATESESSION_DATA& dest) const;
@@ -154,7 +154,7 @@ namespace TolonSpellCheck {
         CSessionOptionsData();
         CSessionOptionsData(const CSessionOptionsData& src);
         CSessionOptionsData(const TSC_SESSIONOPTIONS_DATA& src) { FromStruct(src); }
-        const CSessionOptionsData& operator=(const CSessionOptionsData& rhs);
+        CSessionOptionsData& operator=(const CSessionOptionsData& rhs);
         bool operator==(const CSessionOptionsData& rhs) const;
 
         void ToStruct(TSC_SESSIONOPTIONS_DATA& dest) const;
@@ -246,7 +246,7 @@ namespace TolonSpellCheck {
         CShowOptionsWindowData();
         CShowOptionsWindowData(const CShowOptionsWindowData& src);
         CShowOptionsWindowData(const TSC_SHOWOPTIONSWINDOW_DATA& src) { FromStruct(src); }
-        const CShowOptionsWindowData& operator=(const CShowOptionsWindowData& rhs);
+        CShowOptionsWindowData& operator=(const CShowOptionsWindowData& rhs);
         bool operator==(const CShowOptionsWindowData& rhs) const;
 
         void ToStruct(TSC_SHOWOPTIONSWINDOW_DATA& dest) const;
@@ -285,7 +285,7 @@ namespace TolonSpellCheck {
         CVersionData();
         CVersionData(const CVersionData& src);
         CVersionData(const TSC_VERSION_DATA& src) { FromStruct(src); }
-        const CVersionData& operator=(const CVersionData& rhs);
+        CVersionData& operator=(const CVersionData& rhs);
         bool operator==(const CVersionData& rhs) const;
 
         void ToStruct(TSC_VERSION_DATA& dest) const;

@@ -65,6 +65,10 @@ public:
         { return m_szLastError; }
         
 private:
+	// Implementation
+	void FreeCurrentDictionary();
+
+	// Response methods
     tsc_result Error_NotImplemented();
     tsc_result Error_Internal_NullModulePtr();
     tsc_result Error_ParamWasNull();

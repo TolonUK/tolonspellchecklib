@@ -32,7 +32,7 @@ CCheckWordData::CCheckWordData(const CCheckWordData& src) :
 {
 }
 
-const CCheckWordData& CCheckWordData::operator=(const CCheckWordData& rhs)
+CCheckWordData& CCheckWordData::operator=(const CCheckWordData& rhs)
 {
     m_sTestWord = rhs.m_sTestWord;
     m_vResults = rhs.m_vResults;
@@ -164,7 +164,7 @@ CInitData::CInitData(const CInitData& src) :
 {
 }
 
-const CInitData& CInitData::operator=(const CInitData& rhs)
+CInitData& CInitData::operator=(const CInitData& rhs)
 {
     m_szAppName = rhs.m_szAppName;
 
@@ -210,16 +210,16 @@ CCreateSessionData::CCreateSessionData()
 {
 }
 
-CCreateSessionData::CCreateSessionData(const CCreateSessionData& src)
+CCreateSessionData::CCreateSessionData(const CCreateSessionData& /*src*/)
 {
 }
 
-const CCreateSessionData& CCreateSessionData::operator=(const CCreateSessionData& rhs)
+CCreateSessionData& CCreateSessionData::operator=(const CCreateSessionData& /*rhs*/)
 {
     return *this;
 }
 
-bool CCreateSessionData::operator==(const CCreateSessionData& rhs) const
+bool CCreateSessionData::operator==(const CCreateSessionData& /*rhs*/) const
 {
     return true;
 }
@@ -268,7 +268,7 @@ CSessionOptionsData::CSessionOptionsData(const CSessionOptionsData& src) :
 {
 }
 
-const CSessionOptionsData& CSessionOptionsData::operator=(const CSessionOptionsData& rhs)
+CSessionOptionsData& CSessionOptionsData::operator=(const CSessionOptionsData& rhs)
 {
     m_bIgnoreUserDictionaries = rhs.m_bIgnoreUserDictionaries;
     m_bIgnoreUppercaseWords = rhs.m_bIgnoreUppercaseWords;
@@ -328,7 +328,6 @@ void CSessionOptionsData::SetDefaultLanguageFromOS()
     const int LOCALE_FIRSTPART = 10;
     const int LOCALE_SECONDPART = 10;
     wchar_t wszBuf[LOCALE_BUFLEN] = {0};
-    char szBuf[LOCALE_BUFLEN] = {0};
 
     n = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SISO639LANGNAME, wszBuf, LOCALE_FIRSTPART);
     if (n != 0)
@@ -382,7 +381,7 @@ CShowOptionsWindowData::CShowOptionsWindowData(const CShowOptionsWindowData& src
 {
 }
 
-const CShowOptionsWindowData& CShowOptionsWindowData::operator=(const CShowOptionsWindowData& rhs)
+CShowOptionsWindowData& CShowOptionsWindowData::operator=(const CShowOptionsWindowData& rhs)
 {
     m_hParent = rhs.m_hParent;
 
@@ -451,7 +450,7 @@ CVersionData::CVersionData(const CVersionData& src) :
 {
 }
 
-const CVersionData& CVersionData::operator=(const CVersionData& rhs)
+CVersionData& CVersionData::operator=(const CVersionData& rhs)
 {
     m_nMajor = rhs.m_nMajor;
     m_nMinor = rhs.m_nMinor;

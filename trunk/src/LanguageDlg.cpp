@@ -331,7 +331,7 @@ void CLanguageDlg::OnDicListColClick(const NMLISTVIEW* pnmlv)
     ListView_SortItemsEx(GetLangListHwnd(), &CompareFunc,  reinterpret_cast<LPARAM>(this));
 }
 
-void CLanguageDlg::OnCommand(int id, HWND hwndCtl, UINT codeNotify)
+void CLanguageDlg::OnCommand(int id, HWND /*hwndCtl*/, UINT /*codeNotify*/)
 {
     if (id == IDOK)
     { 

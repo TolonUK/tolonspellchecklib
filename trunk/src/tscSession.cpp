@@ -2,8 +2,7 @@
 #include "enchant.h"
 #include "tscModule.h"
 #include "SpellingOptionsDlg.h"
-#include <windows.h>
-#include <commctrl.h>
+#include "Win32Includes.h"
 #include <sstream>
 #include "CheckSpellingDlg.h"
 #include <cassert>
@@ -28,7 +27,7 @@ static const char* const s_szErrIntNullModulePtr =
 static const char* const s_szErrErr =
     "S9999 - Internal error, error text not set!";
 
-CSession::CSession(CCreateSessionData& data) :
+CSession::CSession(CCreateSessionData& /*data*/) :
     m_bInitialised(false),
     m_pEnchantDict(NULL),
     m_szLastError(s_szErrErr)
@@ -83,16 +82,7 @@ tsc_result CSession::Uninit()
 
     SetInitialised(false);
 
-    if (m_pEnchantDict)
-    {
-        CModule* pMod = CModule::GetInstance();
-
-        if (pMod)
-        {
-            pMod->FreeDictionary(m_pEnchantDict);
-            m_pEnchantDict = NULL;
-        }
-    }
+    FreeCurrentDictionary();
 
     result = TSC_S_OK;
 
@@ -269,6 +259,7 @@ tsc_result CSession::SetLanguage(const wchar_t* szCulture)
 
     if (pDict)
     {
+		FreeCurrentDictionary();
         m_pEnchantDict = pDict;
         m_szCurrentCulture.assign(szCulture);
         result = TSC_S_OK;
@@ -285,6 +276,20 @@ const wchar_t* CSession::GetLanguage() const
         pResult = m_szCurrentCulture.c_str();
     }
     return pResult;
+}
+
+void CSession::FreeCurrentDictionary()
+{
+    if (m_pEnchantDict)
+    {
+        CModule* pMod = CModule::GetInstance();
+
+        if (pMod)
+        {
+            pMod->FreeDictionary(m_pEnchantDict);
+            m_pEnchantDict = NULL;
+        }
+    }
 }
 
 tsc_result CSession::Error_NotImplemented()
