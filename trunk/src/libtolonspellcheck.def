@@ -14,3 +14,4 @@ EXPORTS
 	tscShowOptionsWindow	@30
 	tscCheckSpelling		@40
 	tscCheckWord			@50
+	tscCustomDic			@60

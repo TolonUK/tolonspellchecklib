@@ -24,6 +24,8 @@ static const char* const s_szErrStructSizeInvalid =
     "S0005 - Error, cbSize member of structure was set to an unrecognized value.";
 static const char* const s_szErrIntNullModulePtr = 
     "S0006 - Internal Error, a null module pointer was encountered. Please contact technical support.";
+static const char* const s_szErrInvalidArg =
+	"S0007 - Error, one or more parameters were invalid.";
 static const char* const s_szErrErr =
     "S9999 - Internal error, error text not set!";
 
@@ -194,6 +196,32 @@ tsc_result CSession::CheckWord(TSC_CHECKWORD_DATA* pData)
     return Success();
 }
 
+tsc_result CSession::CustomDic(TSC_CUSTOMDIC_DATA* pData)
+{
+    if (!IsInitialised())
+        return Error_SessionNotInitialised();
+
+    if (!pData)
+        return Error_ParamWasNull();
+    
+    if (pData->cbSize != sizeof(TSC_CUSTOMDIC_DATA))
+        return Error_StructSizeInvalid();
+    
+	switch(pData->nCustomDicAction)
+	{
+	case CUSTOMDICACTION_ADDWORD:
+		enchant_dict_add(m_pEnchantDict, pData->sWord, -1);
+		break;
+	case CUSTOMDICACTION_REMOVEWORD:
+		enchant_dict_remove(m_pEnchantDict, pData->sWord, -1);
+		break;
+	default:
+		return Error_InvalidArg();
+	}
+
+	return Success();
+}
+
 tsc_result CSession::GetSessionOptions(CSessionOptionsData& data)
 {
     if (!IsInitialised())
@@ -302,6 +330,12 @@ tsc_result CSession::Error_Internal_NullModulePtr()
 {
     m_szLastError = s_szErrIntNullModulePtr;
     return TSC_E_FAIL;
+}
+
+tsc_result CSession::Error_InvalidArg()
+{
+	m_szLastError = s_szErrInvalidArg;
+	return TSC_E_INVALIDARG;
 }
 
 tsc_result CSession::Error_ParamWasNull()

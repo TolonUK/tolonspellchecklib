@@ -153,6 +153,54 @@ TSC_CHECKWORD_DATA& TolonSpellCheck::operator<<(TSC_CHECKWORD_DATA& dest, const 
 }*/
 
 ///////////////////////////////////////////////////////////////////////////////
+// CCustomDicData
+///////////////////////////////////////////////////////////////////////////////
+CCustomDicData::CCustomDicData()
+{
+}
+
+CCustomDicData::CCustomDicData(const CCustomDicData& src) :
+    m_sWord(src.m_sWord),
+    m_sWordUtf8(src.m_sWordUtf8),
+    m_xHelper(src.m_xHelper)
+{
+}
+
+CCustomDicData& CCustomDicData::operator=(const CCustomDicData& rhs)
+{
+    m_sWord = rhs.m_sWord;
+    m_sWordUtf8 = rhs.m_sWordUtf8;
+    m_xHelper = rhs.m_xHelper;
+
+    return *this;
+}
+
+bool CCustomDicData::operator==(const CCustomDicData& rhs) const
+{
+    //TODO: Do we need to test any more members for equality?
+    return (m_sWord == rhs.m_sWord);
+}
+
+void CCustomDicData::ToStruct(TSC_CUSTOMDIC_DATA& dest)
+{
+    dest.cbSize = sizeof(TSC_CUSTOMDIC_DATA);
+
+    s_utf8.utf8FromUnicode(m_sWord.c_str(), m_sWordUtf8);
+    dest.sWord = m_sWordUtf8.c_str();
+    dest.nWordSize = m_sWordUtf8.size();
+}
+
+void CCustomDicData::FromStruct(const TSC_CUSTOMDIC_DATA& src)
+{
+    assert(src.cbSize == sizeof(TSC_CUSTOMDIC_DATA));
+
+    if (src.cbSize == sizeof(TSC_CUSTOMDIC_DATA))
+    {
+        s_utf8.unicodeFromUtf8(src.sWord, m_sWord);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // CInitData
 ///////////////////////////////////////////////////////////////////////////////
 CInitData::CInitData()

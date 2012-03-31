@@ -60,6 +60,8 @@ public:
                               TSC_CHECKSPELLING_DATA* pData );
     tsc_result CheckWord( tsc_cookie SessionID,
                           TSC_CHECKWORD_DATA* pData );
+	tsc_result CustomDic( tsc_cookie SessionID,
+						  TSC_CUSTOMDIC_DATA* pData );
 
     tsc_result EnumLanguages(LanguageEnumFn pfn, void* pUserData);
 

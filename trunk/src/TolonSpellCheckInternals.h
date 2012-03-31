@@ -98,6 +98,47 @@ namespace TolonSpellCheck {
     TSC_CHECKWORD_DATA& operator<<(TSC_CHECKWORD_DATA& dest, const CCheckWordData& src);
 
 ///////////////////////////////////////////////////////////////////////////////
+// CCustomDicData
+///////////////////////////////////////////////////////////////////////////////
+    class CCustomDicData
+    {
+    public:
+        CCustomDicData();
+        CCustomDicData(const CCustomDicData& src);
+        CCustomDicData(const TSC_CUSTOMDIC_DATA& src) { FromStruct(src); }
+        CCustomDicData& operator=(const CCustomDicData& rhs);
+        bool operator==(const CCustomDicData& rhs) const;
+
+        void ToStruct(TSC_CUSTOMDIC_DATA& dest);
+        void FromStruct(const TSC_CUSTOMDIC_DATA& src);
+
+        template <typename Fn>
+        Fn Call(Fn fn)
+        {
+            ToStruct(m_xHelper);
+            fn(&m_xHelper);
+            FromStruct(m_xHelper);
+            return fn;
+        }
+
+    private:
+        void ResultsToStruct(TSC_CUSTOMDIC_DATA& dest);
+        void ResultsFromStruct(const TSC_CUSTOMDIC_DATA& src);
+
+    private:
+        // Struct representation in unicode
+        std::wstring m_sWord;
+
+        // Struct representation in utf-8
+        std::string m_sWordUtf8;
+
+        TSC_CUSTOMDIC_DATA m_xHelper;
+    };
+
+    CCustomDicData& operator<<(CCustomDicData& dest, const TSC_CUSTOMDIC_DATA& src);
+    TSC_CUSTOMDIC_DATA& operator<<(TSC_CUSTOMDIC_DATA& dest, const CCustomDicData& src);
+
+///////////////////////////////////////////////////////////////////////////////
 // CInitData
 ///////////////////////////////////////////////////////////////////////////////
     class CInitData

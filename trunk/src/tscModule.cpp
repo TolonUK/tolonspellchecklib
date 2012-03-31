@@ -259,6 +259,29 @@ tsc_result CModule::CheckWord( tsc_cookie SessionID, TSC_CHECKWORD_DATA* pData )
     return r;
 }
 
+tsc_result CModule::CustomDic( tsc_cookie SessionID, TSC_CUSTOMDIC_DATA* pData )
+{
+    if (!IsInitialised())
+        return Error_ModuleNotInitialised();
+    
+    if (!pData)
+        return Error_ParamWasNull();
+    
+    if (pData->cbSize != sizeof(TSC_CUSTOMDIC_DATA))
+        return Error_StructSizeInvalid();
+    
+    CSession* pS = GetSession(SessionID);
+    
+    if (!pS)
+        return Error_InvalidSessionCookie();
+    
+    tsc_result r = TSC_E_FAIL;
+    r = pS->CustomDic(pData);
+    m_szLastError = pS->GetLastError();
+    
+    return r;
+}
+
 CSession* CModule::GetSession( tsc_cookie SessionID )
 {
     CSession* pS = NULL;

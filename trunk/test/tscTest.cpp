@@ -36,8 +36,8 @@ using namespace std;
 void util_begin_test(char* szPreamble);
 void util_end_test(bool bResult);
 void util_is_expected(tsc_result r, bool& bSetFalseIfFailed);
-void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfNotFailed);
-void util_is_success(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfFailed);
+void util_is_failure(const char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfNotFailed);
+void util_is_success(const char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfFailed);
 const char* util_textify_result(tsc_result r);
 void check_test(bool bResult);
 void print_stats();
@@ -52,6 +52,7 @@ bool test_normal_init_uninit();
 bool test_null_params();
 bool test_show_options();
 bool test_word();
+bool test_user_dic();
 // Subtests
 void subtest_tscInit(bool& bTestResult);
 void subtest_tscCreateSession(tsc_cookie& c, bool& bTestResult);
@@ -89,6 +90,7 @@ int main()
 
     // Spell Checking
     check_test(test_word());
+	check_test(test_user_dic());
     check_test(test_show_options());
     
     print_stats();
@@ -139,19 +141,32 @@ void util_end_test(bool bResult)
     cout << ", took " << dwTicks << "ms" << endl << g_szLine << endl;
 }
 
-void util_is_expected(char* szTestPartName, const tsc_result rExpected, const tsc_result rActual, bool& bSetFalseIfFailed)
+template<typename T>
+void util_is_expected(char* szTestPartName, const T& expected, const T& actual, bool& bSetFalseIfFailed)
+{
+	if (actual == expected) {
+		cout << "\t" << szTestPartName << " ok" << endl;
+	}
+	else {
+		cout << "FAIL->\t" << szTestPartName << " FAIL; expected " << expected << ", got " << actual << endl;
+		bSetFalseIfFailed = false;
+	}
+}
+
+template<>
+void util_is_expected(char* szTestPartName, const tsc_result& rExpected, const tsc_result& rActual, bool& bSetFalseIfFailed)
 {
     if (rActual == rExpected) {
-        cout << "\t" << szTestPartName <<" ok" << endl;
+        cout << "\t" << szTestPartName << " ok" << endl;
     }
     else {
-        cout << "FAIL->\t" << szTestPartName <<" FAIL; expected " << util_textify_result(rExpected) << ", got " << util_textify_result(rActual) << endl;
+        cout << "FAIL->\t" << szTestPartName << " FAIL; expected " << util_textify_result(rExpected) << ", got " << util_textify_result(rActual) << endl;
         bSetFalseIfFailed = false; 
     }
     cout << "\t\tLastError: " <<  ::tscGetLastError() << endl;
 }
 
-void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfNotFailed)
+void util_is_failure(const char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfNotFailed)
 {
     if (FAILED(rActual)) {
         cout << "\t" << szTestPartName <<" ok" << endl;
@@ -163,7 +178,7 @@ void util_is_failure(char* szTestPartName, const tsc_result rActual, bool& bSetF
     cout << "\t\tLastError: " <<  ::tscGetLastError() << endl;
 }
 
-void util_is_success(char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfFailed)
+void util_is_success(const char* szTestPartName, const tsc_result rActual, bool& bSetFalseIfFailed)
 {
     if (SUCCEEDED(rActual)) {
         cout << "\t" << szTestPartName <<" ok" << endl;
@@ -196,11 +211,9 @@ const char* util_textify_result(tsc_result r)
         default:
             stringstream ss;
             ss << "unknown 0x" << setw(8) << hex << r;
-            s_sTextResult.swap(ss.str());
+			ss.str().swap(s_sTextResult);
             return s_sTextResult.c_str();
     }
-    
-    return "";
 }
 
 // Tests below are in alphabetical order
@@ -569,29 +582,119 @@ bool test_show_options()
     return bTestResult;
 }
 
+bool DoCheckWord(tsc_cookie c, const char* szWord, bool& bWordOk, bool& bTestResult)
+{
+	tsc_result r = TSC_E_UNEXPECTED;
+
+	TSC_CHECKWORD_DATA cw;
+	memset(&cw, 0xff, sizeof(TSC_CHECKWORD_DATA));
+	cw.cbSize = sizeof(TSC_CHECKWORD_DATA);
+	cw.sTestWord = szWord;
+	cw.sResults = NULL;
+	cw.nResultStringSize = 0;
+	r = ::tscCheckWord(c, &cw);
+
+	{
+		std::stringstream ss;
+		ss << "tscCheckWord(\"" << szWord << "\"), fn call";
+		util_is_success(ss.str().c_str(), r, bTestResult);
+	}
+
+	bool bCallOk = TSC_SUCCEEDED(r);
+	if (bCallOk)
+		bWordOk = cw.bOk;
+	return bCallOk;
+}
+
 bool test_word()
 {
     bool bTestResult = true;
-    tsc_result r;
+	bool bWordOk = false;
     tsc_cookie c = TSC_NULL_COOKIE;
-    const char* szWordToTest = "helllllo";
+	const char* szGoodWordToTest = "hello";
+    const char* szBadWordToTest = "helllllo";
     
-    util_begin_test("test_word()\r\nTesting tscCheckWord(\"helllo\")...");
+    util_begin_test("test_word()\r\nTesting tscCheckWord(\"hello\") and tscCheckWord(\"helllllo\")...");
     
     // Prologue
     subtest_tscInit(bTestResult);
     subtest_tscCreateSession(c, bTestResult);
     
-    // CheckWord
-    TSC_CHECKWORD_DATA cw;
-    memset(&cw, 0xff, sizeof(TSC_CHECKWORD_DATA));
-    cw.cbSize = sizeof(TSC_CHECKWORD_DATA);
-    cw.sTestWord = szWordToTest;
-    cw.sResults = NULL;
-    cw.nResultStringSize = 0;
-    r = ::tscCheckWord(c, &cw);   
-    util_is_success("tscCheckWord", r, bTestResult);
+    // CheckWord Good
+	if (DoCheckWord(c, szGoodWordToTest, bWordOk, bTestResult))
+	{
+		util_is_expected("tscCheckWord(\"hello\"), check result", true, bWordOk, bTestResult);
+	}
+
+	// Checkword Bad
+	if (DoCheckWord(c, szBadWordToTest, bWordOk, bTestResult))
+	{
+		util_is_expected("tscCheckWord(\"hellllo\"), check result", false, bWordOk, bTestResult);
+	}
+
+    // Epilogue
+    subtest_tscDestroySession(c, bTestResult);
+    subtest_tscUninit(bTestResult);
     
+    util_end_test(bTestResult);
+    
+    return bTestResult;
+}
+
+bool test_user_dic()
+{
+    bool bTestResult = true;
+    tsc_result r;
+	bool bWordOk = false;
+    tsc_cookie c = TSC_NULL_COOKIE;
+    const char* szWordToTest = "discombobulated";
+    
+    util_begin_test("test_user_dic()\r\nTesting tscCheckWord(\"discombobulated\")...");
+    
+    // Prologue
+    subtest_tscInit(bTestResult);
+    subtest_tscCreateSession(c, bTestResult);
+    
+    // CheckWord not present
+	if (DoCheckWord(c, szWordToTest, bWordOk, bTestResult))
+	{
+		util_is_expected("tscCheckWord(\"discombobulated\"), check result", false, bWordOk, bTestResult);
+	}
+
+	// add user dic word here
+	{
+		TSC_CUSTOMDIC_DATA cdd;
+		memset(&cdd, 0xff, sizeof(TSC_CUSTOMDIC_DATA));
+		cdd.cbSize = sizeof(TSC_CUSTOMDIC_DATA);
+		cdd.sWord = szWordToTest;
+		cdd.nCustomDicAction = CUSTOMDICACTION_ADDWORD;
+		r = ::tscCustomDic(c, &cdd);
+		util_is_success("tscCustomDic(add discombobulated), result", r, bTestResult);
+	}
+
+	// Checkword present
+	if (DoCheckWord(c, szWordToTest, bWordOk, bTestResult))
+	{
+		util_is_expected("tscCheckWord(\"discombobulated\"), check result", true, bWordOk, bTestResult);
+	}
+
+	//remove user dic word here
+	{
+		TSC_CUSTOMDIC_DATA cdd;
+		memset(&cdd, 0xff, sizeof(TSC_CUSTOMDIC_DATA));
+		cdd.cbSize = sizeof(TSC_CUSTOMDIC_DATA);
+		cdd.sWord = szWordToTest;
+		cdd.nCustomDicAction = CUSTOMDICACTION_REMOVEWORD;
+		r = ::tscCustomDic(c, &cdd);
+		util_is_success("tscCustomDic(remove discombobulated), result", r, bTestResult);
+	}
+
+	// Checkword not present
+	if (DoCheckWord(c, szWordToTest, bWordOk, bTestResult))
+	{
+		util_is_expected("tscCheckWord(\"discombobulated\"), check result", false, bWordOk, bTestResult);
+	}
+
     // Epilogue
     subtest_tscDestroySession(c, bTestResult);
     subtest_tscUninit(bTestResult);

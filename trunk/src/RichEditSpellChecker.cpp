@@ -374,7 +374,13 @@ void CRichEditSpellChecker::AddCurrentWordToCustomDic()
 
     if (InWaitingState())
     {
+		if (m_pSession)
+		{
+			CCustomDicData cdd;
 
+            // Call m_pSession->CustomDic using cdd as the parameter.
+            cdd.Call(std::bind1st(std::mem_fun(&CSession::CustomDic), m_pSession));
+		}
     }
 }
 

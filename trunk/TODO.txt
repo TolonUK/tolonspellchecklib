@@ -8,3 +8,5 @@ DONE * Finish CompareProc function
 * There seem to be manifest problems loading the following libraries in notekeeper. They are picking up a version of msvcr80.dll from the sql server folder under program files.
    - libenchant.dll
    - libgmodule-2.0-0.dll
+
+* LIBTOLONSPELLCHECK - If not in portable-app mode, then create an %APPDATA%\enchant folder on startup. - see tscInit

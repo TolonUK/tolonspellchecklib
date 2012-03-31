@@ -51,8 +51,15 @@ typedef unsigned long tsc_cookie;
 // Structures
 #pragma pack(push)
 #pragma pack(1)
+enum enumOptions {
+	OPTION_PORTABLE_APP_MODE = 1,
+	OPTION_2 = 2,
+	OPTION_3 = 4,
+	OPTION_4 = 8 };
+
 typedef struct tagTSC_INIT {
 	tsc_size_t cbSize;
+	tsc_size_t nOptions;
 	char szAppName[32]; //short name used internally only
 } TSC_INIT_DATA;
 
@@ -143,6 +150,23 @@ typedef struct tagTSC_CHECKWORD {
 	// Out
 	bool bOk;
 } TSC_CHECKWORD_DATA;*/
+
+enum enumCustomDicAction {
+	CUSTOMDICACTION_ADDWORD,		//!< Add the specified word to the custom dictionary.
+	CUSTOMDICACTION_REMOVEWORD,	//!< Remove the specified word from the custom dictionary.
+
+	CUSTOMDICACTION_COUNT };
+
+typedef struct tagTSC_CUSTOMDIC {
+	tsc_size_t cbSize;
+	// In
+	const char* sWord; // UTF-8
+	tsc_size_t nWordSize; // in bytes
+	tsc_byte nCustomDicAction;
+	// Out
+	bool bOk;
+} TSC_CUSTOMDIC_DATA;
+
 #pragma pack(pop)
 
 // Module-level functions
@@ -185,5 +209,9 @@ TSC_API tsc_result TSC_CALLTYPE
 TSC_API tsc_result TSC_CALLTYPE
 	tscCheckWord( tsc_cookie SessionID,
 				  TSC_CHECKWORD_DATA* pData );
+
+TSC_API tsc_result TSC_CALLTYPE
+	tscCustomDic( tsc_cookie SessionID,
+				  TSC_CUSTOMDIC_DATA* pData );
 
 #endif

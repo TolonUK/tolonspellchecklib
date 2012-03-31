@@ -186,6 +186,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\libtolonspellcheck.def"
+				>
+			</File>
+			<File
 				RelativePath="RichEditSpellChecker.cpp"
 				>
 			</File>

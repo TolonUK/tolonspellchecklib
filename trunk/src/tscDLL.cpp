@@ -268,6 +268,24 @@ tsc_result TSC_CALLTYPE
     return r;
 }
 
+tsc_result TSC_CALLTYPE
+	tscCustomDic( tsc_cookie SessionID,
+				  TSC_CUSTOMDIC_DATA* pData )
+{
+	tsc_func_init();
+
+    CModule* pM = CModule::GetInstance();
+    if (!pM)
+        return Error_Internal_NullModulePtr();
+    if (!pData)
+        return Error_ParamWasNull();
+
+    tsc_result r = TSC_E_FAIL;
+    r = pM->CustomDic(SessionID, pData);
+
+    return r;
+}
+
 BOOL WINAPI DllMain( HINSTANCE hinstDLL,  // handle to the DLL module
                      DWORD /*fdwReason*/,     // reason for calling function
                      LPVOID /*lpvReserved*/ ) // reserved

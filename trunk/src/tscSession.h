@@ -50,6 +50,7 @@ public:
     tsc_result CheckSpelling(TSC_CHECKSPELLING_DATA* pData);
     tsc_result GetSessionOptions(CSessionOptionsData& data);
     tsc_result SetSessionOptions(CSessionOptionsData& data);
+	tsc_result CustomDic(TSC_CUSTOMDIC_DATA* pData);
 
     bool IsInitialised() const
         { return m_bInitialised; }
@@ -71,6 +72,7 @@ private:
 	// Response methods
     tsc_result Error_NotImplemented();
     tsc_result Error_Internal_NullModulePtr();
+	tsc_result Error_InvalidArg();
     tsc_result Error_ParamWasNull();
     tsc_result Error_SessionAlreadyInitialised();
     tsc_result Error_SessionNotInitialised();
@@ -80,7 +82,6 @@ private:
 private:
     bool m_bInitialised;
     EnchantDict* m_pEnchantDict;
-    //TSC_SESSIONOPTIONS_DATA m_options;
     CSessionOptionsData m_options;
     const char* m_szLastError;
     std::wstring m_szCurrentCulture;
