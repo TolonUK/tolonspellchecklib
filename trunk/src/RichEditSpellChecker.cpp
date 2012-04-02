@@ -377,6 +377,8 @@ void CRichEditSpellChecker::AddCurrentWordToCustomDic()
 		if (m_pSession)
 		{
 			CCustomDicData cdd;
+			cdd.Word(m_sWord.str());
+			cdd.Action(CUSTOMDICACTION_ADDWORD);
 
             // Call m_pSession->CustomDic using cdd as the parameter.
             cdd.Call(std::bind1st(std::mem_fun(&CSession::CustomDic), m_pSession));
@@ -406,7 +408,7 @@ void CRichEditSpellChecker::ChangeCurrentWord(const wchar_t* psNewWord)
         if (hwnd)
         {
             const int nCurrentLength = GetCurrentWordLength();
-            const int nNewLength = std::wstring(psNewWord).size();
+            const int nNewLength = wcslen(psNewWord);
             SelectCurrentWord();
             ::SendMessage(hwnd, EM_REPLACESEL, TRUE, reinterpret_cast<LPARAM>(psNewWord));
             SetCharsDone(GetCharsDone() + (nNewLength - nCurrentLength));

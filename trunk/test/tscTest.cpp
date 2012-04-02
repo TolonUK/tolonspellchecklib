@@ -228,6 +228,7 @@ bool test_abnormal_init_uninit()
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
+	id.nOptions = 0;
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     
     // Test uninit without init
@@ -390,6 +391,7 @@ bool test_getversion()
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
+	id.nOptions = 0;
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     r = ::tscInit(&id);
     
@@ -487,6 +489,7 @@ bool test_normal_init_uninit()
     
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
+	id.nOptions = 0;
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     
     r = ::tscInit(&id);
@@ -547,6 +550,7 @@ bool test_show_options()
     TSC_INIT_DATA id;
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
+	id.nOptions = 0;
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     r = ::tscInit(&id);
     util_is_success("tscInit", r, bTestResult); 
@@ -710,6 +714,7 @@ void subtest_tscInit(bool& bTestResult)
     TSC_INIT_DATA id;
     memset(&id, 0xff, sizeof(TSC_INIT_DATA));
     id.cbSize = sizeof(TSC_INIT_DATA);
+	id.nOptions = 0;
     strcpy(id.szAppName, "TestAppName01234567890123456789");
     r = ::tscInit(&id);
     util_is_success("tscInit", r, bTestResult); 

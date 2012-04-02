@@ -82,6 +82,7 @@ stlincludedir = $(STL_INCLUDE_PATH)
 !endif
 !if defined(BOOST_INCLUDE_PATH)
 boostincludedir = $(BOOST_INCLUDE_PATH)
+boostlibdir = $(BOOST_INCLUDE_PATH)\lib
 !endif
 #datadir = $(prefix)\share
 #localedir = $(datadir)\locale
@@ -167,6 +168,11 @@ LINKFLAGS = \
     -OPT:ICF \
     -DEBUG \
     -LIBPATH:$(stllibdir)
+	
+!if defined (boostlibdir)
+LINKFLAGS = $(LINKFLAGS) \
+    -LIBPATH:$(boostlibdir)
+!endif
 
 AR = lib
 AR_FLAGS = /out:

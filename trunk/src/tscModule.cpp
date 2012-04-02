@@ -5,6 +5,9 @@
 #include <sstream>
 #include "utf8conv.h"
 #include <boost/scoped_array.hpp>
+#include <boost/filesystem.hpp>
+#include <glib/gstdio.h>
+#include <glib/gutils.h>
 
 using namespace TolonSpellCheck;
 using namespace std;
@@ -66,8 +69,23 @@ tsc_result CModule::Init(CInitData& data)
 {
     if (IsInitialised())
         return Error_ModuleAlreadyInitialised();
-        
+    
+	// Record then name of the app using this library
     m_sHostName = data.AppName();
+
+	// initialize the user dir if not in portable apps mode
+	if (!data.InPortableAppMode())
+	{
+		// use boost here to append 'enchant' to the user config dir.
+		const gchar* sUserConfigDir = g_get_user_config_dir();
+		if (sUserConfigDir)
+		{
+			boost::filesystem::path UserConfigPath(sUserConfigDir);
+			boost::filesystem::path EnchantConfigPath(UserConfigPath / "enchant");
+
+			g_mkdir(EnchantConfigPath.string().c_str(), 0);
+		}
+	}
 
     // Initialise the enchant library
     m_pEnchantBroker = enchant_broker_init();

@@ -112,6 +112,19 @@ namespace TolonSpellCheck {
         void ToStruct(TSC_CUSTOMDIC_DATA& dest);
         void FromStruct(const TSC_CUSTOMDIC_DATA& src);
 
+        void Word(const wchar_t* s)
+        { if (s) m_sWord = s; 
+          else m_sWord.clear(); }
+		void Word(const std::wstring& s)
+		{ m_sWord = s; }
+        const wchar_t* Word() const
+        { return m_sWord.c_str(); }
+
+		void Action(tsc_byte n)
+		{ m_nAction = n; }
+		tsc_byte Action() const
+		{ return m_nAction; }
+
         template <typename Fn>
         Fn Call(Fn fn)
         {
@@ -131,6 +144,9 @@ namespace TolonSpellCheck {
 
         // Struct representation in utf-8
         std::string m_sWordUtf8;
+
+		// Options
+		tsc_byte m_nAction;
 
         TSC_CUSTOMDIC_DATA m_xHelper;
     };
@@ -155,8 +171,14 @@ namespace TolonSpellCheck {
 
         const wchar_t* AppName() const
         { return m_szAppName.c_str(); }
+
+		__int32 Options() const
+		{ return m_nOptions; }
+		bool InPortableAppMode() const
+		{ return (m_nOptions & OPTION_PORTABLE_APP_MODE) != 0; }
     
     private:
+		__int32 m_nOptions;
         std::wstring m_szAppName;
     };
 

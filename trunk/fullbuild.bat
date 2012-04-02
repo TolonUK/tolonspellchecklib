@@ -1,3 +1,18 @@
+rem Builds the enchant, gettext, glib and libiconv libraries required for building TolonSpellCheck.
+rem Copyright (C) 2012 Alex Paterson
+rem
+rem This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
+rem the Free Software Foundation, either version 3 of the License, or any later version.
+rem
+rem This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+rem MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+rem
+rem You should have received a copy of the GNU General Public License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+rem
+rem This requires several -nix utils, get them from http://gnuwin32.sourceforge.net/.
+rem This also requires Microsoft Visual C++ 6 or later.
+rem USAGE: build {debug}
+
 @echo off
 
 set topdir=%cd%

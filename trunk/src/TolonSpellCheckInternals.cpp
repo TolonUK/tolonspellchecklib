@@ -155,13 +155,15 @@ TSC_CHECKWORD_DATA& TolonSpellCheck::operator<<(TSC_CHECKWORD_DATA& dest, const 
 ///////////////////////////////////////////////////////////////////////////////
 // CCustomDicData
 ///////////////////////////////////////////////////////////////////////////////
-CCustomDicData::CCustomDicData()
+CCustomDicData::CCustomDicData() : 
+	m_nAction(CUSTOMDICACTION_INVALID)
 {
 }
 
 CCustomDicData::CCustomDicData(const CCustomDicData& src) :
     m_sWord(src.m_sWord),
     m_sWordUtf8(src.m_sWordUtf8),
+	m_nAction(src.m_nAction),
     m_xHelper(src.m_xHelper)
 {
 }
@@ -170,6 +172,7 @@ CCustomDicData& CCustomDicData::operator=(const CCustomDicData& rhs)
 {
     m_sWord = rhs.m_sWord;
     m_sWordUtf8 = rhs.m_sWordUtf8;
+	m_nAction = rhs.m_nAction;
     m_xHelper = rhs.m_xHelper;
 
     return *this;
@@ -178,7 +181,7 @@ CCustomDicData& CCustomDicData::operator=(const CCustomDicData& rhs)
 bool CCustomDicData::operator==(const CCustomDicData& rhs) const
 {
     //TODO: Do we need to test any more members for equality?
-    return (m_sWord == rhs.m_sWord);
+    return (m_sWord == rhs.m_sWord) && (m_nAction == rhs.m_nAction);
 }
 
 void CCustomDicData::ToStruct(TSC_CUSTOMDIC_DATA& dest)
@@ -188,6 +191,7 @@ void CCustomDicData::ToStruct(TSC_CUSTOMDIC_DATA& dest)
     s_utf8.utf8FromUnicode(m_sWord.c_str(), m_sWordUtf8);
     dest.sWord = m_sWordUtf8.c_str();
     dest.nWordSize = m_sWordUtf8.size();
+	dest.nCustomDicAction = m_nAction;
 }
 
 void CCustomDicData::FromStruct(const TSC_CUSTOMDIC_DATA& src)
@@ -198,6 +202,8 @@ void CCustomDicData::FromStruct(const TSC_CUSTOMDIC_DATA& src)
     {
         s_utf8.unicodeFromUtf8(src.sWord, m_sWord);
     }
+
+	m_nAction = src.nCustomDicAction;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,12 +214,14 @@ CInitData::CInitData()
 }
 
 CInitData::CInitData(const CInitData& src) :
+	m_nOptions(0),
     m_szAppName(src.m_szAppName)
 {
 }
 
 CInitData& CInitData::operator=(const CInitData& rhs)
 {
+	m_nOptions = rhs.m_nOptions;
     m_szAppName = rhs.m_szAppName;
 
     return *this;
@@ -224,18 +232,20 @@ bool CInitData::operator==(const CInitData& rhs) const
     if (this == &rhs)
         return true;
 
-    return m_szAppName == rhs.m_szAppName;
+    return (m_nOptions == rhs.m_nOptions) && (m_szAppName == rhs.m_szAppName);
 }
 
 void CInitData::ToStruct(TSC_INIT_DATA& dest) const
 {
     dest.cbSize = sizeof(TSC_INIT_DATA);
+	dest.nOptions = m_nOptions;
     utf8_from_string(dest.szAppName, sizeof(dest.szAppName), m_szAppName);
 }
 
 void CInitData::FromStruct(const TSC_INIT_DATA& src)
 {
     assert(src.cbSize == sizeof(TSC_INIT_DATA));
+	m_nOptions = src.nOptions;
     string_from_utf8(m_szAppName, src.szAppName, sizeof(src.szAppName));
 }
 

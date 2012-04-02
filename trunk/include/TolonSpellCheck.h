@@ -53,13 +53,13 @@ typedef unsigned long tsc_cookie;
 #pragma pack(1)
 enum enumOptions {
 	OPTION_PORTABLE_APP_MODE = 1,
-	OPTION_2 = 2,
-	OPTION_3 = 4,
-	OPTION_4 = 8 };
+	OPTION_2_UNUSED = 2,
+	OPTION_3_UNUSED = 4,
+	OPTION_4_UNUSED = 8 };
 
 typedef struct tagTSC_INIT {
 	tsc_size_t cbSize;
-	tsc_size_t nOptions;
+	__int32 nOptions;
 	char szAppName[32]; //short name used internally only
 } TSC_INIT_DATA;
 
@@ -152,6 +152,7 @@ typedef struct tagTSC_CHECKWORD {
 } TSC_CHECKWORD_DATA;*/
 
 enum enumCustomDicAction {
+	CUSTOMDICACTION_INVALID,
 	CUSTOMDICACTION_ADDWORD,		//!< Add the specified word to the custom dictionary.
 	CUSTOMDICACTION_REMOVEWORD,	//!< Remove the specified word from the custom dictionary.
 
