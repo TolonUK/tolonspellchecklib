@@ -99,7 +99,7 @@ cd .\contrib\gettext-%gettext-version%\gettext-runtime
 nmake -f Makefile.msvc config.h
 cd .\intl
 copy %topdir%\contrib\localename-msvc9.diff .
-patch --binary -i localename-msvc9.diff
+patch -i localename-msvc9.diff
 nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% clean
 nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% 
 nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% install
@@ -143,12 +143,12 @@ echo Making enchant...
 cd %topdir%
 cd .\contrib\enchant-%enchant-version%\src
 copy /Y %topdir%\contrib\enchant.c.patch
-patch --binary -i enchant.c.patch
+patch -i enchant.c.patch
 cd .\myspell
 copy /Y %topdir%\contrib\dictmgr.diff .
 copy /Y %topdir%\contrib\myspell_checker.diff .
-patch --binary -i dictmgr.diff
-patch --binary -i myspell_checker.diff
+patch -i dictmgr.diff
+patch -i myspell_checker.diff
 cd ..\..\msvc
 copy /Y %topdir%\contrib\enchant-makefile.msvc makefile.msvc
 set cmd=nmake -f Makefile.msvc DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% GLIBDIR=%topdir%\contrib\glib MANIFEST=1
