@@ -1,6 +1,0 @@
-24 August 2010
-* Added dummy return value from CompareFunc.
-* Updated to Enchant revision 29322 (mod to enchant-makefile.msvc to set new version string value)
-* Mod to tscSession.cpp to tolerate no dictionaries being loaded. 
-* Mod to Makefile.msvc to copy libtolonspellcheck.pdb to user-X folders.
-* TODO: More error info required.
