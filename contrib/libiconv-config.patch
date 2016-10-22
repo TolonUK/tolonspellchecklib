@@ -1,0 +1,20 @@
+--- config.h.old	2016-10-22 21:10:15.588255000 +0100
++++ config.h	2016-10-22 21:11:05.515771500 +0100
+@@ -39,7 +39,7 @@
+ #undef HAVE_LANGINFO_CODESET
+ 
+ /* Define if you have the mbrtowc() function. */
+-#undef HAVE_MBRTOWC
++#define HAVE_MBRTOWC 1
+ 
+ /* Define to 1 if you have the setlocale() function. */
+ #define HAVE_SETLOCALE 1
+@@ -54,7 +54,7 @@
+ #define HAVE_STRING_H 1
+ 
+ /* Define if you have the wcrtomb() function. */
+-#undef HAVE_WCRTOMB
++#define HAVE_WCRTOMB 1
+ 
+ /* Define if the machine's byte ordering is little endian. */
+ #define WORDS_LITTLEENDIAN 1

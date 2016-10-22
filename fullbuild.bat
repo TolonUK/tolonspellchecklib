@@ -44,14 +44,14 @@ GOTO OPTIONS_CLEAN
 
 :OPT_CLEAN
 cd %topdir%
-del /s /q .\contrib\libiconv-%libiconv-version%\*.*
-rmdir .\contrib\libiconv-%libiconv-version%
-del /s /q .\contrib\gettext-%gettext-version%\*.*
-rmdir .\contrib\gettext-%gettext-version%
-del /s /q .\contrib\glib\*.*
-rmdir .\contrib\glib
-del /s /q .\contrib\enchant-%enchant-version%\*.*
-rmdir .\contrib\enchant-%enchant-version%
+del /s /q .\contrib\libiconv-%libiconv-version%\*.* > nul
+rmdir /s /q .\contrib\libiconv-%libiconv-version%
+del /s /q .\contrib\gettext-%gettext-version%\*.* > nul
+rmdir /s /q .\contrib\gettext-%gettext-version%
+del /s /q .\contrib\glib\*.* > nul
+rmdir /s /q .\contrib\glib
+del /s /q .\contrib\enchant-%enchant-version%\*.* > nul
+rmdir /s /q .\contrib\enchant-%enchant-version%
 GOTO DECOMPRESS
 
 :OPTIONS_CLEAN
@@ -88,6 +88,12 @@ echo Making libiconv (no NLS)...
 cd %topdir%
 cd .\contrib\libiconv-%libiconv-version%
 nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% clean
+ren .\windows\stdbool.h .stdbool.h.disabled
+cd .\lib
+copy config.h.msvc config.h
+copy %topdir%\contrib\libiconv-config.patch .
+patch -i libiconv-config.patch
+cd ..
 nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir%
 nmake -f Makefile.msvc NO_NLS=1 DLL=1 MFLAGS=%mflags% DEBUG=%debug% PREFIX=%usrdir% install
 cd ..\..
