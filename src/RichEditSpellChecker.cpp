@@ -1,5 +1,6 @@
 #include "RichEditSpellChecker.h"
 #include <assert.h>
+#include <functional>
 #include <process.h>
 #include <iomanip>
 #include <iterator>

@@ -1,0 +1,29 @@
+--- enchant.c.orig	2010-08-24 16:26:00.000000000 +0100
++++ enchant.c	2010-10-28 22:23:37.875000000 +0100
+@@ -58,6 +58,8 @@
+ #include "prefix.h"
+ #endif
+ 
++#include <windows.h>
++
+ ENCHANT_PLUGIN_DECLARE("Enchant")
+ 
+ static char *
+@@ -198,6 +200,17 @@
+ 		g_slist_free (home_dirs);
+ 	}
+ 
++	{
++		char * ps = g_new0(char, MAX_PATH); 
++		if (GetModuleFileNameA(NULL, ps, MAX_PATH) != 0)
++		{
++			gchar* pPath = g_path_get_dirname(ps);
++			user_dirs = enchant_slist_append_unique_path(user_dirs, pPath);
++			user_dirs = enchant_slist_append_unique_path(user_dirs, g_build_filename(pPath, "enchant", NULL));
++		}
++		g_free(ps);
++	}
++
+ 	return user_dirs;
+ }
+ 
